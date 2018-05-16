@@ -1,5 +1,7 @@
 .project
 .classpath
+build/
+target/
 .settings/
 bin/
 .gradle
@@ -14,7 +16,6 @@ bin/
 
 *.versionsBackup
 
-.vscode
 
 *.log
 *.ctxt

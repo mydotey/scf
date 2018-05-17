@@ -21,7 +21,7 @@ public interface ConfigurationSourceConfig {
 
         B setPriority(int priority);
 
-        ConfigurationSource build();
+        ConfigurationSourceConfig build();
     }
 
 }

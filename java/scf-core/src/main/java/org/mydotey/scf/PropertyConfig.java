@@ -24,6 +24,8 @@ public interface PropertyConfig<K, V> {
 
     public interface AbstractBuilder<K, V, B extends AbstractBuilder<K, V, B>> {
 
+        B setKey(K key);
+
         B setValueType(Class<V> valueType);
 
         B setDefaultValue(V value);

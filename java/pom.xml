@@ -53,6 +53,7 @@
 
     <modules>
         <module>scf-core</module>
+        <module>scf-simple</module>
     </modules>
 
     <dependencyManagement>
@@ -65,6 +66,11 @@
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mydotey.scf</groupId>
+                <artifactId>scf-simple</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

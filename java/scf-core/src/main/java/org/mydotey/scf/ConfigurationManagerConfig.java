@@ -31,7 +31,7 @@ public interface ConfigurationManagerConfig {
 
         B setSources(Collection<ConfigurationSource> sources);
 
-        B setChangeHandlerThreadPoolSize();
+        B setChangeHandlerThreadPoolSize(int changeHandlerThreadPoolSize);
 
         ConfigurationManagerConfig build();
 

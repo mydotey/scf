@@ -53,7 +53,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
 
         StringBuilder message = new StringBuilder();
-        message.append(_config.getName()).append(" inited with ").append(_sortedSources.size()).append(" sources\n");
+        message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
+                .append(_sortedSources.size()).append(" sources\n");
         _sortedSources.forEach(s -> message.append("priority: ").append(s.getConfig().getPriority())
                 .append(", source: ").append(s.getConfig().getName()).append("\n"));
         LOGGER.info(message.toString());

@@ -58,6 +58,12 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         return copy;
     }
 
+    @Override
+    public String toString() {
+        return String.format("{ key: %s, valueType: %s, defaultValue: %s, valueFilters: %s }", _key, _valueType,
+                _defaultValue, _valueFilters);
+    }
+
     public static class Builder<K, V> extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>>
             implements PropertyConfig.Builder<K, V> {
 

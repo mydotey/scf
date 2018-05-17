@@ -11,11 +11,7 @@ public interface ConfigurationSourceConfig {
 
     int getPriority();
 
-    public interface Builder extends AbstractBuilder<Builder> {
-
-    }
-
-    public interface AbstractBuilder<B extends AbstractBuilder<B>> {
+    public interface Builder<B extends Builder<B>> {
 
         B setName(String name);
 

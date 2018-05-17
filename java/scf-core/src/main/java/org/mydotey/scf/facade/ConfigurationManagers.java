@@ -2,10 +2,8 @@ package org.mydotey.scf.facade;
 
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.DefaultConfigurationManager;
 import org.mydotey.scf.DefaultConfigurationManagerConfig;
-import org.mydotey.scf.DefaultConfigurationSourceConfig;
 import org.mydotey.scf.DefaultPropertyConfig;
 import org.mydotey.scf.PropertyConfig;
 
@@ -22,10 +20,6 @@ public class ConfigurationManagers {
 
     public static <K, V> PropertyConfig.Builder<K, V> newPropertyConfigBuilder() {
         return new DefaultPropertyConfig.Builder<>();
-    }
-
-    public static ConfigurationSourceConfig.Builder newSourceConfigBuilder() {
-        return new DefaultConfigurationSourceConfig.Builder();
     }
 
     public static ConfigurationManagerConfig.Builder newManagerConfigBuilder() {

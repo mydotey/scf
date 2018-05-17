@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -76,7 +77,7 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
             return new DefaultPropertyConfig<>();
         }
 
-        protected DefaultPropertyConfig<K, V> getCofnig() {
+        protected DefaultPropertyConfig<K, V> getConfig() {
             return _config;
         }
 
@@ -118,11 +119,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
         @Override
         public DefaultPropertyConfig<K, V> build() {
-            if (_config._key == null)
-                throw new IllegalArgumentException("key is null");
-
-            if (_config._valueType == null)
-                throw new IllegalArgumentException("valueType is null");
+            Objects.requireNonNull(_config._key, "key is null");
+            Objects.requireNonNull(_config._valueType, "valueType is null");
 
             return _config.clone();
         }

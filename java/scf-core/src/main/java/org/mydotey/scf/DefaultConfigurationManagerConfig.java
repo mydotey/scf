@@ -69,7 +69,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
             return new DefaultConfigurationManagerConfig();
         }
 
-        protected DefaultConfigurationManagerConfig getCofnig() {
+        protected DefaultConfigurationManagerConfig getConfig() {
             return _config;
         }
 
@@ -105,12 +105,9 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
         @Override
         public DefaultConfigurationManagerConfig build() {
-            if (_config._name == null)
-                throw new IllegalArgumentException("key is null");
-
+            if (_config._name == null || _config._name.trim().isEmpty())
+                throw new IllegalArgumentException("name is null or empty");
             _config._name = _config._name.trim();
-            if (_config._name.isEmpty())
-                throw new IllegalArgumentException("key is empty");
 
             if (_config._sources == null || _config._sources.isEmpty())
                 throw new IllegalArgumentException("sources is null or empty");

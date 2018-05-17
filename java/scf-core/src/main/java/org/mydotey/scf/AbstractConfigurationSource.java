@@ -1,6 +1,8 @@
 package org.mydotey.scf;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -19,18 +21,57 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private ConfigurationSourceConfig _config;
 
+    private List<Class<?>> _supportedKeyTypes;
+    private List<Class<?>> _supportedValueTypes;
+
     private volatile List<Consumer<ConfigurationSource>> _changeListeners;
 
     public AbstractConfigurationSource(ConfigurationSourceConfig config) {
         Objects.requireNonNull(config, "config is null");
 
         _config = config;
+        _supportedKeyTypes = new ArrayList<>();
+        _supportedValueTypes = new ArrayList<>();
     }
 
     @Override
     public ConfigurationSourceConfig getConfig() {
         return _config;
     }
+
+    @Override
+    public <K, V> V getPropertyValue(K key, Class<V> valueType) {
+        if (key == null)
+            return null;
+
+        if (!_supportedKeyTypes.contains(key.getClass()) || !_supportedValueTypes.contains(valueType))
+            return null;
+
+        try {
+            return doGetPropertyValue(key, valueType);
+        } catch (Exception e) {
+            LOGGER.error("source getPropertyValue failed to run", e);
+            return null;
+        }
+    }
+
+    public Collection<Class<?>> getSupportedKeyTypes() {
+        return Collections.unmodifiableList(_supportedKeyTypes);
+    }
+
+    protected synchronized void addSupportedKeyType(Class<?> type) {
+        _supportedKeyTypes.add(type);
+    }
+
+    public Collection<Class<?>> getSupportedValueTypes() {
+        return Collections.unmodifiableList(_supportedValueTypes);
+    }
+
+    protected synchronized void addSupportedValueType(Class<?> type) {
+        _supportedValueTypes.add(type);
+    }
+
+    protected abstract <K, V> V doGetPropertyValue(K key, Class<V> valueType);
 
     @Override
     public synchronized void addChangeListener(Consumer<ConfigurationSource> changeListener) {
@@ -49,7 +90,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
             try {
                 l.accept(AbstractConfigurationSource.this);
             } catch (Exception e) {
-                LOGGER.error("configuration source change listener failed to run", e);
+                LOGGER.error("source change listener failed to run", e);
             }
         });
     }

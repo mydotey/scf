@@ -17,37 +17,27 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigurationSource.class);
 
-    private String _name;
-    private int _priority;
+    private ConfigurationSourceConfig _config;
 
     private volatile List<Consumer<ConfigurationSource>> _changeListeners;
 
-    public AbstractConfigurationSource(String name, int priority) {
-        Objects.requireNonNull(name, "name is null");
-        name = name.trim();
-        if (name.isEmpty())
-            throw new IllegalArgumentException("name is empty or whitespace");
+    public AbstractConfigurationSource(ConfigurationSourceConfig config) {
+        Objects.requireNonNull(config, "config is null");
 
-        _name = name;
-        _priority = priority;
+        _config = config;
     }
 
     @Override
-    public String name() {
-        return _name;
-    }
-
-    @Override
-    public int priority() {
-        return _priority;
+    public ConfigurationSourceConfig getConfig() {
+        return _config;
     }
 
     @Override
     public synchronized void addChangeListener(Consumer<ConfigurationSource> changeListener) {
+        Objects.requireNonNull("changeListener", "changeListener is null");
+
         if (_changeListeners == null)
             _changeListeners = new ArrayList<>();
-
-        Objects.requireNonNull("changeListener", "changeListener is null");
         _changeListeners.add(changeListener);
     }
 

@@ -9,11 +9,13 @@ import java.util.Collection;
  */
 public interface ConfigurationManager {
 
-    Collection<ConfigurationSource> sources();
+    ConfigurationManagerConfig getConfig();
 
     @SuppressWarnings("rawtypes")
-    Collection<Property> properties();
+    Collection<Property> getProperties();
 
-    <K, V> Property<K, V> getProperty(K key, Class<V> valueClazz);
+    <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config);
+
+    <K, V> V getPropertyValue(PropertyConfig<K, V> config);
 
 }

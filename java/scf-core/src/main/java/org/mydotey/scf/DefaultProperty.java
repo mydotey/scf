@@ -17,53 +17,40 @@ public class DefaultProperty<K, V> implements Property<K, V> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProperty.class);
 
-    private K _key;
+    private PropertyConfig<K, V> _config;
     private volatile V _value;
-    private Class<V> _valueClazz;
-
     private volatile List<Consumer<Property<K, V>>> _changeListeners;
 
-    public DefaultProperty(K key, V value, Class<V> valueClazz) {
-        Objects.requireNonNull(key, "key is null");
-        Objects.requireNonNull(valueClazz, "valueClazz is null");
+    public DefaultProperty(PropertyConfig<K, V> config, V value) {
+        Objects.requireNonNull(config, "config is null");
 
-        _key = key;
+        _config = config;
         _value = value;
-        _valueClazz = valueClazz;
     }
 
     @Override
-    public K key() {
-        return _key;
+    public PropertyConfig<K, V> getConfig() {
+        return _config;
     }
 
     @Override
-    public V value() {
+    public V getValue() {
         return _value;
     }
 
-    @Override
-    public String toString() {
-        return String.format("{ key: %s, value: %s }", _key, _value);
+    public synchronized void setValue(V value) {
+        _value = value;
+
+        raiseChangeEvent();
     }
 
     @Override
     public synchronized void addChangeListener(Consumer<Property<K, V>> changeListener) {
+        Objects.requireNonNull("changeListener", "changeListener is null");
+
         if (_changeListeners == null)
             _changeListeners = new ArrayList<>();
-
-        Objects.requireNonNull("changeListener", "changeListener is null");
         _changeListeners.add(changeListener);
-    }
-
-    public Class<V> valueClazz() {
-        return _valueClazz;
-    }
-
-    public synchronized void updateValue(V value) {
-        _value = value;
-
-        raiseChangeEvent();
     }
 
     protected void raiseChangeEvent() {
@@ -77,6 +64,11 @@ public class DefaultProperty<K, V> implements Property<K, V> {
                 LOGGER.error("property change listener failed to run", e);
             }
         });
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{ config: %s, value: %s }", _config, _value);
     }
 
 }

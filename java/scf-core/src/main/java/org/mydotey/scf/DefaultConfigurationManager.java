@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,85 +26,122 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         Objects.requireNonNull(s1, "s1 is null");
         Objects.requireNonNull(s2, "s2 is null");
 
-        if (s1.priority() == s2.priority())
-            throw new IllegalArgumentException(
-                    "2 sources have the same priority. s1: " + s1.name() + ", s2: " + s2.name());
+        if (s1.getConfig().getPriority() == s2.getConfig().getPriority())
+            throw new IllegalArgumentException("2 sources have the same priority. s1: " + s1.getConfig().getName()
+                    + ", s2: " + s2.getConfig().getName());
 
-        return s1.priority() > s2.priority() ? 1 : -1;
+        return s1.getConfig().getPriority() > s2.getConfig().getPriority() ? 1 : -1;
     };
 
-    private List<ConfigurationSource> _sources;
+    private ConfigurationManagerConfig _config;
+    private List<ConfigurationSource> _sortedSources;
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
 
-    public DefaultConfigurationManager(Collection<ConfigurationSource> sources) {
-        Objects.requireNonNull(sources, "sources is null");
+    private Object _propertyGetLock = new Object();
 
-        _sources = new ArrayList<>(sources);
-        Collections.sort(_sources, SOURCE_COMPARATOR);
-        _sources = Collections.unmodifiableList(_sources);
+    public DefaultConfigurationManager(ConfigurationManagerConfig config) {
+        Objects.requireNonNull(config, "config is null");
 
-        _sources.forEach(s -> s.addChangeListener(this::onSourceChange));
+        _config = config;
+
+        _sortedSources = new ArrayList<>(_config.getSources());
+        Collections.sort(_sortedSources, SOURCE_COMPARATOR);
+        _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
 
         StringBuilder message = new StringBuilder();
-        message.append("ConfigurationManager inited with ").append(_sources.size()).append(" sources\n");
-        _sources.forEach(s -> message.append("priority: ").append(s.priority()).append(", source: ").append(s.name())
-                .append("\n"));
+        message.append(_config.getName()).append(" inited with ").append(_sortedSources.size()).append(" sources\n");
+        _sortedSources.forEach(s -> message.append("priority: ").append(s.getConfig().getPriority())
+                .append(", source: ").append(s.getConfig().getName()).append("\n"));
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();
     }
 
     @Override
-    public <K, V> Property<K, V> getProperty(K key, Class<V> valueClazz) {
-        Objects.requireNonNull(key, "key is null");
-        Objects.requireNonNull(valueClazz, "valueClazz is null");
+    public ConfigurationManagerConfig getConfig() {
+        return _config;
+    }
 
-        DefaultProperty<K, V> property = _properties.computeIfAbsent(key, k -> {
-            V value = getPropertyValue(key, valueClazz);
-            return newProperty(key, value, valueClazz);
-        });
+    @Override
+    public Collection<Property> getProperties() {
+        return (Collection) _properties.values();
+    }
 
-        if (property.valueClazz() != valueClazz)
-            throw new IllegalArgumentException("a property with the same key exists, but with a different valueClass: "
-                    + property.valueClazz() + ", maybe the valueClazz parameter is something wrong: " + valueClazz);
+    @Override
+    public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config) {
+        Objects.requireNonNull(config, "config is null");
+
+        Property<K, V> property = _properties.get(config.getKey());
+        if (property == null) {
+            synchronized (_propertyGetLock) {
+                property = _properties.get(config.getKey());
+                if (property == null) {
+                    V value = getPropertyValue(config);
+                    property = newProperty(config, value);
+                    _properties.put((Object) config.getKey(), (DefaultProperty) property);
+                }
+            }
+        }
+
+        if (property.getConfig().getValueType() != config.getValueType())
+            throw new IllegalArgumentException("a property with the same key exists, but with a different valueType: "
+                    + property.getConfig().getValueType() + ", maybe the valueClazz parameter is something wrong: "
+                    + config.getValueType());
 
         return property;
     }
 
     @Override
-    public Collection<ConfigurationSource> sources() {
-        return _sources;
-    }
-
-    @Override
-    public Collection<Property> properties() {
-        return Collections.unmodifiableCollection(_properties.values());
-    }
-
-    protected <K, V> DefaultProperty<K, V> newProperty(K key, V value, Class<V> valueClazz) {
-        return new DefaultProperty<K, V>(key, value, valueClazz);
-    }
-
-    protected <K, V> V getPropertyValue(K key, Class<V> valueClazz) {
+    public <K, V> V getPropertyValue(PropertyConfig<K, V> config) {
         V value = null;
-        for (ConfigurationSource source : sources()) {
-            value = source.getPropertyValue(key, valueClazz);
+        for (ConfigurationSource source : _sortedSources) {
+            value = source.getPropertyValue(config.getKey(), config.getValueType());
+
+            filterValue(config, value);
+
             if (value != null)
                 break;
+        }
+
+        return value == null ? config.getDefaultValue() : value;
+    }
+
+    protected <K, V> V filterValue(PropertyConfig<K, V> config, V value) {
+        if (value == null)
+            return value;
+
+        Collection<Function<V, V>> valueFilters = config.getValueFilters();
+        if (valueFilters == null || valueFilters.isEmpty())
+            return value;
+
+        for (Function<V, V> valueFilter : valueFilters) {
+            try {
+                value = valueFilter.apply(value);
+                if (value == null)
+                    break;
+            } catch (Exception e) {
+                LOGGER.error("failed to run valueFilter: " + valueFilter, e);
+            }
         }
 
         return value;
     }
 
-    protected void onSourceChange(ConfigurationSource source) {
-        _properties.values().forEach(p -> {
-            Object value = getPropertyValue(p.key(), p.valueClazz());
-            if (Objects.equals(p.value(), value))
-                return;
+    protected <K, V> DefaultProperty<K, V> newProperty(PropertyConfig<K, V> config, V value) {
+        return new DefaultProperty<K, V>(config, value);
+    }
 
-            p.updateValue(value);
-        });
+    protected void onSourceChange(ConfigurationSource source) {
+        synchronized (_propertyGetLock) {
+            _properties.values().forEach(p -> {
+                Object value = getPropertyValue(p.getConfig());
+                if (Objects.equals(p.getValue(), value))
+                    return;
+
+                p.setValue(value);
+            });
+        }
     }
 
 }

@@ -9,9 +9,9 @@ import java.util.function.Consumer;
  */
 public interface Property<K, V> {
 
-    K key();
+    PropertyConfig<K, V> getConfig();
 
-    V value();
+    V getValue();
 
     void addChangeListener(Consumer<Property<K, V>> changeListener);
 

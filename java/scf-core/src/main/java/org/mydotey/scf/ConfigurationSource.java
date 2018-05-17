@@ -9,11 +9,9 @@ import java.util.function.Consumer;
  */
 public interface ConfigurationSource {
 
-    String name();
+    ConfigurationSourceConfig getConfig();
 
-    int priority();
-
-    <K, V> V getPropertyValue(K key, Class<V> valueClazz);
+    <K, V> V getPropertyValue(K key, Class<V> valueType);
 
     void addChangeListener(Consumer<ConfigurationSource> changeListener);
 

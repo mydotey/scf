@@ -13,6 +13,14 @@ public interface ConfigurationManagerConfig {
 
     Collection<ConfigurationSource> getSources();
 
+    /*
+     * case
+     *  0: not use a thread pool, handle changes in the source change raising thread
+     *  > 0: handle changes in a standalone thread pool
+     * default to 1
+     */
+    int getChangeHandlerThreadPoolSize();
+
     public interface Builder extends AbstractBuilder<Builder> {
 
     }
@@ -23,7 +31,10 @@ public interface ConfigurationManagerConfig {
 
         B setSources(Collection<ConfigurationSource> sources);
 
+        B setChangeHandlerThreadPoolSize();
+
         ConfigurationManagerConfig build();
+
     }
 
 }

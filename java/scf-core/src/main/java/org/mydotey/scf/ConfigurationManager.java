@@ -1,5 +1,6 @@
 package org.mydotey.scf;
 
+import java.io.Closeable;
 import java.util.Collection;
 
 /**
@@ -7,7 +8,7 @@ import java.util.Collection;
  *
  * May 16, 2018
  */
-public interface ConfigurationManager {
+public interface ConfigurationManager extends Closeable {
 
     ConfigurationManagerConfig getConfig();
 
@@ -17,5 +18,8 @@ public interface ConfigurationManager {
     <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config);
 
     <K, V> V getPropertyValue(PropertyConfig<K, V> config);
+
+    @Override
+    void close();
 
 }

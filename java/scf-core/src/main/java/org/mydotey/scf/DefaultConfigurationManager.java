@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -39,6 +41,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
 
     private Object _propertyGetLock = new Object();
+    private ExecutorService _changeHandlerThreadPool;
 
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
         Objects.requireNonNull(config, "config is null");
@@ -56,6 +59,15 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();
+
+        _propertyGetLock = new Object();
+        if (config.getChangeHandlerThreadPoolSize() > 0)
+            _changeHandlerThreadPool = Executors.newFixedThreadPool(config.getChangeHandlerThreadPoolSize(), r -> {
+                Thread thread = r == null ? new Thread() : new Thread(r);
+                thread.setDaemon(true);
+                thread.setName("changeHandlerThread-" + config.getName());
+                return thread;
+            });
     }
 
     @Override
@@ -140,8 +152,19 @@ public class DefaultConfigurationManager implements ConfigurationManager {
                     return;
 
                 p.setValue(value);
+
+                if (_changeHandlerThreadPool == null)
+                    p.raiseChangeEvent();
+                else
+                    _changeHandlerThreadPool.submit(() -> p.raiseChangeEvent());
             });
         }
+    }
+
+    @Override
+    public void close() {
+        if (_changeHandlerThreadPool != null)
+            _changeHandlerThreadPool.shutdown();
     }
 
 }

@@ -38,10 +38,8 @@ public class DefaultProperty<K, V> implements Property<K, V> {
         return _value;
     }
 
-    public synchronized void setValue(V value) {
+    public void setValue(V value) {
         _value = value;
-
-        raiseChangeEvent();
     }
 
     @Override
@@ -53,7 +51,7 @@ public class DefaultProperty<K, V> implements Property<K, V> {
         _changeListeners.add(changeListener);
     }
 
-    protected void raiseChangeEvent() {
+    public synchronized void raiseChangeEvent() {
         if (_changeListeners == null)
             return;
 

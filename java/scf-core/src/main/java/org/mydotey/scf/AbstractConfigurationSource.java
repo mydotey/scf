@@ -41,7 +41,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
         _changeListeners.add(changeListener);
     }
 
-    protected void raiseChangeEvent() {
+    protected synchronized void raiseChangeEvent() {
         if (_changeListeners == null)
             return;
 

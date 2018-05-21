@@ -37,9 +37,6 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     @Override
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
-        if (!isSupported(propertyConfig))
-            return null;
-
         try {
             return doGetPropertyValue(propertyConfig);
         } catch (Exception e) {
@@ -47,8 +44,6 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
             return null;
         }
     }
-
-    protected abstract <K, V> boolean isSupported(PropertyConfig<K, V> propertyConfig);
 
     protected abstract <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig);
 

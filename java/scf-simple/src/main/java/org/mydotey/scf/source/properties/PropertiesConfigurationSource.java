@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.impl.AbstractConfigurationSource;
+import org.mydotey.scf.type.TypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +35,12 @@ public class PropertiesConfigurationSource extends AbstractConfigurationSource {
         }
     }
 
-    @Override
-    protected <K, V> boolean isSupported(PropertyConfig<K, V> propertyConfig) {
-        return propertyConfig.getKey().getClass() == String.class && propertyConfig.getValueType() == String.class;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     protected <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        if (propertyConfig.getKey().getClass() != String.class)
+            return null;
+
         String value = (String) _properties.get(propertyConfig.getKey());
         if (value == null || value.isEmpty())
             return null;
@@ -50,7 +49,16 @@ public class PropertiesConfigurationSource extends AbstractConfigurationSource {
         if (value.isEmpty())
             return null;
 
-        return (V) value;
+        if (propertyConfig.getValueType() == String.class)
+            return (V) value;
+
+        for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
+            if (typeConverter.getSourceType() == String.class
+                    && typeConverter.getTargetType() == propertyConfig.getValueType())
+                return ((TypeConverter<String, V>) typeConverter).convert(value);
+        }
+
+        return null;
     }
 
 }

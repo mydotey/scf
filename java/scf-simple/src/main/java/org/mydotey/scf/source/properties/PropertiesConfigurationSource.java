@@ -3,7 +3,7 @@ package org.mydotey.scf.source.properties;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.mydotey.scf.AbstractConfigurationSource;
+import org.mydotey.scf.impl.AbstractConfigurationSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

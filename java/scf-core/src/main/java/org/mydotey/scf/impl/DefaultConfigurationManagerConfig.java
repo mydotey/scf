@@ -1,9 +1,12 @@
-package org.mydotey.scf;
+package org.mydotey.scf.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.mydotey.scf.ConfigurationManagerConfig;
+import org.mydotey.scf.ConfigurationSource;
 
 /**
  * @author koqizhao

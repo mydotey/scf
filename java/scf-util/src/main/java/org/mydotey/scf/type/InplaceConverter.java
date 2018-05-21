@@ -31,4 +31,22 @@ public class InplaceConverter<V> implements TypeConverter<V, V> {
         return s;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+
+        if (!(obj instanceof InplaceConverter))
+            return false;
+
+        InplaceConverter other = (InplaceConverter) obj;
+        return Objects.equals(_type, other._type);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{ converter: %s, type: %s }", getClass(), _type);
+    }
+
 }

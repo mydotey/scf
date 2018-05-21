@@ -69,4 +69,24 @@ public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
         return map;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+
+        if (!(obj instanceof StringToMapConverter))
+            return false;
+
+        StringToMapConverter other = (StringToMapConverter) obj;
+        return Objects.equals(_keyConverter, other._valueConverter)
+                && Objects.equals(_valueConverter, other._valueConverter);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{ converter: %s, KeyConverter: %s, valueConverter: %s }", getClass(), _keyConverter,
+                _valueConverter);
+    }
+
 }

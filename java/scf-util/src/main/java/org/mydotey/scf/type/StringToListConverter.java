@@ -52,4 +52,22 @@ public class StringToListConverter<V> extends StringConverter<List<V>> {
         return list;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+
+        if (!(obj instanceof StringToListConverter))
+            return false;
+
+        StringToListConverter other = (StringToListConverter) obj;
+        return Objects.equals(_typeConverter, other._typeConverter);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{ converter: %s, typeConverter: %s }", getClass(), _typeConverter);
+    }
+
 }

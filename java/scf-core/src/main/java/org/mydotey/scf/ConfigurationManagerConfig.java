@@ -1,6 +1,5 @@
 package org.mydotey.scf;
 
-import java.io.Closeable;
 import java.util.Collection;
 
 /**
@@ -32,14 +31,4 @@ public interface ConfigurationManagerConfig {
 
     }
 
-    public interface TaskExecutor extends Closeable {
-
-        void schedule(Runnable runnable, long delayMs, long intervalMs);
-
-        void submit(Runnable runnable);
-
-        @Override
-        void close();
-
-    }
 }

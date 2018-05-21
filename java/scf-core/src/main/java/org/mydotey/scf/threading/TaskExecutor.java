@@ -9,7 +9,7 @@ import java.io.Closeable;
  */
 public interface TaskExecutor extends Closeable {
 
-    void schedule(Runnable runnable, long delayMs, long intervalMs);
+    void schedule(Runnable runnable);
 
     void submit(Runnable runnable);
 

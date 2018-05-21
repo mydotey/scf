@@ -13,14 +13,26 @@ import java.util.concurrent.TimeUnit;
 public class SimpleTaskExecutor implements TaskExecutor {
 
     private ScheduledExecutorService _scheduledExecutorService;
+    private long _delayMs;
+    private long _intervalMs;
 
     public SimpleTaskExecutor(int corePoolSize, ThreadFactory threadFactory) {
         _scheduledExecutorService = Executors.newScheduledThreadPool(corePoolSize, threadFactory);
+        _delayMs = getDelayMs();
+        _intervalMs = getIntervalMs();
+    }
+
+    protected long getDelayMs() {
+        return TimeUnit.SECONDS.toMillis(60);
+    }
+
+    protected long getIntervalMs() {
+        return TimeUnit.SECONDS.toMillis(60);
     }
 
     @Override
-    public void schedule(Runnable runnable, long delayMs, long intervalMs) {
-        _scheduledExecutorService.scheduleWithFixedDelay(runnable, delayMs, intervalMs, TimeUnit.MILLISECONDS);
+    public void schedule(Runnable runnable) {
+        _scheduledExecutorService.scheduleWithFixedDelay(runnable, _delayMs, _intervalMs, TimeUnit.MILLISECONDS);
     }
 
     @Override

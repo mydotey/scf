@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mydotey.scf.ConfigurationManager;
@@ -70,10 +69,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     protected void init() {
         _isSourceChanging = new AtomicBoolean();
 
-        if (_config.getTaskExecutor() != null) {
-            long interval = TimeUnit.SECONDS.toMillis(60);
-            _config.getTaskExecutor().schedule(this::onSourceChange, interval, interval);
-        }
+        if (_config.getTaskExecutor() != null)
+            _config.getTaskExecutor().schedule(this::onSourceChange);
     }
 
     @Override

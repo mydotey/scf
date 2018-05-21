@@ -94,8 +94,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         if (!Objects.equals(property.getConfig(), propertyConfig))
             throw new IllegalArgumentException(
-                    "a property with the same key exists, but with a different propertyConfig: " + property.getConfig()
-                            + ", maybe the propertyConfig parameter is wrong: " + propertyConfig);
+                    String.format("make sure using same config for property: %s, used config: %s, current Config: %s",
+                            propertyConfig.getKey(), property.getConfig(), propertyConfig));
 
         return property;
     }

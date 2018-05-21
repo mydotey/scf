@@ -55,10 +55,7 @@ public class StringToListConverter<V> extends StringConverter<List<V>> {
     @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
-        if (obj == null)
-            return false;
-
-        if (!(obj instanceof StringToListConverter))
+        if (!super.equals(obj))
             return false;
 
         StringToListConverter other = (StringToListConverter) obj;
@@ -67,7 +64,8 @@ public class StringToListConverter<V> extends StringConverter<List<V>> {
 
     @Override
     public String toString() {
-        return String.format("{ converter: %s, typeConverter: %s }", getClass(), _typeConverter);
+        return String.format("{ type: %s, sourceType: %s, targetType: %s, typeConverter: %s }", getClass(),
+                getSourceType(), getTargetType(), _typeConverter);
     }
 
 }

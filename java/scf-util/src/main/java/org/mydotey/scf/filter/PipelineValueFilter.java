@@ -38,4 +38,25 @@ public class PipelineValueFilter<V> implements Function<V, V> {
         return t;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
+        if (obj == null)
+            return false;
+
+        if (this.getClass() != obj.getClass())
+            return false;
+
+        PipelineValueFilter other = (PipelineValueFilter) obj;
+        return Objects.equals(_filters, other._filters);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("{ type: %s, filters: %s }", getClass(), _filters);
+    }
+
 }

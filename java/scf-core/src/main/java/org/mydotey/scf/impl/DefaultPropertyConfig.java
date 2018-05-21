@@ -70,13 +70,20 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     @Override
     public String toString() {
-        return String.format("{ key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }", _key,
-                _valueType, _defaultValue, _valueConverters, _valueFilter);
+        return String.format(
+                "{ type: %s, key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }",
+                getClass(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter);
     }
 
     @Override
     public boolean equals(PropertyConfig propertyConfig) {
+        if (this == propertyConfig)
+            return true;
+
         if (propertyConfig == null)
+            return false;
+
+        if (getClass() != propertyConfig.getClass())
             return false;
 
         if (!Objects.equals(getKey(), propertyConfig.getKey()))

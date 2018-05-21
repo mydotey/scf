@@ -10,10 +10,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>scf-simple</artifactId>
+    <artifactId>scf-util</artifactId>
     <packaging>jar</packaging>
-    <name>scf-simple</name>
-    <description>simple configuration facade simple sources</description>
+    <name>scf-util</name>
+    <description>simple configuration facade util</description>
 
     <dependencies>
         <dependency>
@@ -23,10 +23,6 @@
         <dependency>
             <groupId>org.mydotey.scf</groupId>
             <artifactId>scf-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.mydotey.scf</groupId>
-            <artifactId>scf-util</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

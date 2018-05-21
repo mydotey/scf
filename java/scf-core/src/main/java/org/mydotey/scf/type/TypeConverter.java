@@ -11,6 +11,6 @@ public interface TypeConverter<S, T> {
 
     Class<T> getTargetType();
 
-    T convert(S s);
+    T convert(S source);
 
 }

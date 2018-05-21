@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
@@ -125,18 +124,13 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         if (value == null)
             return value;
 
-        Collection<Function<V, V>> valueFilters = config.getValueFilters();
-        if (valueFilters == null || valueFilters.isEmpty())
+        if (config.getValueFilter() == null)
             return value;
 
-        for (Function<V, V> valueFilter : valueFilters) {
-            try {
-                value = valueFilter.apply(value);
-                if (value == null)
-                    break;
-            } catch (Exception e) {
-                LOGGER.error("failed to run valueFilter: " + valueFilter, e);
-            }
+        try {
+            value = config.getValueFilter().apply(value);
+        } catch (Exception e) {
+            LOGGER.error("failed to run valueFilter: " + config.getValueFilter(), e);
         }
 
         return value;

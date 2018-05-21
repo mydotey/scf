@@ -11,10 +11,10 @@ import java.util.Objects;
  */
 public class StringToListConverter<V> extends StringConverter<List<V>> {
 
-    private StringConverter<V> _typeConverter;
+    private TypeConverter<String, V> _typeConverter;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public StringToListConverter(StringConverter<V> typeConverter) {
+    public StringToListConverter(TypeConverter<String, V> typeConverter) {
         super((Class) List.class);
         Objects.requireNonNull(typeConverter, "typeConverter is null");
         _typeConverter = typeConverter;

@@ -21,7 +21,7 @@ public interface PropertyConfig<K, V> {
 
     Collection<TypeConverter> getValueConverters();
 
-    Collection<Function<V, V>> getValueFilters();
+    Function<V, V> getValueFilter();
 
     public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>> {
 
@@ -37,7 +37,7 @@ public interface PropertyConfig<K, V> {
 
         B setValueConverters(Collection<TypeConverter> valueConverters);
 
-        B setValueFilters(Collection<Function<V, V>> valueFilters);
+        B setValueFilter(Function<V, V> valueFilter);
 
         PropertyConfig<K, V> build();
     }

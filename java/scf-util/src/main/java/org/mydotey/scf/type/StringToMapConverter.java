@@ -11,11 +11,11 @@ import java.util.Objects;
  */
 public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
 
-    private StringConverter<K> _keyConverter;
-    private StringConverter<V> _valueConverter;
+    private TypeConverter<String, K> _keyConverter;
+    private TypeConverter<String, V> _valueConverter;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public StringToMapConverter(StringConverter<K> keyConverter, StringConverter<V> valueConverter) {
+    public StringToMapConverter(TypeConverter<String, K> keyConverter, TypeConverter<String, V> valueConverter) {
         super((Class) Map.class);
         Objects.requireNonNull(keyConverter, "keyConverter is null");
         Objects.requireNonNull(valueConverter, "valueConverter is null");

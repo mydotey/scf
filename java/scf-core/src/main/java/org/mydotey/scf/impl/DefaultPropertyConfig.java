@@ -22,7 +22,7 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     private Class<V> _valueType;
     private V _defaultValue;
     private List<TypeConverter> _valueConverters;
-    private List<Function<V, V>> _valueFilters;
+    private Function<V, V> _valueFilter;
 
     protected DefaultPropertyConfig() {
 
@@ -49,8 +49,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     }
 
     @Override
-    public Collection<Function<V, V>> getValueFilters() {
-        return _valueFilters;
+    public Function<V, V> getValueFilter() {
+        return _valueFilter;
     }
 
     @SuppressWarnings("unchecked")
@@ -63,15 +63,15 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
             e.printStackTrace();
         }
 
-        if (_valueFilters != null)
-            copy._valueFilters = Collections.unmodifiableList(new ArrayList<>(_valueFilters));
+        if (_valueConverters != null)
+            copy._valueConverters = Collections.unmodifiableList(new ArrayList<>(_valueConverters));
         return copy;
     }
 
     @Override
     public String toString() {
-        return String.format("{ key: %s, valueType: %s, defaultValue: %s, valueFilters: %s }", _key, _valueType,
-                _defaultValue, _valueFilters);
+        return String.format("{ key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }", _key,
+                _valueType, _defaultValue, _valueConverters, _valueFilter);
     }
 
     public static class Builder<K, V> extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>>
@@ -134,20 +134,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         }
 
         @Override
-        public B setValueFilters(Collection<Function<V, V>> valueFilters) {
-            if (valueFilters == null)
-                _config._valueFilters = null;
-            else {
-                if (_config._valueFilters == null)
-                    _config._valueFilters = new ArrayList<>();
-                else
-                    _config._valueFilters.clear();
-                valueFilters.forEach(f -> {
-                    if (f != null)
-                        _config._valueFilters.add(f);
-                });
-            }
-
+        public B setValueFilter(Function<V, V> valueFilter) {
+            _config._valueFilter = valueFilter;
             return (B) this;
         }
 

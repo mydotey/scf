@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -39,6 +40,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
 
+    private AtomicBoolean _isSourceChanging;
+
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
         Objects.requireNonNull(config, "config is null");
 
@@ -61,6 +64,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     protected void init() {
+        _isSourceChanging = new AtomicBoolean();
+
         if (_config.getTaskExecutor() != null) {
             long interval = TimeUnit.SECONDS.toMillis(60);
             _config.getTaskExecutor().schedule(this::onSourceChange, interval, interval);
@@ -139,18 +144,25 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     protected void onSourceChange() {
-        _properties.values().forEach(p -> {
-            Object value = getPropertyValue(p.getConfig());
-            if (Objects.equals(p.getValue(), value))
-                return;
+        if (!_isSourceChanging.compareAndSet(false, true))
+            return;
 
-            p.setValue(value);
+        try {
+            _properties.values().forEach(p -> {
+                Object value = getPropertyValue(p.getConfig());
+                if (Objects.equals(p.getValue(), value))
+                    return;
 
-            if (_config.getTaskExecutor() == null)
-                p.raiseChangeEvent();
-            else
-                _config.getTaskExecutor().submit(p::raiseChangeEvent);
-        });
+                p.setValue(value);
+
+                if (_config.getTaskExecutor() == null)
+                    p.raiseChangeEvent();
+                else
+                    _config.getTaskExecutor().submit(p::raiseChangeEvent);
+            });
+        } finally {
+            _isSourceChanging.set(false);
+        }
     }
 
     @Override

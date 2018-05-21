@@ -7,8 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -40,9 +39,6 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
 
-    private Object _propertyGetLock = new Object();
-    private ExecutorService _changeHandlerThreadPool;
-
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
         Objects.requireNonNull(config, "config is null");
 
@@ -61,14 +57,14 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         _properties = new ConcurrentHashMap<>();
 
-        _propertyGetLock = new Object();
-        if (config.getChangeHandlerThreadPoolSize() > 0)
-            _changeHandlerThreadPool = Executors.newFixedThreadPool(config.getChangeHandlerThreadPoolSize(), r -> {
-                Thread thread = r == null ? new Thread() : new Thread(r);
-                thread.setDaemon(true);
-                thread.setName("changeHandlerThread-" + config.getName());
-                return thread;
-            });
+        init();
+    }
+
+    protected void init() {
+        if (_config.getTaskExecutor() != null) {
+            long interval = TimeUnit.SECONDS.toMillis(60);
+            _config.getTaskExecutor().schedule(this::onSourceChange, interval, interval);
+        }
     }
 
     @Override
@@ -85,17 +81,10 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config) {
         Objects.requireNonNull(config, "config is null");
 
-        Property<K, V> property = _properties.get(config.getKey());
-        if (property == null) {
-            synchronized (_propertyGetLock) {
-                property = _properties.get(config.getKey());
-                if (property == null) {
-                    V value = getPropertyValue(config);
-                    property = newProperty(config, value);
-                    _properties.put((Object) config.getKey(), (DefaultProperty) property);
-                }
-            }
-        }
+        Property<K, V> property = _properties.computeIfAbsent(config.getKey(), k -> {
+            V value = getPropertyValue(config);
+            return newProperty(config, value);
+        });
 
         if (property.getConfig().getValueType() != config.getValueType())
             throw new IllegalArgumentException("a property with the same key exists, but with a different valueType: "
@@ -146,26 +135,28 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     protected void onSourceChange(ConfigurationSource source) {
-        synchronized (_propertyGetLock) {
-            _properties.values().forEach(p -> {
-                Object value = getPropertyValue(p.getConfig());
-                if (Objects.equals(p.getValue(), value))
-                    return;
+        onSourceChange();
+    }
 
-                p.setValue(value);
+    protected void onSourceChange() {
+        _properties.values().forEach(p -> {
+            Object value = getPropertyValue(p.getConfig());
+            if (Objects.equals(p.getValue(), value))
+                return;
 
-                if (_changeHandlerThreadPool == null)
-                    p.raiseChangeEvent();
-                else
-                    _changeHandlerThreadPool.submit(() -> p.raiseChangeEvent());
-            });
-        }
+            p.setValue(value);
+
+            if (_config.getTaskExecutor() == null)
+                p.raiseChangeEvent();
+            else
+                _config.getTaskExecutor().submit(p::raiseChangeEvent);
+        });
     }
 
     @Override
     public void close() {
-        if (_changeHandlerThreadPool != null)
-            _changeHandlerThreadPool.shutdown();
+        if (_config.getTaskExecutor() != null)
+            _config.getTaskExecutor().close();
     }
 
 }

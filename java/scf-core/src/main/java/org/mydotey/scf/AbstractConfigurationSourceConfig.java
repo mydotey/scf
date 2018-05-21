@@ -36,6 +36,11 @@ public abstract class AbstractConfigurationSourceConfig implements Configuration
         return copy;
     }
 
+    @Override
+    public String toString() {
+        return String.format("{ name: %s, priority: %s }", _name, _priority);
+    }
+
     @SuppressWarnings("unchecked")
     public static abstract class AbstractBuilder<B extends ConfigurationSourceConfig.Builder<B>>
             implements ConfigurationSourceConfig.Builder<B> {

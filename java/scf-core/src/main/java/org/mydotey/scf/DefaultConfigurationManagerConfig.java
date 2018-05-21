@@ -14,7 +14,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
     private String _name;
     private List<ConfigurationSource> _sources;
-    private int _changeHandlerThreadPoolSize;
+    private TaskExecutor _taskExecutor;
 
     protected DefaultConfigurationManagerConfig() {
 
@@ -31,8 +31,8 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
     }
 
     @Override
-    public int getChangeHandlerThreadPoolSize() {
-        return _changeHandlerThreadPoolSize;
+    public TaskExecutor getTaskExecutor() {
+        return _taskExecutor;
     }
 
     @Override
@@ -49,6 +49,11 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         return copy;
     }
 
+    @Override
+    public String toString() {
+        return String.format("{ name: %s, taskExecutor: %s, sources: %s }", _name, _taskExecutor, _sources);
+    }
+
     public static class Builder extends DefaultAbstractBuilder<ConfigurationManagerConfig.Builder>
             implements ConfigurationManagerConfig.Builder {
 
@@ -62,7 +67,6 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
         protected DefaultAbstractBuilder() {
             _config = newConfig();
-            _config._changeHandlerThreadPoolSize = 1;
         }
 
         protected DefaultConfigurationManagerConfig newConfig() {
@@ -98,8 +102,8 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         }
 
         @Override
-        public B setChangeHandlerThreadPoolSize(int changeHandlerThreadPoolSize) {
-            _config._changeHandlerThreadPoolSize = changeHandlerThreadPoolSize;
+        public B setTaskExecutor(TaskExecutor taskExecutor) {
+            _config._taskExecutor = taskExecutor;
             return (B) this;
         }
 
@@ -111,9 +115,6 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
             if (_config._sources == null || _config._sources.isEmpty())
                 throw new IllegalArgumentException("sources is null or empty");
-
-            if (_config._changeHandlerThreadPoolSize < 0)
-                throw new IllegalArgumentException("changeHandlerThreadPoolSize is less than 0");
 
             return _config.clone();
         }

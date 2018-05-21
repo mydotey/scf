@@ -1,5 +1,6 @@
 package org.mydotey.scf;
 
+import java.io.Closeable;
 import java.util.Collection;
 
 /**
@@ -13,13 +14,7 @@ public interface ConfigurationManagerConfig {
 
     Collection<ConfigurationSource> getSources();
 
-    /*
-     * case
-     *  0: not use a thread pool, handle changes in the source change raising thread
-     *  > 0: handle changes in a standalone thread pool
-     * default to 1
-     */
-    int getChangeHandlerThreadPoolSize();
+    TaskExecutor getTaskExecutor();
 
     public interface Builder extends AbstractBuilder<Builder> {
 
@@ -31,10 +26,20 @@ public interface ConfigurationManagerConfig {
 
         B setSources(Collection<ConfigurationSource> sources);
 
-        B setChangeHandlerThreadPoolSize(int changeHandlerThreadPoolSize);
+        B setTaskExecutor(TaskExecutor taskExecutor);
 
         ConfigurationManagerConfig build();
 
     }
 
+    public interface TaskExecutor extends Closeable {
+
+        void schedule(Runnable runnable, long delayMs, long intervalMs);
+
+        void submit(Runnable runnable);
+
+        @Override
+        void close();
+
+    }
 }

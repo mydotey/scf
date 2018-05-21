@@ -20,8 +20,10 @@ public class PropertiesConfigurationSourceTest {
     protected ConfigurationManager createManager(String fileName) {
         PropertiesConfigurationSourceConfig sourceConfig = new PropertiesConfigurationSourceConfig.Builder()
                 .setName("properties-source").setPriority(1).setFileName(fileName).build();
+        System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newManagerConfigBuilder().setName("test")
                 .setSources(Lists.newArrayList(new PropertiesConfigurationSource(sourceConfig))).build();
+        System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
 

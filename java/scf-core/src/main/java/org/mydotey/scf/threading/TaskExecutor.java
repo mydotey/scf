@@ -1,4 +1,4 @@
-package org.mydotey.scf;
+package org.mydotey.scf.threading;
 
 import java.io.Closeable;
 

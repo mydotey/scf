@@ -8,17 +8,20 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.mydotey.scf.PropertyConfig;
+import org.mydotey.scf.type.TypeConverter;
 
 /**
  * @author koqizhao
  *
  * May 17, 2018
  */
+@SuppressWarnings("rawtypes")
 public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Cloneable {
 
     private K _key;
     private Class<V> _valueType;
     private V _defaultValue;
+    private List<TypeConverter> _valueConverters;
     private List<Function<V, V>> _valueFilters;
 
     protected DefaultPropertyConfig() {
@@ -38,6 +41,11 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     @Override
     public V getDefaultValue() {
         return _defaultValue;
+    }
+
+    @Override
+    public Collection<TypeConverter> getValueConverters() {
+        return _valueConverters;
     }
 
     @Override
@@ -104,6 +112,24 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         @Override
         public B setDefaultValue(V value) {
             _config._defaultValue = value;
+            return (B) this;
+        }
+
+        @Override
+        public B setValueConverters(Collection<TypeConverter> valueConverters) {
+            if (valueConverters == null)
+                _config._valueConverters = null;
+            else {
+                if (_config._valueConverters == null)
+                    _config._valueConverters = new ArrayList<>();
+                else
+                    _config._valueConverters.clear();
+                valueConverters.forEach(f -> {
+                    if (f != null)
+                        _config._valueConverters.add(f);
+                });
+            }
+
             return (B) this;
         }
 

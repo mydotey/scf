@@ -88,35 +88,37 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     @Override
-    public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config) {
-        Objects.requireNonNull(config, "config is null");
+    public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> propertyConfig) {
+        Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
-        Property<K, V> property = _properties.computeIfAbsent(config.getKey(), k -> {
-            V value = getPropertyValue(config);
-            return newProperty(config, value);
+        Property<K, V> property = _properties.computeIfAbsent(propertyConfig.getKey(), k -> {
+            V value = getPropertyValue(propertyConfig);
+            return newProperty(propertyConfig, value);
         });
 
-        if (property.getConfig().getValueType() != config.getValueType())
+        if (property.getConfig().getValueType() != propertyConfig.getValueType())
             throw new IllegalArgumentException("a property with the same key exists, but with a different valueType: "
                     + property.getConfig().getValueType() + ", maybe the valueClazz parameter is something wrong: "
-                    + config.getValueType());
+                    + propertyConfig.getValueType());
 
         return property;
     }
 
     @Override
-    public <K, V> V getPropertyValue(PropertyConfig<K, V> config) {
+    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        Objects.requireNonNull(propertyConfig, "propertyConfig is null");
+
         V value = null;
         for (ConfigurationSource source : _sortedSources) {
-            value = source.getPropertyValue(config.getKey(), config.getValueType());
+            value = source.getPropertyValue(propertyConfig);
 
-            filterValue(config, value);
+            filterValue(propertyConfig, value);
 
             if (value != null)
                 break;
         }
 
-        return value == null ? config.getDefaultValue() : value;
+        return value == null ? propertyConfig.getDefaultValue() : value;
     }
 
     protected <K, V> V filterValue(PropertyConfig<K, V> config, V value) {

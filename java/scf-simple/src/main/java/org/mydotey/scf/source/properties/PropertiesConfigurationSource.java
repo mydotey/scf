@@ -3,6 +3,7 @@ package org.mydotey.scf.source.properties;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.impl.AbstractConfigurationSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +35,14 @@ public class PropertiesConfigurationSource extends AbstractConfigurationSource {
     }
 
     @Override
-    protected <K, V> boolean isSupported(K key, Class<V> valueType) {
-        return key.getClass() == String.class && valueType == String.class;
+    protected <K, V> boolean isSupported(PropertyConfig<K, V> propertyConfig) {
+        return propertyConfig.getKey().getClass() == String.class && propertyConfig.getValueType() == String.class;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <K, V> V doGetPropertyValue(K key, Class<V> valueType) {
-        String value = (String) _properties.get(key);
+    protected <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        String value = (String) _properties.get(propertyConfig.getKey());
         if (value == null || value.isEmpty())
             return null;
 

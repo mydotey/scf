@@ -3,11 +3,14 @@ package org.mydotey.scf;
 import java.util.Collection;
 import java.util.function.Function;
 
+import org.mydotey.scf.type.TypeConverter;
+
 /**
  * @author koqizhao
  *
  * May 17, 2018
  */
+@SuppressWarnings("rawtypes")
 public interface PropertyConfig<K, V> {
 
     K getKey();
@@ -15,6 +18,8 @@ public interface PropertyConfig<K, V> {
     Class<V> getValueType();
 
     V getDefaultValue();
+
+    Collection<TypeConverter> getValueConverters();
 
     Collection<Function<V, V>> getValueFilters();
 
@@ -29,6 +34,8 @@ public interface PropertyConfig<K, V> {
         B setValueType(Class<V> valueType);
 
         B setDefaultValue(V value);
+
+        B setValueConverters(Collection<TypeConverter> valueConverters);
 
         B setValueFilters(Collection<Function<V, V>> valueFilters);
 

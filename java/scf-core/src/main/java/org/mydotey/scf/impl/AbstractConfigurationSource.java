@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 import org.mydotey.scf.ConfigurationSource;
 import org.mydotey.scf.ConfigurationSourceConfig;
+import org.mydotey.scf.PropertyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,24 +36,21 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     }
 
     @Override
-    public <K, V> V getPropertyValue(K key, Class<V> valueType) {
-        if (key == null)
-            return null;
-
-        if (!isSupported(key, valueType))
+    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        if (!isSupported(propertyConfig))
             return null;
 
         try {
-            return doGetPropertyValue(key, valueType);
+            return doGetPropertyValue(propertyConfig);
         } catch (Exception e) {
             LOGGER.error("source getPropertyValue failed to run", e);
             return null;
         }
     }
 
-    protected abstract <K, V> boolean isSupported(K key, Class<V> valueType);
+    protected abstract <K, V> boolean isSupported(PropertyConfig<K, V> propertyConfig);
 
-    protected abstract <K, V> V doGetPropertyValue(K key, Class<V> valueType);
+    protected abstract <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig);
 
     @Override
     public synchronized void addChangeListener(Consumer<ConfigurationSource> changeListener) {

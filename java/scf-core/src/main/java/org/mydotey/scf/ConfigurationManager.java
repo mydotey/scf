@@ -15,9 +15,9 @@ public interface ConfigurationManager extends Closeable {
     @SuppressWarnings("rawtypes")
     Collection<Property> getProperties();
 
-    <K, V> Property<K, V> getProperty(PropertyConfig<K, V> config);
+    <K, V> Property<K, V> getProperty(PropertyConfig<K, V> propertyConfig);
 
-    <K, V> V getPropertyValue(PropertyConfig<K, V> config);
+    <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig);
 
     @Override
     void close();

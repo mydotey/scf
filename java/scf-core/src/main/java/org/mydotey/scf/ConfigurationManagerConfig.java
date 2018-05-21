@@ -2,6 +2,8 @@ package org.mydotey.scf;
 
 import java.util.Collection;
 
+import org.mydotey.scf.threading.TaskExecutor;
+
 /**
  * @author koqizhao
  *

@@ -11,7 +11,7 @@ public interface ConfigurationSource {
 
     ConfigurationSourceConfig getConfig();
 
-    <K, V> V getPropertyValue(K key, Class<V> valueType);
+    <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig);
 
     void addChangeListener(Consumer<ConfigurationSource> changeListener);
 

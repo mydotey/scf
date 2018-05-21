@@ -74,6 +74,29 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
                 _valueType, _defaultValue, _valueConverters, _valueFilter);
     }
 
+    @Override
+    public boolean equals(PropertyConfig propertyConfig) {
+        if (propertyConfig == null)
+            return false;
+
+        if (!Objects.equals(getKey(), propertyConfig.getKey()))
+            return false;
+
+        if (!Objects.equals(getValueType(), propertyConfig.getValueType()))
+            return false;
+
+        if (!Objects.equals(getDefaultValue(), propertyConfig.getDefaultValue()))
+            return false;
+
+        if (!Objects.equals(getValueConverters(), propertyConfig.getValueConverters()))
+            return false;
+
+        if (!Objects.equals(getValueFilter(), propertyConfig.getValueFilter()))
+            return false;
+
+        return false;
+    }
+
     public static class Builder<K, V> extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>>
             implements PropertyConfig.Builder<K, V> {
 

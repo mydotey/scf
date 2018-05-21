@@ -88,7 +88,6 @@ public class PropertiesConfigurationSourceTest {
         List<Integer> expected4 = Lists.newArrayList(1, 2, 3);
         Assert.assertEquals(expected4, property4.getValue());
 
-        //Property<String, Map<Integer, Long>> property5 = moreProperties.getMapProperty("int-long-map-value",
         Property<String, Map<Integer, Long>> property5 = moreProperties.getMapProperty("int-long-map-value",
                 StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
         System.out.println("property: " + property5 + "\n");
@@ -97,6 +96,19 @@ public class PropertiesConfigurationSourceTest {
         expected5.put(3, 4L);
         expected5.put(5, 6L);
         Assert.assertEquals(expected5, property5.getValue());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSameKeyDifferentConfig() {
+        MoreProperties moreProperties = createMoreProperties("test.properties");
+        Property<String, Map<String, String>> property = moreProperties.getMapProperty("map-value");
+        Map<String, String> expected = new HashMap<>();
+        expected.put("k1", "v1");
+        expected.put("k2", "v2");
+        expected.put("k3", "v3");
+        Assert.assertEquals(expected, property.getValue());
+
+        moreProperties.getMapProperty("map-value", StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
     }
 
 }

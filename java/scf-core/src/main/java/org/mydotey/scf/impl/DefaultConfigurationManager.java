@@ -92,10 +92,10 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             return newProperty(propertyConfig, value);
         });
 
-        if (property.getConfig().getValueType() != propertyConfig.getValueType())
-            throw new IllegalArgumentException("a property with the same key exists, but with a different valueType: "
-                    + property.getConfig().getValueType() + ", maybe the valueClazz parameter is something wrong: "
-                    + propertyConfig.getValueType());
+        if (!Objects.equals(property.getConfig(), propertyConfig))
+            throw new IllegalArgumentException(
+                    "a property with the same key exists, but with a different propertyConfig: " + property.getConfig()
+                            + ", maybe the propertyConfig parameter is wrong: " + propertyConfig);
 
         return property;
     }

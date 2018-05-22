@@ -1,4 +1,4 @@
-package org.mydotey.scf.source.properties;
+package org.mydotey.scf;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +11,7 @@ import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.MoreProperties;
+import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSourceConfig;
 import org.mydotey.scf.type.StringToIntConverter;
 import org.mydotey.scf.type.StringToLongConverter;
 
@@ -21,14 +22,15 @@ import com.google.common.collect.Lists;
  *
  * May 17, 2018
  */
-public class PropertiesConfigurationSourceTest {
+public class MorePropertiesTest {
 
     protected ConfigurationManager createManager(String fileName) {
-        PropertiesConfigurationSourceConfig sourceConfig = new PropertiesConfigurationSourceConfig.Builder()
-                .setName("properties-source").setPriority(1).setFileName(fileName).build();
+        PropertiesFileConfigurationSourceConfig sourceConfig = ConfigurationManagers
+                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
+                .setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newManagerConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(new PropertiesConfigurationSource(sourceConfig))).build();
+                .setSources(Lists.newArrayList(ConfigurationManagers.newPropertiesFileSource(sourceConfig))).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

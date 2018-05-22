@@ -1,4 +1,4 @@
-package org.mydotey.scf.source.properties;
+package org.mydotey.scf.source.stringproperties.propertiesfile;
 
 import org.mydotey.scf.AbstractConfigurationSourceConfig;
 
@@ -7,11 +7,11 @@ import org.mydotey.scf.AbstractConfigurationSourceConfig;
  *
  * May 17, 2018
  */
-public class PropertiesConfigurationSourceConfig extends AbstractConfigurationSourceConfig {
+public class PropertiesFileConfigurationSourceConfig extends AbstractConfigurationSourceConfig {
 
     private String _fileName;
 
-    protected PropertiesConfigurationSourceConfig() {
+    protected PropertiesFileConfigurationSourceConfig() {
 
     }
 
@@ -23,12 +23,12 @@ public class PropertiesConfigurationSourceConfig extends AbstractConfigurationSo
 
         @Override
         protected AbstractConfigurationSourceConfig newConfig() {
-            return new PropertiesConfigurationSourceConfig();
+            return new PropertiesFileConfigurationSourceConfig();
         }
 
         @Override
-        protected PropertiesConfigurationSourceConfig getConfig() {
-            return (PropertiesConfigurationSourceConfig) super.getConfig();
+        protected PropertiesFileConfigurationSourceConfig getConfig() {
+            return (PropertiesFileConfigurationSourceConfig) super.getConfig();
         }
 
         public Builder setFileName(String fileName) {
@@ -37,7 +37,7 @@ public class PropertiesConfigurationSourceConfig extends AbstractConfigurationSo
         }
 
         @Override
-        public PropertiesConfigurationSourceConfig build() {
+        public PropertiesFileConfigurationSourceConfig build() {
             if (getConfig().getFileName() == null || getConfig().getFileName().trim().isEmpty())
                 throw new IllegalArgumentException("fileName is null or empty");
 
@@ -45,7 +45,7 @@ public class PropertiesConfigurationSourceConfig extends AbstractConfigurationSo
             if (!getConfig()._fileName.endsWith(".properties"))
                 getConfig()._fileName += ".properties";
 
-            return (PropertiesConfigurationSourceConfig) super.build();
+            return (PropertiesFileConfigurationSourceConfig) super.build();
         }
 
     }

@@ -94,9 +94,9 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         });
 
         if (!Objects.equals(property.getConfig(), propertyConfig))
-            throw new IllegalArgumentException(
-                    String.format("make sure using same config for property: %s, used config: %s, current Config: %s",
-                            propertyConfig.getKey(), property.getConfig(), propertyConfig));
+            throw new IllegalArgumentException(String.format(
+                    "make sure using same config for property: %s, previous config: %s, current Config: %s",
+                    propertyConfig.getKey(), property.getConfig(), propertyConfig));
 
         return property;
     }

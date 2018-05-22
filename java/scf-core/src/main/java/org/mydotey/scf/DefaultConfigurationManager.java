@@ -137,7 +137,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     protected void onSourceChange(ConfigurationSource source) {
-        onSourceChange();
+        _config.getTaskExecutor().submit(this::onSourceChange);
     }
 
     protected void onSourceChange() {
@@ -152,10 +152,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
                 p.setValue(value);
 
-                if (_config.getTaskExecutor() == null)
-                    p.raiseChangeEvent();
-                else
-                    _config.getTaskExecutor().submit(p::raiseChangeEvent);
+                _config.getTaskExecutor().submit(p::raiseChangeEvent);
             });
         } finally {
             _isSourceChanging.set(false);

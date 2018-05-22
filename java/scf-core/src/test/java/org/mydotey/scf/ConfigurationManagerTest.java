@@ -6,6 +6,8 @@ import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
+import org.mydotey.scf.facade.ConfigurationProperties;
+import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSourceConfig;
 
 import com.google.common.collect.Lists;
@@ -18,12 +20,12 @@ import com.google.common.collect.Lists;
 public class ConfigurationManagerTest {
 
     protected ConfigurationManager createManager(String fileName) {
-        PropertiesFileConfigurationSourceConfig sourceConfig = ConfigurationManagers
+        PropertiesFileConfigurationSourceConfig sourceConfig = ConfigurationSources
                 .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
                 .setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
-        ConfigurationManagerConfig managerConfig = ConfigurationManagers.newManagerConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(ConfigurationManagers.newPropertiesFileSource(sourceConfig))).build();
+        ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
+                .setSources(Lists.newArrayList(ConfigurationSources.newPropertiesFileSource(sourceConfig))).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
@@ -31,19 +33,19 @@ public class ConfigurationManagerTest {
     @Test
     public void testGetProperties() {
         ConfigurationManager manager = createManager("test.properties");
-        PropertyConfig<String, String> propertyConfig = ConfigurationManagers
-                .<String, String> newPropertyConfigBuilder().setKey("not-exist").setValueType(String.class).build();
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties
+                .<String, String> newConfigBuilder().setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
 
-        propertyConfig = ConfigurationManagers.<String, String> newPropertyConfigBuilder().setKey("not-exist2")
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("not-exist2")
                 .setValueType(String.class).setDefaultValue("default").build();
         property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("default", property.getValue());
 
-        propertyConfig = ConfigurationManagers.<String, String> newPropertyConfigBuilder().setKey("exist")
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("exist")
                 .setValueType(String.class).setDefaultValue("default").build();
         property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
@@ -53,13 +55,13 @@ public class ConfigurationManagerTest {
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
         ConfigurationManager manager = createManager("test.properties");
-        PropertyConfig<String, String> propertyConfig = ConfigurationManagers
-                .<String, String> newPropertyConfigBuilder().setKey("not-exist").setValueType(String.class).build();
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties
+                .<String, String> newConfigBuilder().setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
 
-        propertyConfig = ConfigurationManagers.<String, String> newPropertyConfigBuilder().setKey("not-exist")
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("not-exist")
                 .setValueType(String.class).setDefaultValue("default").build();
         manager.getProperty(propertyConfig);
     }

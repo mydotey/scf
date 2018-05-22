@@ -291,7 +291,7 @@ public class MoreProperties {
 
     private <K, V> Property<K, V> getProperty(K key, Class<V> valueType, V defaultValue,
             Collection<TypeConverter> valueConverters, Function<V, V> valueFilter) {
-        PropertyConfig<K, V> propertyConfig = ConfigurationManagers.<K, V> newPropertyConfigBuilder().setKey(key)
+        PropertyConfig<K, V> propertyConfig = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
                 .setValueType(valueType).setDefaultValue(defaultValue).setValueConverters(valueConverters)
                 .setValueFilter(valueFilter).build();
         return _manager.getProperty(propertyConfig);
@@ -309,7 +309,7 @@ public class MoreProperties {
 
     private <K, V> V getPropertyValue(K key, Class<V> valueType, V defaultValue,
             Collection<TypeConverter> valueConverters, Function<V, V> valueFilter) {
-        PropertyConfig<K, V> propertyConfig = ConfigurationManagers.<K, V> newPropertyConfigBuilder().setKey(key)
+        PropertyConfig<K, V> propertyConfig = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
                 .setValueType(valueType).setDefaultValue(defaultValue).setValueConverters(valueConverters)
                 .setValueFilter(valueFilter).build();
         return _manager.getPropertyValue(propertyConfig);

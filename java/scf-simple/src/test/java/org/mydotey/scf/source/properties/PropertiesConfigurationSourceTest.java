@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.Property;
-import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.MoreProperties;
 import org.mydotey.scf.type.StringToIntConverter;
@@ -41,22 +40,16 @@ public class PropertiesConfigurationSourceTest {
 
     @Test
     public void testGetProperties() {
-        ConfigurationManager manager = createManager("test.properties");
-        PropertyConfig<String, String> propertyConfig = ConfigurationManagers
-                .<String, String> newPropertyConfigBuilder().setKey("not-exist").setValueType(String.class).build();
-        Property<String, String> property = manager.getProperty(propertyConfig);
+        MoreProperties moreProperties = createMoreProperties("test.properties");
+        Property<String, String> property = moreProperties.getStringProperty("not-exist");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
 
-        propertyConfig = ConfigurationManagers.<String, String> newPropertyConfigBuilder().setKey("not-exist2")
-                .setValueType(String.class).setDefaultValue("default").build();
-        property = manager.getProperty(propertyConfig);
+        property = moreProperties.getStringProperty("not-exist2", "default");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("default", property.getValue());
 
-        propertyConfig = ConfigurationManagers.<String, String> newPropertyConfigBuilder().setKey("exist")
-                .setValueType(String.class).setDefaultValue("default").build();
-        property = manager.getProperty(propertyConfig);
+        property = moreProperties.getStringProperty("exist", "default");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok", property.getValue());
     }

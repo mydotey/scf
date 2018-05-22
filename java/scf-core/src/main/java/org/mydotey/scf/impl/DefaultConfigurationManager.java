@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
@@ -57,8 +58,9 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         StringBuilder message = new StringBuilder();
         message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
                 .append(_sortedSources.size()).append(" sources\n");
-        _sortedSources.forEach(s -> message.append("priority: ").append(s.getConfig().getPriority())
-                .append(", source: ").append(s.getConfig().getName()).append("\n"));
+        _sortedSources
+                .forEach(s -> message.append("priority: ").append(s.getConfig().getPriority()).append(", source: ")
+                        .append(s.getConfig().getName()).append(", dynamic: ").append(s.isDynamic()).append("\n"));
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();
@@ -71,6 +73,21 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         if (_config.getTaskExecutor() != null)
             _config.getTaskExecutor().schedule(this::onSourceChange);
+        else {
+            AtomicInteger dynamicSourceCount = new AtomicInteger();
+            _sortedSources.forEach(s -> {
+                if (s.isDynamic())
+                    dynamicSourceCount.incrementAndGet();
+            });
+
+            if (dynamicSourceCount.get() > 1) {
+                StringBuilder message = new StringBuilder();
+                message.append("Configuration Manager ").append(_config.getName()).append(" dynamic source count is ")
+                        .append(dynamicSourceCount.get())
+                        .append(". A TaskExcecutor is required in the manager config for manager with >=2 dynamic sources.");
+                LOGGER.error(message.toString());
+            }
+        }
     }
 
     @Override

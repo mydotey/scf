@@ -22,6 +22,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private ConfigurationSourceConfig _config;
 
+    private boolean _isDynamic;
     private volatile List<Consumer<ConfigurationSource>> _changeListeners;
 
     public AbstractConfigurationSource(ConfigurationSourceConfig config) {
@@ -46,6 +47,15 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     }
 
     protected abstract <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig);
+
+    @Override
+    public boolean isDynamic() {
+        return _isDynamic;
+    }
+
+    protected void setDynamic(boolean dynamic) {
+        _isDynamic = dynamic;
+    }
 
     @Override
     public synchronized void addChangeListener(Consumer<ConfigurationSource> changeListener) {

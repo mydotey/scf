@@ -1,5 +1,7 @@
 package org.mydotey.scf;
 
+import java.util.Objects;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
@@ -33,8 +35,8 @@ public class ConfigurationManagerTest {
     @Test
     public void testGetProperties() {
         ConfigurationManager manager = createManager("test.properties");
-        PropertyConfig<String, String> propertyConfig = ConfigurationProperties
-                .<String, String> newConfigBuilder().setKey("not-exist").setValueType(String.class).build();
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
@@ -55,8 +57,8 @@ public class ConfigurationManagerTest {
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
         ConfigurationManager manager = createManager("test.properties");
-        PropertyConfig<String, String> propertyConfig = ConfigurationProperties
-                .<String, String> newConfigBuilder().setKey("not-exist").setValueType(String.class).build();
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
@@ -64,6 +66,28 @@ public class ConfigurationManagerTest {
         propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("not-exist")
                 .setValueType(String.class).setDefaultValue("default").build();
         manager.getProperty(propertyConfig);
+    }
+
+    @Test
+    public void testGetPropertyWithFilter() {
+        ConfigurationManager manager = createManager("test.properties");
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).setValueFilter(v -> {
+                    if (Objects.equals("ok", v))
+                        return "ok_new";
+                    return null;
+                }).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok_new", property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("exist2")
+                .setValueType(String.class).setValueFilter(v -> {
+                    return v.length() >= 8 && v.length() <= 32 ? v : null;
+                }).build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertNull(property.getValue());
     }
 
 }

@@ -109,7 +109,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         for (ConfigurationSource source : _sortedSources) {
             value = source.getPropertyValue(propertyConfig);
 
-            filterValue(propertyConfig, value);
+            value = filterValue(propertyConfig, value);
 
             if (value != null)
                 break;

@@ -87,4 +87,9 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
         }
     }
 
+    @Override
+    public String toString() {
+        return String.format("{ type: %s, config: %s, dynamic: %s }", getClass(), getConfig(), isDynamic());
+    }
+
 }

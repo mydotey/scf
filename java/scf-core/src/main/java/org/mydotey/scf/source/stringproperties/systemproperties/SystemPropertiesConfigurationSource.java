@@ -20,7 +20,7 @@ public class SystemPropertiesConfigurationSource extends StringPropertiesConfigu
     }
 
     @Override
-    protected String getPropertyValue(String key) {
+    public String getPropertyValue(String key) {
         return System.getProperty(key);
     }
 
@@ -30,6 +30,15 @@ public class SystemPropertiesConfigurationSource extends StringPropertiesConfigu
             return;
 
         System.setProperty(key, value);
+        raiseChangeEvent();
+    }
+
+    public void clearProperty(String key) {
+        String oldValue = System.getProperty(key);
+        if (oldValue == null)
+            return;
+
+        System.clearProperty(key);
         raiseChangeEvent();
     }
 

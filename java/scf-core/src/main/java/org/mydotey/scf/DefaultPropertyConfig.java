@@ -146,16 +146,14 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
         @Override
         public B setValueConverters(Collection<TypeConverter> valueConverters) {
-            if (valueConverters == null)
-                _config._valueConverters = null;
-            else {
-                if (_config._valueConverters == null)
-                    _config._valueConverters = new ArrayList<>();
-                else
-                    _config._valueConverters.clear();
+            _config._valueConverters = null;
+            if (valueConverters != null) {
                 valueConverters.forEach(f -> {
-                    if (f != null)
+                    if (f != null) {
+                        if (_config._valueConverters == null)
+                            _config._valueConverters = new ArrayList<>();
                         _config._valueConverters.add(f);
+                    }
                 });
             }
 

@@ -10,8 +10,8 @@ import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
-import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.MoreProperties;
+import org.mydotey.scf.facade.MoreSources;
 import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSourceConfig;
 import org.mydotey.scf.type.StringToIntConverter;
 import org.mydotey.scf.type.StringToLongConverter;
@@ -26,12 +26,11 @@ import com.google.common.collect.Lists;
 public class MorePropertiesTest {
 
     protected ConfigurationManager createManager(String fileName) {
-        PropertiesFileConfigurationSourceConfig sourceConfig = ConfigurationSources
-                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
-                .setFileName(fileName).build();
+        PropertiesFileConfigurationSourceConfig sourceConfig = MoreSources.newPropertiesFileSourceConfigBuilder()
+                .setName("properties-source").setPriority(1).setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(ConfigurationSources.newPropertiesFileSource(sourceConfig))).build();
+                .setSources(Lists.newArrayList(MoreSources.newPropertiesFileSource(sourceConfig))).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

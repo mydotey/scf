@@ -42,6 +42,6 @@ public abstract class StringPropertiesConfigurationSource extends AbstractConfig
         return null;
     }
 
-    protected abstract String getPropertyValue(String key);
+    public abstract String getPropertyValue(String key);
 
 }

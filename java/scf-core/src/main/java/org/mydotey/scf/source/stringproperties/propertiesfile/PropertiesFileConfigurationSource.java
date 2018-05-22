@@ -34,7 +34,7 @@ public class PropertiesFileConfigurationSource extends StringPropertiesConfigura
     }
 
     @Override
-    protected String getPropertyValue(String key) {
+    public String getPropertyValue(String key) {
         if (_properties == null)
             return null;
 

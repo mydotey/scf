@@ -15,7 +15,7 @@ public class EnvironmentVariableConfigurationSource extends StringPropertiesConf
     }
 
     @Override
-    protected String getPropertyValue(String key) {
+    public String getPropertyValue(String key) {
         return System.getenv(key);
     }
 

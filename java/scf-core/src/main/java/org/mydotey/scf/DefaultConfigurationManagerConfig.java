@@ -88,16 +88,14 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
         @Override
         public B setSources(Collection<ConfigurationSource> sources) {
-            if (sources == null)
-                _config._sources = null;
-            else {
-                if (_config._sources == null)
-                    _config._sources = new ArrayList<>();
-                else
-                    _config._sources.clear();
+            _config._sources = null;
+            if (sources != null) {
                 sources.forEach(s -> {
-                    if (s != null)
+                    if (s != null) {
+                        if (_config._sources == null)
+                            _config._sources = new ArrayList<>();
                         _config._sources.add(s);
+                    }
                 });
             }
 

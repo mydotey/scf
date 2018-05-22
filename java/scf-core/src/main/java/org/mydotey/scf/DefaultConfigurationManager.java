@@ -62,9 +62,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         StringBuilder message = new StringBuilder();
         message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
                 .append(_sortedSources.size()).append(" sources\n");
-        _sortedSources
-                .forEach(s -> message.append("priority: ").append(s.getConfig().getPriority()).append(", source: ")
-                        .append(s.getConfig().getName()).append(", dynamic: ").append(s.isDynamic()).append("\n"));
+        _sortedSources.forEach(s -> message.append(s).append("\n"));
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();

@@ -5,12 +5,12 @@ package org.mydotey.scf;
  *
  * May 17, 2018
  */
-public abstract class AbstractConfigurationSourceConfig implements ConfigurationSourceConfig, Cloneable {
+public class DefaultConfigurationSourceConfig implements ConfigurationSourceConfig, Cloneable {
 
     private String _name;
     private int _priority;
 
-    protected AbstractConfigurationSourceConfig() {
+    protected DefaultConfigurationSourceConfig() {
 
     }
 
@@ -25,10 +25,10 @@ public abstract class AbstractConfigurationSourceConfig implements Configuration
     }
 
     @Override
-    public AbstractConfigurationSourceConfig clone() {
-        AbstractConfigurationSourceConfig copy = null;
+    public DefaultConfigurationSourceConfig clone() {
+        DefaultConfigurationSourceConfig copy = null;
         try {
-            copy = (AbstractConfigurationSourceConfig) super.clone();
+            copy = (DefaultConfigurationSourceConfig) super.clone();
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
@@ -41,19 +41,26 @@ public abstract class AbstractConfigurationSourceConfig implements Configuration
         return String.format("{ name: %s, priority: %s }", _name, _priority);
     }
 
+    public static class Builder extends DefaultAbstractBuilder<ConfigurationSourceConfig.Builder>
+            implements ConfigurationSourceConfig.Builder {
+
+    }
+
     @SuppressWarnings("unchecked")
-    public static abstract class AbstractBuilder<B extends ConfigurationSourceConfig.Builder<B>>
-            implements ConfigurationSourceConfig.Builder<B> {
+    public static abstract class DefaultAbstractBuilder<B extends ConfigurationSourceConfig.AbstractBuilder<B>>
+            implements ConfigurationSourceConfig.AbstractBuilder<B> {
 
-        private AbstractConfigurationSourceConfig _config;
+        private DefaultConfigurationSourceConfig _config;
 
-        protected AbstractBuilder() {
+        protected DefaultAbstractBuilder() {
             _config = newConfig();
         }
 
-        protected abstract AbstractConfigurationSourceConfig newConfig();
+        protected DefaultConfigurationSourceConfig newConfig() {
+            return new DefaultConfigurationSourceConfig();
+        }
 
-        protected AbstractConfigurationSourceConfig getConfig() {
+        protected DefaultConfigurationSourceConfig getConfig() {
             return _config;
         }
 
@@ -70,7 +77,7 @@ public abstract class AbstractConfigurationSourceConfig implements Configuration
         }
 
         @Override
-        public AbstractConfigurationSourceConfig build() {
+        public DefaultConfigurationSourceConfig build() {
             if (_config._name == null || _config._name.trim().isEmpty())
                 throw new IllegalArgumentException("name is null or empty");
             _config._name = _config._name.trim();

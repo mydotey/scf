@@ -1,13 +1,13 @@
 package org.mydotey.scf.source.stringproperties.propertiesfile;
 
-import org.mydotey.scf.AbstractConfigurationSourceConfig;
+import org.mydotey.scf.DefaultConfigurationSourceConfig;
 
 /**
  * @author koqizhao
  *
  * May 17, 2018
  */
-public class PropertiesFileConfigurationSourceConfig extends AbstractConfigurationSourceConfig {
+public class PropertiesFileConfigurationSourceConfig extends DefaultConfigurationSourceConfig {
 
     private String _fileName;
 
@@ -19,10 +19,10 @@ public class PropertiesFileConfigurationSourceConfig extends AbstractConfigurati
         return _fileName;
     }
 
-    public static class Builder extends AbstractConfigurationSourceConfig.AbstractBuilder<Builder> {
+    public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
 
         @Override
-        protected AbstractConfigurationSourceConfig newConfig() {
+        protected DefaultConfigurationSourceConfig newConfig() {
             return new PropertiesFileConfigurationSourceConfig();
         }
 

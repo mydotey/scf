@@ -124,7 +124,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
                 if (s.isDynamic())
                     hasDynamicSource.set(true);
             });
-            if (hasDynamicSource.get())
+            if (hasDynamicSource.get() && _config._taskExecutor == null)
                 throw new IllegalArgumentException("taskExecutor is required when dynamic source is used");
 
             return _config.clone();

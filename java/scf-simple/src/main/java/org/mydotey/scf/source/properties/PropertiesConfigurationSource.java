@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.mydotey.scf.PropertyConfig;
-import org.mydotey.scf.impl.AbstractConfigurationSource;
+import org.mydotey.scf.AbstractConfigurationSource;
 import org.mydotey.scf.type.TypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

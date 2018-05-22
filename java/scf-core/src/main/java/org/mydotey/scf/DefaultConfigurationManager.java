@@ -1,4 +1,4 @@
-package org.mydotey.scf.impl;
+package org.mydotey.scf;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,11 +9,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.mydotey.scf.ConfigurationManager;
-import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSource;
-import org.mydotey.scf.Property;
-import org.mydotey.scf.PropertyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

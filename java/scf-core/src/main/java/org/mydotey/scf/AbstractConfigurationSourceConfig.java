@@ -1,6 +1,4 @@
-package org.mydotey.scf.impl;
-
-import org.mydotey.scf.ConfigurationSourceConfig;
+package org.mydotey.scf;
 
 /**
  * @author koqizhao

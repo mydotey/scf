@@ -1,6 +1,6 @@
 package org.mydotey.scf.source.properties;
 
-import org.mydotey.scf.impl.AbstractConfigurationSourceConfig;
+import org.mydotey.scf.AbstractConfigurationSourceConfig;
 
 /**
  * @author koqizhao

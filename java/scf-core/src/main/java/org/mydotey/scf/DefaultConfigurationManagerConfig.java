@@ -1,4 +1,4 @@
-package org.mydotey.scf.impl;
+package org.mydotey.scf;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSource;
 import org.mydotey.scf.threading.TaskExecutor;
 
 /**

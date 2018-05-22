@@ -1,13 +1,10 @@
-package org.mydotey.scf.impl;
+package org.mydotey.scf;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import org.mydotey.scf.ConfigurationSource;
-import org.mydotey.scf.ConfigurationSourceConfig;
-import org.mydotey.scf.PropertyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.mydotey.scf.impl;
+package org.mydotey.scf;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.type.TypeConverter;
 
 /**

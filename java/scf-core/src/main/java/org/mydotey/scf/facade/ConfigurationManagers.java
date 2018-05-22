@@ -7,10 +7,10 @@ import org.mydotey.scf.DefaultConfigurationManager;
 import org.mydotey.scf.DefaultConfigurationManagerConfig;
 import org.mydotey.scf.DefaultPropertyConfig;
 import org.mydotey.scf.PropertyConfig;
-import org.mydotey.scf.source.stringproperties.environmentvariable.EnvironmentVariableConfigurationSource;
-import org.mydotey.scf.source.stringproperties.environmentvariable.EnvironmentVariableConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSource;
 import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSourceConfig;
+import org.mydotey.scf.source.stringproperties.systemproperties.SystemPropertiesConfigurationSource;
+import org.mydotey.scf.source.stringproperties.systemproperties.SystemPropertiesConfigurationSourceConfig;
 
 /**
  * @author koqizhao
@@ -35,13 +35,12 @@ public class ConfigurationManagers {
         return new PropertiesFileConfigurationSource(config);
     }
 
-    public static EnvironmentVariableConfigurationSourceConfig.Builder newEnvironmentVariableSourceConfigBuilder() {
-        return new EnvironmentVariableConfigurationSourceConfig.Builder();
+    public static SystemPropertiesConfigurationSourceConfig.Builder newSystemPropertiesSourceConfigBuilder() {
+        return new SystemPropertiesConfigurationSourceConfig.Builder();
     }
 
-    public static ConfigurationSource newEnvironmentVariableSource(
-            EnvironmentVariableConfigurationSourceConfig config) {
-        return new EnvironmentVariableConfigurationSource(config);
+    public static ConfigurationSource newSystemPropertiesSource(SystemPropertiesConfigurationSourceConfig config) {
+        return new SystemPropertiesConfigurationSource(config);
     }
 
     public static ConfigurationManagerConfig.Builder newManagerConfigBuilder() {

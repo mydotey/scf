@@ -1,4 +1,4 @@
-package org.mydotey.scf.source.stringproperties.environmentvariable;
+package org.mydotey.scf.source.stringproperties.systemproperties;
 
 import org.mydotey.scf.source.stringproperties.StringPropertiesConfigurationSource;
 
@@ -7,9 +7,9 @@ import org.mydotey.scf.source.stringproperties.StringPropertiesConfigurationSour
  *
  * May 17, 2018
  */
-public class EnvironmentVariableConfigurationSource extends StringPropertiesConfigurationSource {
+public class SystemPropertiesConfigurationSource extends StringPropertiesConfigurationSource {
 
-    public EnvironmentVariableConfigurationSource(EnvironmentVariableConfigurationSourceConfig config) {
+    public SystemPropertiesConfigurationSource(SystemPropertiesConfigurationSourceConfig config) {
         super(config);
     }
 

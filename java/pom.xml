@@ -5,7 +5,7 @@
 
     <groupId>org.mydotey.scf</groupId>
     <artifactId>scf</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <name>scf</name>
     <description>simple configuration facade</description>
@@ -54,7 +54,6 @@
     <modules>
         <module>scf-core</module>
         <module>scf-util</module>
-        <module>scf-simple</module>
     </modules>
 
     <dependencyManagement>
@@ -72,11 +71,6 @@
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-util</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mydotey.scf</groupId>
-                <artifactId>scf-simple</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

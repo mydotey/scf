@@ -22,7 +22,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private ConfigurationSourceConfig _config;
 
-    private boolean _isDynamic;
+    private boolean _dynamic;
     private volatile List<Consumer<ConfigurationSource>> _changeListeners;
 
     public AbstractConfigurationSource(ConfigurationSourceConfig config) {
@@ -50,33 +50,44 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     @Override
     public boolean isDynamic() {
-        return _isDynamic;
+        return _dynamic;
     }
 
     protected void setDynamic(boolean dynamic) {
-        _isDynamic = dynamic;
+        _dynamic = dynamic;
     }
 
     @Override
-    public synchronized void addChangeListener(Consumer<ConfigurationSource> changeListener) {
+    public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
         Objects.requireNonNull("changeListener", "changeListener is null");
 
-        if (_changeListeners == null)
-            _changeListeners = new ArrayList<>();
-        _changeListeners.add(changeListener);
-    }
-
-    protected synchronized void raiseChangeEvent() {
-        if (_changeListeners == null)
+        if (!_dynamic)
             return;
 
-        _changeListeners.forEach(l -> {
-            try {
-                l.accept(AbstractConfigurationSource.this);
-            } catch (Exception e) {
-                LOGGER.error("source change listener failed to run", e);
-            }
-        });
+        synchronized (this) {
+            if (_changeListeners == null)
+                _changeListeners = new ArrayList<>();
+
+            _changeListeners.add(changeListener);
+        }
+    }
+
+    protected void raiseChangeEvent() {
+        if (!_dynamic)
+            return;
+
+        synchronized (this) {
+            if (_changeListeners == null)
+                return;
+
+            _changeListeners.forEach(l -> {
+                try {
+                    l.accept(AbstractConfigurationSource.this);
+                } catch (Exception e) {
+                    LOGGER.error("source change listener failed to run", e);
+                }
+            });
+        }
     }
 
 }

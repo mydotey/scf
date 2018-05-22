@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.ConfigurationSource;
@@ -119,6 +120,14 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
             if (_config._sources == null || _config._sources.isEmpty())
                 throw new IllegalArgumentException("sources is null or empty");
+
+            AtomicBoolean hasDynamicSource = new AtomicBoolean();
+            _config._sources.forEach(s -> {
+                if (s.isDynamic())
+                    hasDynamicSource.set(true);
+            });
+            if (hasDynamicSource.get())
+                throw new IllegalArgumentException("taskExecutor is required when dynamic source is used");
 
             return _config.clone();
         }

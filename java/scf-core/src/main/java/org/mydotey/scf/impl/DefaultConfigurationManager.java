@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
@@ -44,6 +43,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
 
+    private boolean _dynamic;
     private AtomicBoolean _isSourceChanging;
 
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
@@ -53,7 +53,16 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         _sortedSources = new ArrayList<>(_config.getSources());
         Collections.sort(_sortedSources, SOURCE_COMPARATOR);
-        _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
+        _sortedSources.forEach(s -> {
+            if (s.isDynamic()) {
+                _dynamic = true;
+                s.addChangeListener(this::onSourceChange);
+            }
+        });
+        if (_dynamic) {
+            _isSourceChanging = new AtomicBoolean();
+            _config.getTaskExecutor().schedule(this::onSourceChange);
+        }
 
         StringBuilder message = new StringBuilder();
         message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
@@ -64,30 +73,10 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();
-
-        init();
     }
 
-    protected void init() {
-        _isSourceChanging = new AtomicBoolean();
-
-        if (_config.getTaskExecutor() != null)
-            _config.getTaskExecutor().schedule(this::onSourceChange);
-        else {
-            AtomicInteger dynamicSourceCount = new AtomicInteger();
-            _sortedSources.forEach(s -> {
-                if (s.isDynamic())
-                    dynamicSourceCount.incrementAndGet();
-            });
-
-            if (dynamicSourceCount.get() > 1) {
-                StringBuilder message = new StringBuilder();
-                message.append("Configuration Manager ").append(_config.getName()).append(" dynamic source count is ")
-                        .append(dynamicSourceCount.get())
-                        .append(". A TaskExcecutor is required in the manager config for manager with >=2 dynamic sources.");
-                LOGGER.error(message.toString());
-            }
-        }
+    protected boolean isDynamic() {
+        return _dynamic;
     }
 
     @Override
@@ -182,7 +171,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     @Override
     public void close() {
-        if (_config.getTaskExecutor() != null)
+        if (_dynamic)
             _config.getTaskExecutor().close();
     }
 

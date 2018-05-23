@@ -15,8 +15,6 @@ public class SystemPropertiesConfigurationSource extends StringPropertyConfigura
 
     public SystemPropertiesConfigurationSource(ConfigurationSourceConfig config) {
         super(config);
-
-        setDynamic(true);
     }
 
     @Override
@@ -24,7 +22,7 @@ public class SystemPropertiesConfigurationSource extends StringPropertyConfigura
         return System.getProperty(key);
     }
 
-    public void setPropertyValue(String key, String value) {
+    public void setProperty(String key, String value) {
         String oldValue = System.getProperty(key);
         if (Objects.equals(oldValue, value))
             return;

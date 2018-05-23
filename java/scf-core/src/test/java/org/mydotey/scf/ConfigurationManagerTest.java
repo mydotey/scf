@@ -2,6 +2,7 @@ package org.mydotey.scf;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,22 +22,43 @@ import com.google.common.collect.Lists;
  */
 public class ConfigurationManagerTest {
 
-    protected ConfigurationManager createManager() {
+    protected TestConfigurationSource createSource(int priority) {
         ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("test-source")
-                .setPriority(1).build();
+                .setPriority(priority).build();
         HashMap<String, String> properties = new HashMap<>();
         properties.put("exist", "ok");
-        ConfigurationSource source = new TestConfigurationSource(sourceConfig, properties);
+        properties.put("exist2", "ok2");
+        properties.put("exist3", "ok3");
+        properties.put("exist4", "ok4");
+        properties.put("exist5", "ok5");
+        TestConfigurationSource source = new TestConfigurationSource(sourceConfig, properties);
         System.out.println("source config: " + sourceConfig + "\n");
+        return source;
+    }
+
+    protected TestDynamicConfigurationSource createDynamicSource(int priority) {
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("test-source")
+                .setPriority(priority).build();
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("exist", "ok.2");
+        properties.put("exist2", "ok2.2");
+        properties.put("exist3", "ok3.2");
+        properties.put("exist4", "ok4.2");
+        TestDynamicConfigurationSource source = new TestDynamicConfigurationSource(sourceConfig, properties);
+        System.out.println("source config: " + sourceConfig + "\n");
+        return source;
+    }
+
+    protected ConfigurationManager createManager(ConfigurationSource... sources) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(source)).build();
+                .setSources(Lists.newArrayList(sources)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
 
     @Test
     public void testGetProperties() {
-        ConfigurationManager manager = createManager();
+        ConfigurationManager manager = createManager(createSource(1));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -58,7 +80,7 @@ public class ConfigurationManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
-        ConfigurationManager manager = createManager();
+        ConfigurationManager manager = createManager(createSource(1));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -72,7 +94,7 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testGetPropertyWithFilter() {
-        ConfigurationManager manager = createManager();
+        ConfigurationManager manager = createManager(createSource(1));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setValueFilter(v -> {
                     if (Objects.equals("ok", v))
@@ -90,6 +112,70 @@ public class ConfigurationManagerTest {
         property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertNull(property.getValue());
+    }
+
+    @Test
+    public void testGetPropertyWithDynamicSource() {
+        TestDynamicConfigurationSource source = createDynamicSource(1);
+        ConfigurationManager manager = createManager(source);
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok.2", property.getValue());
+
+        source.setProperty("exist", "okx");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("okx", property.getValue());
+
+        source.setProperty("exist", "ok.2");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok.2", property.getValue());
+
+        AtomicBoolean touched = new AtomicBoolean();
+        property.addChangeListener(p -> touched.set(true));
+        source.setProperty("exist", "okx");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("okx", property.getValue());
+        Assert.assertTrue(touched.get());
+    }
+
+    @Test
+    public void testGetPropertiesMultipleSource() {
+        TestConfigurationSource source1 = createSource(1);
+        TestDynamicConfigurationSource source2 = createDynamicSource(2);
+        ConfigurationManager manager = createManager(source1, source2);
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("not-exist").setValueType(String.class).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals(null, property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("not-exist2")
+                .setValueType(String.class).setDefaultValue("default").build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("default", property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("exist")
+                .setValueType(String.class).setDefaultValue("default").build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok.2", property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("exist5")
+                .setValueType(String.class).setDefaultValue("default").build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok5", property.getValue());
+
+        source2.setProperty("exist5", "ok5.2");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok5.2", property.getValue());
+
+        source2.setProperty("exist5", null);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok5", property.getValue());
     }
 
 }

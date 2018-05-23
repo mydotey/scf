@@ -1,8 +1,7 @@
 package org.mydotey.scf;
 
 import java.util.Collection;
-
-import org.mydotey.scf.threading.TaskExecutor;
+import java.util.function.Consumer;
 
 /**
  * @author koqizhao
@@ -15,7 +14,7 @@ public interface ConfigurationManagerConfig {
 
     Collection<ConfigurationSource> getSources();
 
-    TaskExecutor getTaskExecutor();
+    Consumer<Runnable> getTaskExecutor();
 
     public interface Builder extends AbstractBuilder<Builder> {
 
@@ -27,7 +26,7 @@ public interface ConfigurationManagerConfig {
 
         B setSources(Collection<ConfigurationSource> sources);
 
-        B setTaskExecutor(TaskExecutor taskExecutor);
+        B setTaskExecutor(Consumer<Runnable> taskExecutor);
 
         ConfigurationManagerConfig build();
 

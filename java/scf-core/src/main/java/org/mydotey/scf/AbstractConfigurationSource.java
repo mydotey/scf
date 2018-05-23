@@ -19,7 +19,6 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private ConfigurationSourceConfig _config;
 
-    private boolean _dynamic;
     private volatile List<Consumer<ConfigurationSource>> _changeListeners;
 
     public AbstractConfigurationSource(ConfigurationSourceConfig config) {
@@ -46,20 +45,8 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     protected abstract <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig);
 
     @Override
-    public boolean isDynamic() {
-        return _dynamic;
-    }
-
-    protected void setDynamic(boolean dynamic) {
-        _dynamic = dynamic;
-    }
-
-    @Override
     public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
         Objects.requireNonNull("changeListener", "changeListener is null");
-
-        if (!_dynamic)
-            return;
 
         synchronized (this) {
             if (_changeListeners == null)
@@ -70,9 +57,6 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     }
 
     protected void raiseChangeEvent() {
-        if (!_dynamic)
-            return;
-
         synchronized (this) {
             if (_changeListeners == null)
                 return;
@@ -89,7 +73,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     @Override
     public String toString() {
-        return String.format("{ type: %s, config: %s, dynamic: %s }", getClass(), getConfig(), isDynamic());
+        return String.format("{ type: %s, config: %s }", getClass(), getConfig());
     }
 
 }

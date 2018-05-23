@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +29,14 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             throw new IllegalArgumentException("2 sources have the same priority. s1: " + s1.getConfig().getName()
                     + ", s2: " + s2.getConfig().getName());
 
-        return s1.getConfig().getPriority() > s2.getConfig().getPriority() ? 1 : -1;
+        return s1.getConfig().getPriority() > s2.getConfig().getPriority() ? -1 : 1;
     };
 
     private ConfigurationManagerConfig _config;
     private List<ConfigurationSource> _sortedSources;
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
-
-    private boolean _dynamic;
-    private AtomicBoolean _isSourceChanging;
+    private Object _propertiesLock;
 
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
         Objects.requireNonNull(config, "config is null");
@@ -48,16 +45,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         _sortedSources = new ArrayList<>(_config.getSources());
         Collections.sort(_sortedSources, SOURCE_COMPARATOR);
-        _sortedSources.forEach(s -> {
-            if (s.isDynamic()) {
-                _dynamic = true;
-                s.addChangeListener(this::onSourceChange);
-            }
-        });
-        if (_dynamic) {
-            _isSourceChanging = new AtomicBoolean();
-            _config.getTaskExecutor().schedule(this::onSourceChange);
-        }
+        _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
 
         StringBuilder message = new StringBuilder();
         message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
@@ -66,10 +54,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         LOGGER.info(message.toString());
 
         _properties = new ConcurrentHashMap<>();
-    }
-
-    protected boolean isDynamic() {
-        return _dynamic;
+        _propertiesLock = new Object();
     }
 
     @Override
@@ -86,17 +71,30 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
-        Property<K, V> property = _properties.computeIfAbsent(propertyConfig.getKey(), k -> {
-            V value = getPropertyValue(propertyConfig);
-            return newProperty(propertyConfig, value);
-        });
-
+        Property<K, V> property = doGetProperty(propertyConfig);
         if (!Objects.equals(property.getConfig(), propertyConfig))
             throw new IllegalArgumentException(String.format(
                     "make sure using same config for property: %s, previous config: %s, current Config: %s",
                     propertyConfig.getKey(), property.getConfig(), propertyConfig));
 
         return property;
+    }
+
+    protected <K, V> Property<K, V> doGetProperty(PropertyConfig<K, V> propertyConfig) {
+        DefaultProperty<K, V> property = _properties.get(propertyConfig.getKey());
+        if (property != null)
+            return property;
+
+        synchronized (_propertiesLock) {
+            property = _properties.get(propertyConfig.getKey());
+            if (property != null)
+                return property;
+
+            V value = getPropertyValue(propertyConfig);
+            property = newProperty(propertyConfig, value);
+            _properties.put(propertyConfig.getKey(), property);
+            return property;
+        }
     }
 
     @Override
@@ -137,14 +135,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     }
 
     protected void onSourceChange(ConfigurationSource source) {
-        _config.getTaskExecutor().submit(this::onSourceChange);
-    }
-
-    protected void onSourceChange() {
-        if (!_isSourceChanging.compareAndSet(false, true))
-            return;
-
-        try {
+        synchronized (_propertiesLock) {
             _properties.values().forEach(p -> {
                 Object value = getPropertyValue(p.getConfig());
                 if (Objects.equals(p.getValue(), value))
@@ -152,17 +143,9 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
                 p.setValue(value);
 
-                _config.getTaskExecutor().submit(p::raiseChangeEvent);
+                _config.getTaskExecutor().accept(p::raiseChangeEvent);
             });
-        } finally {
-            _isSourceChanging.set(false);
         }
-    }
-
-    @Override
-    public void close() {
-        if (_dynamic)
-            _config.getTaskExecutor().close();
     }
 
 }

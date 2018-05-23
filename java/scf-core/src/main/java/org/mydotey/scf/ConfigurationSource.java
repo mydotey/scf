@@ -13,8 +13,6 @@ public interface ConfigurationSource {
 
     <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig);
 
-    boolean isDynamic();
-
     void addChangeListener(Consumer<ConfigurationSource> changeListener);
 
 }

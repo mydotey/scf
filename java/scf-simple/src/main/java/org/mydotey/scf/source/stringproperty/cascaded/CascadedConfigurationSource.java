@@ -20,11 +20,9 @@ public class CascadedConfigurationSource extends StringPropertyConfigurationSour
         super(config);
 
         Objects.requireNonNull(source, "source is null");
-        _source = source;
 
-        setDynamic(_source.isDynamic());
-        if (isDynamic())
-            _source.addChangeListener(s -> CascadedConfigurationSource.this.raiseChangeEvent());
+        _source = source;
+        _source.addChangeListener(s -> CascadedConfigurationSource.this.raiseChangeEvent());
 
         init();
     }

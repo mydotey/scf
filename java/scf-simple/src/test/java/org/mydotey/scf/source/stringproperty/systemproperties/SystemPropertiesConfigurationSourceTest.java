@@ -12,6 +12,7 @@ import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
+import org.mydotey.scf.threading.TaskExecutor;
 
 import com.google.common.collect.Lists;
 
@@ -29,11 +30,9 @@ public class SystemPropertiesConfigurationSourceTest {
         return StringPropertySources.newSystemPropertiesSource(sourceConfig);
     }
 
-    protected ConfigurationManager createManager(long delayMs, long intervalMs,
-            SystemPropertiesConfigurationSource source) {
+    protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(source)).setTaskExecutor(new TestTaskExecutor(delayMs, intervalMs))
-                .build();
+                .setSources(Lists.newArrayList(source)).setTaskExecutor(new TaskExecutor(1)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
@@ -43,21 +42,12 @@ public class SystemPropertiesConfigurationSourceTest {
         System.clearProperty("exist");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testDynamicWithoutTaskExecutor() {
-        SystemPropertiesConfigurationSource source = createSource();
-        ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(source)).build();
-        System.out.println("manager config: " + managerConfig + "\n");
-        ConfigurationManagers.newManager(managerConfig);
-    }
-
     @Test
     public void testGetProperties() throws InterruptedException {
         System.setProperty("exist", "ok");
 
         SystemPropertiesConfigurationSource source = createSource();
-        ConfigurationManager manager = createManager(5, 5, source);
+        ConfigurationManager manager = createManager(source);
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -76,8 +66,8 @@ public class SystemPropertiesConfigurationSourceTest {
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok", property.getValue());
 
-        System.setProperty("exist", "ok2");
-        Thread.sleep(20);
+        source.setProperty("exist", "ok2");
+        Thread.sleep(10);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok2", property.getValue());
     }
@@ -87,7 +77,7 @@ public class SystemPropertiesConfigurationSourceTest {
         System.setProperty("exist", "ok");
 
         SystemPropertiesConfigurationSource source = createSource();
-        ConfigurationManager manager = createManager(1 * 1000, 1 * 1000, source);
+        ConfigurationManager manager = createManager(source);
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setDefaultValue("default").build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -99,7 +89,7 @@ public class SystemPropertiesConfigurationSourceTest {
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok", property.getValue());
 
-        source.setPropertyValue("exist", "ok3");
+        source.setProperty("exist", "ok3");
         Thread.sleep(10);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok3", property.getValue());
@@ -108,9 +98,6 @@ public class SystemPropertiesConfigurationSourceTest {
         Thread.sleep(10);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok3", property.getValue());
-        Thread.sleep(1 * 1000);
-        System.out.println("property: " + property + "\n");
-        Assert.assertEquals("ok4", property.getValue());
     }
 
 }

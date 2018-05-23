@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.mydotey.scf.threading.TaskExecutor;
+import java.util.function.Consumer;
 
 /**
  * @author koqizhao
@@ -17,7 +15,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
     private String _name;
     private List<ConfigurationSource> _sources;
-    private TaskExecutor _taskExecutor;
+    private Consumer<Runnable> _taskExecutor;
 
     protected DefaultConfigurationManagerConfig() {
 
@@ -34,7 +32,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
     }
 
     @Override
-    public TaskExecutor getTaskExecutor() {
+    public Consumer<Runnable> getTaskExecutor() {
         return _taskExecutor;
     }
 
@@ -65,6 +63,13 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
     @SuppressWarnings("unchecked")
     public static abstract class DefaultAbstractBuilder<B extends ConfigurationManagerConfig.AbstractBuilder<B>>
             implements ConfigurationManagerConfig.AbstractBuilder<B> {
+
+        protected static final Consumer<Runnable> DEFAULT_TASK_EXECUTOR = new Consumer<Runnable>() {
+            @Override
+            public void accept(Runnable t) {
+                t.run();
+            }
+        };
 
         private DefaultConfigurationManagerConfig _config;
 
@@ -103,7 +108,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         }
 
         @Override
-        public B setTaskExecutor(TaskExecutor taskExecutor) {
+        public B setTaskExecutor(Consumer<Runnable> taskExecutor) {
             _config._taskExecutor = taskExecutor;
             return (B) this;
         }
@@ -117,13 +122,8 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
             if (_config._sources == null || _config._sources.isEmpty())
                 throw new IllegalArgumentException("sources is null or empty");
 
-            AtomicBoolean hasDynamicSource = new AtomicBoolean();
-            _config._sources.forEach(s -> {
-                if (s.isDynamic())
-                    hasDynamicSource.set(true);
-            });
-            if (hasDynamicSource.get() && _config._taskExecutor == null)
-                throw new IllegalArgumentException("taskExecutor is required when dynamic source is used");
+            if (_config._taskExecutor == null)
+                _config._taskExecutor = DEFAULT_TASK_EXECUTOR;
 
             return _config.clone();
         }

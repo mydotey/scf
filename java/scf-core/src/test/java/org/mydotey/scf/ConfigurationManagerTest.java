@@ -51,7 +51,7 @@ public class ConfigurationManagerTest {
 
     protected ConfigurationManager createManager(ConfigurationSource... sources) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(sources)).build();
+                .addSources(Lists.newArrayList(sources)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

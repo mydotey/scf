@@ -37,7 +37,9 @@ public interface PropertyConfig<K, V> {
 
         B setDefaultValue(V value);
 
-        B setValueConverters(Collection<TypeConverter> valueConverters);
+        B addValueConverter(TypeConverter valueConverter);
+
+        B addValueConverters(Collection<TypeConverter> valueConverters);
 
         B setValueFilter(Function<V, V> valueFilter);
 

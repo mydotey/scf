@@ -12,8 +12,6 @@ import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author koqizhao
  *
@@ -26,8 +24,7 @@ public class EnvironmentVariableConfigurationSourceTest {
                 .setPriority(1).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(StringPropertySources.newEnvironmentVariableSource(sourceConfig)))
-                .build();
+                .addSource(StringPropertySources.newEnvironmentVariableSource(sourceConfig)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

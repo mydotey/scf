@@ -1,6 +1,5 @@
 package org.mydotey.scf.facade;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -284,30 +283,25 @@ public class StringProperties {
 
     public <K, V> Property<K, V> getProperty(K key, Class<V> valueType, V defaultValue, TypeConverter valueConverter,
             Function<V, V> valueFilter) {
-        List<TypeConverter> valueConverters = null;
-        if (valueConverter != null) {
-            valueConverters = new ArrayList<>();
-            valueConverters.add(valueConverter);
-        }
-
-        PropertyConfig<K, V> propertyConfig = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
-                .setValueType(valueType).setDefaultValue(defaultValue).setValueConverters(valueConverters)
-                .setValueFilter(valueFilter).build();
+        PropertyConfig<K, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
+                valueFilter);
         return _manager.getProperty(propertyConfig);
     }
 
     public <K, V> V getPropertyValue(K key, Class<V> valueType, V defaultValue, TypeConverter valueConverter,
             Function<V, V> valueFilter) {
-        List<TypeConverter> valueConverters = null;
-        if (valueConverter != null) {
-            valueConverters = new ArrayList<>();
-            valueConverters.add(valueConverter);
-        }
-
-        PropertyConfig<K, V> propertyConfig = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
-                .setValueType(valueType).setDefaultValue(defaultValue).setValueConverters(valueConverters)
-                .setValueFilter(valueFilter).build();
+        PropertyConfig<K, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
+                valueFilter);
         return _manager.getPropertyValue(propertyConfig);
+    }
+
+    protected <K, V> PropertyConfig<K, V> createPropertyConfig(K key, Class<V> valueType, V defaultValue,
+            TypeConverter valueConverter, Function<V, V> valueFilter) {
+        PropertyConfig.Builder<K, V> builder = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
+                .setValueType(valueType).setDefaultValue(defaultValue);
+        if (valueConverter != null)
+            builder.addValueConverter(valueConverter);
+        return builder.setValueFilter(valueFilter).build();
     }
 
 }

@@ -14,8 +14,6 @@ import org.mydotey.scf.facade.StringPropertySources;
 import org.mydotey.scf.source.stringproperty.systemproperties.SystemPropertiesConfigurationSource;
 import org.mydotey.scf.threading.TaskExecutor;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author koqizhao
  *
@@ -32,12 +30,12 @@ public class CascadedConfigurationSourceTest {
 
     protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
         CascadedConfigurationSourceConfig sourceConfig = StringPropertySources.newCascadedSourceConfigBuilder()
-                .setName("cascaded-system-properties").setPriority(1).setKeySeparator(".")
-                .setCascadedFactors(Lists.newArrayList("part1", "part2")).build();
+                .setName("cascaded-system-properties").setPriority(1).setKeySeparator(".").addCascadedFactor("part1")
+                .addCascadedFactor("part2").build();
         CascadedConfigurationSource cascadedSource = StringPropertySources.newCascadedSource(sourceConfig, source);
         TaskExecutor taskExecutor = new TaskExecutor(1);
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(cascadedSource)).setTaskExecutor(taskExecutor).build();
+                .addSource(cascadedSource).setTaskExecutor(taskExecutor).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

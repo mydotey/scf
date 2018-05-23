@@ -14,8 +14,6 @@ import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 import org.mydotey.scf.threading.TaskExecutor;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author koqizhao
  *
@@ -32,7 +30,7 @@ public class SystemPropertiesConfigurationSourceTest {
 
     protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(source)).setTaskExecutor(new TaskExecutor(1)).build();
+                .addSource(source).setTaskExecutor(new TaskExecutor(1)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

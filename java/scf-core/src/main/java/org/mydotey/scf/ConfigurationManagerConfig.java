@@ -24,7 +24,9 @@ public interface ConfigurationManagerConfig {
 
         B setName(String name);
 
-        B setSources(Collection<ConfigurationSource> sources);
+        B addSource(ConfigurationSource source);
+
+        B addSources(Collection<ConfigurationSource> sources);
 
         B setTaskExecutor(Consumer<Runnable> taskExecutor);
 

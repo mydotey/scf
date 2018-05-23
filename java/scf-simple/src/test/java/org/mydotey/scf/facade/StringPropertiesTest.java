@@ -28,7 +28,7 @@ public class StringPropertiesTest {
                 .setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(StringPropertySources.newPropertiesFileSource(sourceConfig))).build();
+                .addSource(StringPropertySources.newPropertiesFileSource(sourceConfig)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

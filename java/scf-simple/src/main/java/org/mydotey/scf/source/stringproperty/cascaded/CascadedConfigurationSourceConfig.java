@@ -29,8 +29,7 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
 
     @Override
     public CascadedConfigurationSourceConfig clone() {
-        CascadedConfigurationSourceConfig copy = null;
-        copy = (CascadedConfigurationSourceConfig) super.clone();
+        CascadedConfigurationSourceConfig copy = (CascadedConfigurationSourceConfig) super.clone();
 
         if (_cascadedFactors != null)
             copy._cascadedFactors = Collections.unmodifiableList(new ArrayList<>(_cascadedFactors));

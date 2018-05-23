@@ -124,17 +124,17 @@ public class ConfigurationManagerTest {
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok.2", property.getValue());
 
-        source.setProperty("exist", "okx");
+        source.setPropertyValue("exist", "okx");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("okx", property.getValue());
 
-        source.setProperty("exist", "ok.2");
+        source.setPropertyValue("exist", "ok.2");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok.2", property.getValue());
 
         AtomicBoolean touched = new AtomicBoolean();
         property.addChangeListener(p -> touched.set(true));
-        source.setProperty("exist", "okx");
+        source.setPropertyValue("exist", "okx");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("okx", property.getValue());
         Assert.assertTrue(touched.get());
@@ -169,11 +169,11 @@ public class ConfigurationManagerTest {
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok5", property.getValue());
 
-        source2.setProperty("exist5", "ok5.2");
+        source2.setPropertyValue("exist5", "ok5.2");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok5.2", property.getValue());
 
-        source2.setProperty("exist5", null);
+        source2.setPropertyValue("exist5", null);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok5", property.getValue());
     }

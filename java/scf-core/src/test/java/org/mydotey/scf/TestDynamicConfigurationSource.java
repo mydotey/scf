@@ -50,7 +50,7 @@ public class TestDynamicConfigurationSource extends AbstractConfigurationSource 
         return null;
     }
 
-    public void setProperty(String key, String value) {
+    public void setPropertyValue(String key, String value) {
         String oldValue = _properties.get(key);
         if (Objects.equals(oldValue, value))
             return;

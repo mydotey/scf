@@ -281,23 +281,23 @@ public class StringProperties {
                 new StringToMapConverter(keyConverter, valueConverter), valueFilter);
     }
 
-    public <K, V> Property<K, V> getProperty(K key, Class<V> valueType, V defaultValue, TypeConverter valueConverter,
-            Function<V, V> valueFilter) {
-        PropertyConfig<K, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
+    public <V> Property<String, V> getProperty(String key, Class<V> valueType, V defaultValue,
+            TypeConverter valueConverter, Function<V, V> valueFilter) {
+        PropertyConfig<String, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
                 valueFilter);
         return _manager.getProperty(propertyConfig);
     }
 
-    public <K, V> V getPropertyValue(K key, Class<V> valueType, V defaultValue, TypeConverter valueConverter,
+    public <V> V getPropertyValue(String key, Class<V> valueType, V defaultValue, TypeConverter valueConverter,
             Function<V, V> valueFilter) {
-        PropertyConfig<K, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
+        PropertyConfig<String, V> propertyConfig = createPropertyConfig(key, valueType, defaultValue, valueConverter,
                 valueFilter);
         return _manager.getPropertyValue(propertyConfig);
     }
 
-    protected <K, V> PropertyConfig<K, V> createPropertyConfig(K key, Class<V> valueType, V defaultValue,
+    protected <V> PropertyConfig<String, V> createPropertyConfig(String key, Class<V> valueType, V defaultValue,
             TypeConverter valueConverter, Function<V, V> valueFilter) {
-        PropertyConfig.Builder<K, V> builder = ConfigurationProperties.<K, V> newConfigBuilder().setKey(key)
+        PropertyConfig.Builder<String, V> builder = ConfigurationProperties.<String, V> newConfigBuilder().setKey(key)
                 .setValueType(valueType).setDefaultValue(defaultValue);
         if (valueConverter != null)
             builder.addValueConverter(valueConverter);

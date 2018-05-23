@@ -23,8 +23,6 @@ public interface PropertyConfig<K, V> {
 
     Function<V, V> getValueFilter();
 
-    boolean equals(PropertyConfig propertyConfig);
-
     public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>> {
 
     }

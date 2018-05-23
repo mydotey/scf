@@ -5,7 +5,7 @@
 
     <groupId>org.mydotey.scf</groupId>
     <artifactId>scf</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <packaging>pom</packaging>
     <name>scf</name>
     <description>simple configuration facade</description>

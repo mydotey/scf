@@ -14,7 +14,7 @@ import org.mydotey.scf.type.TypeConverter;
  *
  * May 17, 2018
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Cloneable {
 
     private K _key;
@@ -52,7 +52,6 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         return _valueFilter;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public DefaultPropertyConfig<K, V> clone() {
         DefaultPropertyConfig<K, V> copy = null;
@@ -75,15 +74,17 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     }
 
     @Override
-    public boolean equals(PropertyConfig propertyConfig) {
-        if (this == propertyConfig)
+    public boolean equals(Object other) {
+        if (this == other)
             return true;
 
-        if (propertyConfig == null)
+        if (other == null)
             return false;
 
-        if (getClass() != propertyConfig.getClass())
+        if (this.getClass() != other.getClass())
             return false;
+
+        PropertyConfig<K, V> propertyConfig = (PropertyConfig<K, V>) other;
 
         if (!Objects.equals(getKey(), propertyConfig.getKey()))
             return false;
@@ -100,7 +101,7 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         if (!Objects.equals(getValueFilter(), propertyConfig.getValueFilter()))
             return false;
 
-        return false;
+        return true;
     }
 
     public static class Builder<K, V> extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>>
@@ -108,7 +109,6 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     }
 
-    @SuppressWarnings("unchecked")
     public static abstract class DefaultAbstractBuilder<K, V, B extends PropertyConfig.AbstractBuilder<K, V, B>>
             implements PropertyConfig.AbstractBuilder<K, V, B> {
 

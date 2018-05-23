@@ -104,4 +104,19 @@ public class StringPropertiesTest {
         moreProperties.getMapProperty("map-value", StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
     }
 
+    @Test
+    public void testSameConfigSameProperty() {
+        StringProperties moreProperties = createMoreProperties("test.properties");
+        Property<String, Map<String, String>> property = moreProperties.getMapProperty("map-value");
+        Map<String, String> expected = new HashMap<>();
+        expected.put("k1", "v1");
+        expected.put("k2", "v2");
+        expected.put("k3", "v3");
+        Assert.assertEquals(expected, property.getValue());
+
+        Property<String, Map<String, String>> property2 = moreProperties.getMapProperty("map-value");
+        System.out.println("property2: " + property + "\n");
+        Assert.assertTrue(property == property2);
+    }
+
 }

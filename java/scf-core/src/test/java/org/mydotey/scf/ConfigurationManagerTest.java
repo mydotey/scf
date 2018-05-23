@@ -93,6 +93,26 @@ public class ConfigurationManagerTest {
     }
 
     @Test
+    public void testSameConfigSameProperty() {
+        ConfigurationManager manager = createManager(createSource(1));
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("not-exist").setValueType(String.class).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals(null, property.getValue());
+
+        Property<String, String> property2 = manager.getProperty(propertyConfig);
+        System.out.println("property2: " + property + "\n");
+        Assert.assertTrue(property == property2);
+
+        PropertyConfig<String, String> propertyConfig2 = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("not-exist").setValueType(String.class).build();
+        Property<String, String> property3 = manager.getProperty(propertyConfig2);
+        System.out.println("property3: " + property2 + "\n");
+        Assert.assertTrue(property == property3);
+    }
+
+    @Test
     public void testGetPropertyWithFilter() {
         ConfigurationManager manager = createManager(createSource(1));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()

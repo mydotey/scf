@@ -1,5 +1,6 @@
 package org.mydotey.scf;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 import org.junit.Assert;
@@ -10,7 +11,6 @@ import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
-import org.mydotey.scf.source.stringproperties.propertiesfile.PropertiesFileConfigurationSourceConfig;
 
 import com.google.common.collect.Lists;
 
@@ -21,20 +21,22 @@ import com.google.common.collect.Lists;
  */
 public class ConfigurationManagerTest {
 
-    protected ConfigurationManager createManager(String fileName) {
-        PropertiesFileConfigurationSourceConfig sourceConfig = ConfigurationSources
-                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
-                .setFileName(fileName).build();
+    protected ConfigurationManager createManager() {
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("test-source")
+                .setPriority(1).build();
+        HashMap<String, String> properties = new HashMap<>();
+        properties.put("exist", "ok");
+        ConfigurationSource source = new TestConfigurationSource(sourceConfig, properties);
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .setSources(Lists.newArrayList(ConfigurationSources.newPropertiesFileSource(sourceConfig))).build();
+                .setSources(Lists.newArrayList(source)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
 
     @Test
     public void testGetProperties() {
-        ConfigurationManager manager = createManager("test.properties");
+        ConfigurationManager manager = createManager();
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -56,7 +58,7 @@ public class ConfigurationManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
-        ConfigurationManager manager = createManager("test.properties");
+        ConfigurationManager manager = createManager();
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -70,7 +72,7 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testGetPropertyWithFilter() {
-        ConfigurationManager manager = createManager("test.properties");
+        ConfigurationManager manager = createManager();
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setValueFilter(v -> {
                     if (Objects.equals("ok", v))

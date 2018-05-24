@@ -33,18 +33,6 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     }
 
     @Override
-    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
-        try {
-            return doGetPropertyValue(propertyConfig);
-        } catch (Exception e) {
-            LOGGER.error("source getPropertyValue failed to run", e);
-            return null;
-        }
-    }
-
-    protected abstract <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig);
-
-    @Override
     public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
         Objects.requireNonNull("changeListener", "changeListener is null");
 

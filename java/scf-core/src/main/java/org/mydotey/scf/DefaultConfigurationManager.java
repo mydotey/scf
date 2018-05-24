@@ -71,7 +71,18 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     public <K, V> Property<K, V> getProperty(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
-        Property<K, V> property = doGetProperty(propertyConfig);
+        DefaultProperty<K, V> property = _properties.get(propertyConfig.getKey());
+        if (property == null) {
+            synchronized (_propertiesLock) {
+                property = _properties.get(propertyConfig.getKey());
+                if (property == null) {
+                    V value = getPropertyValue(propertyConfig);
+                    property = newProperty(propertyConfig, value);
+                    _properties.put(propertyConfig.getKey(), property);
+                }
+            }
+        }
+
         if (!Objects.equals(property.getConfig(), propertyConfig))
             throw new IllegalArgumentException(String.format(
                     "make sure using same config for property: %s, previous config: %s, current Config: %s",
@@ -80,54 +91,43 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         return property;
     }
 
-    protected <K, V> Property<K, V> doGetProperty(PropertyConfig<K, V> propertyConfig) {
-        DefaultProperty<K, V> property = _properties.get(propertyConfig.getKey());
-        if (property != null)
-            return property;
-
-        synchronized (_propertiesLock) {
-            property = _properties.get(propertyConfig.getKey());
-            if (property != null)
-                return property;
-
-            V value = getPropertyValue(propertyConfig);
-            property = newProperty(propertyConfig, value);
-            _properties.put(propertyConfig.getKey(), property);
-            return property;
-        }
-    }
-
     @Override
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
         V value = null;
         for (ConfigurationSource source : _sortedSources) {
-            value = source.getPropertyValue(propertyConfig);
+            try {
+                value = source.getPropertyValue(propertyConfig);
+            } catch (Exception e) {
+                String message = String.format(
+                        "error occurred when getting property value, ignore the source. source: %s, propertyConfig: %s",
+                        source, propertyConfig);
+                LOGGER.error(message, e);
 
-            value = filterValue(propertyConfig, value);
+                continue;
+            }
+
+            if (value == null)
+                continue;
+
+            if (propertyConfig.getValueFilter() == null)
+                break;
+
+            try {
+                value = propertyConfig.getValueFilter().apply(value);
+            } catch (Exception e) {
+                String message = String.format(
+                        "failed to run valueFilter, ignore the filter. value: %s, valueFilter: %s, propertyConfig: %s",
+                        value, propertyConfig.getValueFilter(), propertyConfig);
+                LOGGER.error(message, e);
+            }
 
             if (value != null)
                 break;
         }
 
         return value == null ? propertyConfig.getDefaultValue() : value;
-    }
-
-    protected <K, V> V filterValue(PropertyConfig<K, V> config, V value) {
-        if (value == null)
-            return value;
-
-        if (config.getValueFilter() == null)
-            return value;
-
-        try {
-            value = config.getValueFilter().apply(value);
-        } catch (Exception e) {
-            LOGGER.error("failed to run valueFilter: " + config.getValueFilter(), e);
-        }
-
-        return value;
     }
 
     protected <K, V> DefaultProperty<K, V> newProperty(PropertyConfig<K, V> config, V value) {

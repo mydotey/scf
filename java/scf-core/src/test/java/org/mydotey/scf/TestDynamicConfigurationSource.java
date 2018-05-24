@@ -26,7 +26,7 @@ public class TestDynamicConfigurationSource extends AbstractConfigurationSource 
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <K, V> V doGetPropertyValue(PropertyConfig<K, V> propertyConfig) {
+    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
         if (propertyConfig.getKey().getClass() != String.class)
             return null;
 

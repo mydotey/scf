@@ -134,6 +134,29 @@ public class ConfigurationManagerTest {
         Assert.assertNull(property.getValue());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetPropertyWithDiffFilterInSimilarConfig() {
+        ConfigurationManager manager = createManager(createSource(1));
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).setValueFilter(v -> {
+                    if (Objects.equals("ok", v))
+                        return "ok_new";
+                    return null;
+                }).build();
+        System.out.println("propertyConfig: " + propertyConfig + "\n");
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        Assert.assertEquals("ok_new", property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder().setKey("exist")
+                .setValueType(String.class).setValueFilter(v -> {
+                    if (Objects.equals("ok", v))
+                        return "ok_new";
+                    return null;
+                }).build();
+        System.out.println("propertyConfig: " + propertyConfig + "\n");
+        manager.getProperty(propertyConfig);
+    }
+
     @Test
     public void testGetPropertyWithDynamicSource() {
         TestDynamicConfigurationSource source = createDynamicSource(1);

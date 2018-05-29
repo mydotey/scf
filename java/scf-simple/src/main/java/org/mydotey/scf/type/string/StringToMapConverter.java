@@ -84,8 +84,8 @@ public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
 
     @Override
     public String toString() {
-        return String.format("{ type: %s, sourceType: %s, targetType: %s, keyConverter: %s, valueConverter: %s }",
-                getClass(), getSourceType(), getTargetType(), _keyConverter, _valueConverter);
+        return String.format("%s { sourceType: %s, targetType: %s, keyConverter: %s, valueConverter: %s }",
+                getClass().getSimpleName(), getSourceType(), getTargetType(), _keyConverter, _valueConverter);
     }
 
 }

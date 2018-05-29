@@ -39,8 +39,8 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
 
     @Override
     public String toString() {
-        return String.format("{ name: %s, priority: %d, keySeparator: %s, cascadedFactors: %s }", getName(),
-                getPriority(), _keySeparator, _cascadedFactors);
+        return String.format("%s { name: %s, priority: %d, keySeparator: %s, cascadedFactors: %s }",
+                getClass().getSimpleName(), getName(), getPriority(), _keySeparator, _cascadedFactors);
     }
 
     public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {

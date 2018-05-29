@@ -68,9 +68,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     @Override
     public String toString() {
-        return String.format(
-                "{ type: %s, key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }",
-                getClass(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter);
+        return String.format("%s { key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }",
+                getClass().getSimpleName(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter);
     }
 
     @Override

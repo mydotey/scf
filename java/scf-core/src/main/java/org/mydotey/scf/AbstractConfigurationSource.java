@@ -61,7 +61,8 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     @Override
     public String toString() {
-        return String.format("{ type: %s, config: %s }", getClass(), getConfig());
+        return String.format("%s { config: %s, changeListeners: %s }", getClass().getSimpleName(), getConfig(),
+                _changeListeners);
     }
 
 }

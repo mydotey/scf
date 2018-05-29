@@ -38,7 +38,7 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
 
     @Override
     public String toString() {
-        return String.format("{ name: %s, priority: %s }", _name, _priority);
+        return String.format("%s { name: %s, priority: %s }", getClass().getSimpleName(), _name, _priority);
     }
 
     public static class Builder extends DefaultAbstractBuilder<ConfigurationSourceConfig.Builder>

@@ -47,14 +47,10 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         Collections.sort(_sortedSources, SOURCE_COMPARATOR);
         _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
 
-        StringBuilder message = new StringBuilder();
-        message.append("Configuration Manager ").append(_config.getName()).append(" inited with ")
-                .append(_sortedSources.size()).append(" sources\n");
-        _sortedSources.forEach(s -> message.append(s).append("\n"));
-        LOGGER.info(message.toString());
-
         _properties = new ConcurrentHashMap<>();
         _propertiesLock = new Object();
+
+        LOGGER.info("Configuration Manager created: {}", toString());
     }
 
     @Override
@@ -146,6 +142,11 @@ public class DefaultConfigurationManager implements ConfigurationManager {
                 _config.getTaskExecutor().accept(p::raiseChangeEvent);
             });
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s { config: %s, properties: %s }", getClass().getSimpleName(), _config, _properties);
     }
 
 }

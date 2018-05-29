@@ -53,7 +53,8 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
     @Override
     public String toString() {
-        return String.format("{ name: %s, taskExecutor: %s, sources: %s }", _name, _taskExecutor, _sources);
+        return String.format("%s { name: %s, taskExecutor: %s, sources: %s }", getClass().getSimpleName(), _name,
+                _taskExecutor, _sources);
     }
 
     public static class Builder extends DefaultAbstractBuilder<ConfigurationManagerConfig.Builder>

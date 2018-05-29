@@ -66,7 +66,7 @@ public class StringToListConverter<V> extends StringConverter<List<V>> {
 
     @Override
     public String toString() {
-        return String.format("{ type: %s, sourceType: %s, targetType: %s, typeConverter: %s }", getClass(),
+        return String.format("%s { sourceType: %s, targetType: %s, typeConverter: %s }", getClass().getSimpleName(),
                 getSourceType(), getTargetType(), _typeConverter);
     }
 

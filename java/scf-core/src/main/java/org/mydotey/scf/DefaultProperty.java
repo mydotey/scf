@@ -66,7 +66,8 @@ public class DefaultProperty<K, V> implements Property<K, V> {
 
     @Override
     public String toString() {
-        return String.format("{ config: %s, value: %s }", _config, _value);
+        return String.format("%s { config: %s, value: %s, changeListeners: %s }", getClass().getSimpleName(), _config,
+                _value, _changeListeners);
     }
 
 }

@@ -36,7 +36,8 @@ public class MemoryMapConfigurationSourceConfig extends DefaultConfigurationSour
 
     @Override
     public String toString() {
-        return String.format("{ name: %s, priority: %d, properties: %s }", getName(), getPriority(), getProperties());
+        return String.format("%s { name: %s, priority: %d, properties: %s }", getClass().getSimpleName(), getName(),
+                getPriority(), getProperties());
     }
 
     public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {

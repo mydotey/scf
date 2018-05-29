@@ -56,7 +56,7 @@ public class PipelineValueFilter<V> implements Function<V, V> {
 
     @Override
     public String toString() {
-        return String.format("{ type: %s, filters: %s }", getClass(), _filters);
+        return String.format("%s { filters: %s }", getClass().getSimpleName(), _filters);
     }
 
 }

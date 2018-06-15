@@ -80,24 +80,24 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         if (other == null)
             return false;
 
-        if (this.getClass() != other.getClass())
+        if (getClass() != other.getClass())
             return false;
 
-        PropertyConfig<K, V> propertyConfig = (PropertyConfig<K, V>) other;
+        DefaultPropertyConfig<K, V> propertyConfig = (DefaultPropertyConfig<K, V>) other;
 
-        if (!Objects.equals(getKey(), propertyConfig.getKey()))
+        if (!Objects.equals(_key, propertyConfig._key))
             return false;
 
-        if (!Objects.equals(getValueType(), propertyConfig.getValueType()))
+        if (!Objects.equals(_valueType, propertyConfig._valueType))
             return false;
 
-        if (!Objects.equals(getDefaultValue(), propertyConfig.getDefaultValue()))
+        if (!Objects.equals(_defaultValue, propertyConfig._defaultValue))
             return false;
 
-        if (!Objects.equals(getValueConverters(), propertyConfig.getValueConverters()))
+        if (!Objects.equals(_valueConverters, propertyConfig._valueConverters))
             return false;
 
-        if (!Objects.equals(getValueFilter(), propertyConfig.getValueFilter()))
+        if (!Objects.equals(_valueFilter, propertyConfig._valueFilter))
             return false;
 
         return true;
@@ -145,20 +145,19 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
         @Override
         public B addValueConverter(TypeConverter valueConverter) {
-            Objects.requireNonNull(valueConverter, "valueConverter is null");
-
-            if (_config._valueConverters == null)
-                _config._valueConverters = new ArrayList<>();
-            _config._valueConverters.add(valueConverter);
+            if (valueConverter != null) {
+                if (_config._valueConverters == null)
+                    _config._valueConverters = new ArrayList<>();
+                _config._valueConverters.add(valueConverter);
+            }
 
             return (B) this;
         }
 
         @Override
         public B addValueConverters(Collection<TypeConverter> valueConverters) {
-            Objects.requireNonNull(valueConverters, "valueConverters is null");
-
-            valueConverters.forEach(this::addValueConverter);
+            if (valueConverters != null)
+                valueConverters.forEach(this::addValueConverter);
 
             return (B) this;
         }

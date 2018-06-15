@@ -3,7 +3,6 @@ package org.mydotey.scf.source.stringproperty.memorymap;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.mydotey.scf.DefaultConfigurationSourceConfig;
 
@@ -53,20 +52,18 @@ public class MemoryMapConfigurationSourceConfig extends DefaultConfigurationSour
         }
 
         public Builder addProperty(String key, String value) {
-            Objects.requireNonNull(key, "key is null");
-            Objects.requireNonNull(value, "value is null");
-
-            if (getConfig()._properties == null)
-                getConfig()._properties = new HashMap<>();
-            getConfig()._properties.put(key, value);
+            if (key != null && value != null) {
+                if (getConfig()._properties == null)
+                    getConfig()._properties = new HashMap<>();
+                getConfig()._properties.put(key, value);
+            }
 
             return this;
         }
 
         public Builder addProperties(Map<String, String> properties) {
-            Objects.requireNonNull(properties, "properties is null");
-
-            properties.forEach(this::addProperty);
+            if (properties != null)
+                properties.forEach(this::addProperty);
 
             return this;
         }

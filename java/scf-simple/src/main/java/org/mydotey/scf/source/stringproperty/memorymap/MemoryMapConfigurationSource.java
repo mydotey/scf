@@ -20,7 +20,10 @@ public class MemoryMapConfigurationSource extends StringPropertyConfigurationSou
 
         _properties = new ConcurrentHashMap<>();
         if (config.getProperties() != null)
-            _properties.putAll(config.getProperties());
+            config.getProperties().forEach((k, v) -> {
+                if (k != null && v != null)
+                    _properties.put(k, v);
+            });
     }
 
     @Override

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -95,20 +94,19 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
 
         @Override
         public B addSource(ConfigurationSource source) {
-            Objects.requireNonNull(source, "source is null");
-
-            if (_config._sources == null)
-                _config._sources = new ArrayList<>();
-            _config._sources.add(source);
+            if (source != null) {
+                if (_config._sources == null)
+                    _config._sources = new ArrayList<>();
+                _config._sources.add(source);
+            }
 
             return (B) this;
         }
 
         @Override
         public B addSources(Collection<ConfigurationSource> sources) {
-            Objects.requireNonNull(sources, "sources is null");
-
-            sources.forEach(this::addSource);
+            if (sources != null)
+                sources.forEach(this::addSource);
 
             return (B) this;
         }

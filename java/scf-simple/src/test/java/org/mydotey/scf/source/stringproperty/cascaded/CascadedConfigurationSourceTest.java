@@ -10,6 +10,7 @@ import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
+import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 import org.mydotey.scf.source.stringproperty.systemproperties.SystemPropertiesConfigurationSource;
 import org.mydotey.scf.threading.TaskExecutor;
@@ -22,7 +23,7 @@ import org.mydotey.scf.threading.TaskExecutor;
 public class CascadedConfigurationSourceTest {
 
     protected SystemPropertiesConfigurationSource createSource() {
-        ConfigurationSourceConfig sourceConfig = StringPropertySources.newConfigBuilder().setName("system-properties")
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("system-properties")
                 .setPriority(1).build();
         System.out.println("source config: " + sourceConfig + "\n");
         return StringPropertySources.newSystemPropertiesSource(sourceConfig);

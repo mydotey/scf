@@ -3,6 +3,7 @@ package org.mydotey.scf;
 import org.mydotey.scf.PropertyConfig;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.mydotey.scf.AbstractConfigurationSource;
 import org.mydotey.scf.ConfigurationSourceConfig;
@@ -15,11 +16,22 @@ import org.mydotey.scf.type.TypeConverter;
  */
 public class TestConfigurationSource extends AbstractConfigurationSource {
 
-    private HashMap<String, String> _properties;
+    protected Map<String, String> _properties;
 
     public TestConfigurationSource(ConfigurationSourceConfig config, HashMap<String, String> properties) {
         super(config);
-        _properties = properties;
+
+        init();
+
+        if (properties != null)
+            properties.forEach((k, v) -> {
+                if (k != null && v != null)
+                    _properties.put(k, v);
+            });
+    }
+
+    protected void init() {
+        _properties = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")

@@ -16,7 +16,7 @@ import org.mydotey.scf.source.stringproperty.systemproperties.SystemPropertiesCo
  *
  * May 22, 2018
  */
-public class StringPropertySources extends ConfigurationSources {
+public class StringPropertySources {
 
     protected StringPropertySources() {
 

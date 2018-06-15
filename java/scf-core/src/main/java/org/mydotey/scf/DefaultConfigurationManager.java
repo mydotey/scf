@@ -45,6 +45,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         _sortedSources = new ArrayList<>(_config.getSources());
         Collections.sort(_sortedSources, SOURCE_COMPARATOR);
+        _sortedSources = Collections.unmodifiableList(_sortedSources);
         _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
 
         _properties = new ConcurrentHashMap<>();
@@ -60,7 +61,11 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     @Override
     public Collection<Property> getProperties() {
-        return (Collection) _properties.values();
+        return Collections.unmodifiableCollection(_properties.values());
+    }
+
+    protected List<ConfigurationSource> getSortedSources() {
+        return _sortedSources;
     }
 
     @Override
@@ -93,37 +98,48 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         V value = null;
         for (ConfigurationSource source : _sortedSources) {
-            try {
-                value = source.getPropertyValue(propertyConfig);
-            } catch (Exception e) {
-                String message = String.format(
-                        "error occurred when getting property value, ignore the source. source: %s, propertyConfig: %s",
-                        source, propertyConfig);
-                LOGGER.error(message, e);
+            value = getPropertyValue(source, propertyConfig);
 
-                continue;
-            }
-
-            if (value == null)
-                continue;
-
-            if (propertyConfig.getValueFilter() == null)
-                break;
-
-            try {
-                value = propertyConfig.getValueFilter().apply(value);
-            } catch (Exception e) {
-                String message = String.format(
-                        "failed to run valueFilter, ignore the filter. value: %s, valueFilter: %s, propertyConfig: %s",
-                        value, propertyConfig.getValueFilter(), propertyConfig);
-                LOGGER.error(message, e);
-            }
+            value = applyValueFilter(propertyConfig, value);
 
             if (value != null)
                 break;
         }
 
         return value == null ? propertyConfig.getDefaultValue() : value;
+    }
+
+    protected <K, V> V getPropertyValue(ConfigurationSource source, PropertyConfig<K, V> propertyConfig) {
+        V value = null;
+        try {
+            value = source.getPropertyValue(propertyConfig);
+        } catch (Exception e) {
+            String message = String.format(
+                    "error occurred when getting property value, ignore the source. source: %s, propertyConfig: %s",
+                    source, propertyConfig);
+            LOGGER.error(message, e);
+        }
+
+        return value;
+    }
+
+    protected <K, V> V applyValueFilter(PropertyConfig<K, V> propertyConfig, V value) {
+        if (value == null)
+            return value;
+
+        if (propertyConfig.getValueFilter() == null)
+            return value;
+
+        try {
+            value = propertyConfig.getValueFilter().apply(value);
+        } catch (Exception e) {
+            String message = String.format(
+                    "failed to run valueFilter, ignore the filter. value: %s, valueFilter: %s, propertyConfig: %s",
+                    value, propertyConfig.getValueFilter(), propertyConfig);
+            LOGGER.error(message, e);
+        }
+
+        return value;
     }
 
     protected <K, V> DefaultProperty<K, V> newProperty(PropertyConfig<K, V> config, V value) {

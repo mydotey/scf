@@ -47,7 +47,7 @@ public class PipelineValueFilter<V> implements Function<V, V> {
         if (obj == null)
             return false;
 
-        if (this.getClass() != obj.getClass())
+        if (getClass() != obj.getClass())
             return false;
 
         PipelineValueFilter other = (PipelineValueFilter) obj;

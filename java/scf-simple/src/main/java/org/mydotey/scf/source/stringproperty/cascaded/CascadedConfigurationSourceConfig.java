@@ -61,11 +61,12 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
         }
 
         public Builder addCascadedFactor(String cascadedFactor) {
-            Objects.requireNonNull(cascadedFactor, "cascadedFactor is null");
+            if (cascadedFactor == null)
+                return this;
 
             cascadedFactor = cascadedFactor.trim();
             if (cascadedFactor.isEmpty())
-                throw new IllegalArgumentException("cascadedFactor is empty");
+                return this;
 
             if (getConfig()._cascadedFactors == null)
                 getConfig()._cascadedFactors = new ArrayList<>();
@@ -75,9 +76,8 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
         }
 
         public Builder addCascadedFactors(List<String> cascadedFactors) {
-            Objects.requireNonNull(cascadedFactors, "cascadedFactors is null");
-
-            cascadedFactors.forEach(this::addCascadedFactor);
+            if (cascadedFactors != null)
+                cascadedFactors.forEach(this::addCascadedFactor);
 
             return this;
         }

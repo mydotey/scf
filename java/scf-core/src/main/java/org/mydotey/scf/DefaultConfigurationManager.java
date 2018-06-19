@@ -96,17 +96,16 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
-        V value = null;
         for (ConfigurationSource source : _sortedSources) {
-            value = getPropertyValue(source, propertyConfig);
+            V value = getPropertyValue(source, propertyConfig);
 
             value = applyValueFilter(propertyConfig, value);
 
             if (value != null)
-                break;
+                return value;
         }
 
-        return value == null ? propertyConfig.getDefaultValue() : value;
+        return propertyConfig.getDefaultValue();
     }
 
     protected <K, V> V getPropertyValue(ConfigurationSource source, PropertyConfig<K, V> propertyConfig) {

@@ -2,6 +2,7 @@ package org.mydotey.scf.facade;
 
 import java.util.Collection;
 
+import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.labeled.DefaultLabeledKey;
 import org.mydotey.scf.labeled.DefaultPropertyLabel;
 import org.mydotey.scf.labeled.DefaultPropertyLabels;
@@ -34,6 +35,12 @@ public class LabeledProperties {
 
     public static PropertyLabels newLabels(Collection<PropertyLabel> labels, PropertyLabels alternative) {
         return new DefaultPropertyLabels(labels, alternative);
+    }
+
+    public static <K, V> PropertyConfig<K, V> removeLabels(PropertyConfig<LabeledKey<K>, V> config) {
+        return ConfigurationProperties.<K, V> newConfigBuilder().setKey(config.getKey().getKey())
+                .setValueType(config.getValueType()).setDefaultValue(config.getDefaultValue())
+                .addValueConverters(config.getValueConverters()).setValueFilter(config.getValueFilter()).build();
     }
 
 }

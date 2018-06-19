@@ -5,6 +5,7 @@ import java.util.Collections;
 import org.mydotey.scf.AbstractConfigurationSource;
 import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.PropertyConfig;
+import org.mydotey.scf.facade.LabeledProperties;
 
 /**
  * @author koqizhao
@@ -18,9 +19,14 @@ public abstract class AbstractLabeledConfigurationSource extends AbstractConfigu
         super(config);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public <K, V> V getPropertyValue(PropertyConfig<K, V> config) {
-        return getPropertyValue(config, Collections.<PropertyLabel> emptyList());
+        PropertyConfig<?, V> rawConfig = config;
+        if (config.getKey() instanceof LabeledKey)
+            rawConfig = LabeledProperties.removeLabels((PropertyConfig) config);
+
+        return getPropertyValue(rawConfig, Collections.emptyList());
     }
 
 }

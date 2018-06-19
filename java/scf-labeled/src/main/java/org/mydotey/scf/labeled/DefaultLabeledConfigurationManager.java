@@ -7,7 +7,7 @@ import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.ConfigurationSource;
 import org.mydotey.scf.DefaultConfigurationManager;
 import org.mydotey.scf.PropertyConfig;
-import org.mydotey.scf.facade.ConfigurationProperties;
+import org.mydotey.scf.facade.LabeledProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,32 +33,29 @@ public class DefaultLabeledConfigurationManager extends DefaultConfigurationMana
         if (!(propertyConfig.getKey() instanceof LabeledKey))
             return super.getPropertyValue(propertyConfig);
 
-        PropertyConfig<?, V> rawPropertyConfig = toRawPropertyConfig((PropertyConfig) propertyConfig);
-        V value = null;
+        PropertyConfig<?, V> rawPropertyConfig = LabeledProperties.removeLabels((PropertyConfig) propertyConfig);
         for (PropertyLabels propertyLabels = ((LabeledKey) propertyConfig.getKey())
                 .getLabels(); propertyLabels != null; propertyLabels = propertyLabels.getAlternative()) {
 
             for (ConfigurationSource source : getSortedSources()) {
-                if (!(source instanceof LabeledConfigurationSource))
+                if (!(source instanceof LabeledConfigurationSource) && !propertyLabels.getLabels().isEmpty())
                     continue;
 
-                value = getPropertyValue((LabeledConfigurationSource) source, rawPropertyConfig,
-                        propertyLabels.getLabels());
+                V value = null;
+                if (propertyLabels.getLabels().isEmpty())
+                    value = getPropertyValue(source, rawPropertyConfig);
+                else
+                    value = getPropertyValue((LabeledConfigurationSource) source, rawPropertyConfig,
+                            propertyLabels.getLabels());
 
                 value = applyValueFilter(propertyConfig, value);
 
                 if (value != null)
-                    break;
+                    return value;
             }
-
-            if (value != null)
-                break;
         }
 
-        if (value == null)
-            return super.getPropertyValue(rawPropertyConfig);
-
-        return value;
+        return propertyConfig.getDefaultValue();
     }
 
     protected <K, V> V getPropertyValue(LabeledConfigurationSource source, PropertyConfig<K, V> propertyConfig,
@@ -74,12 +71,6 @@ public class DefaultLabeledConfigurationManager extends DefaultConfigurationMana
         }
 
         return value;
-    }
-
-    protected <K, V> PropertyConfig<K, V> toRawPropertyConfig(PropertyConfig<LabeledKey<K>, V> config) {
-        return ConfigurationProperties.<K, V> newConfigBuilder().setKey(config.getKey().getKey())
-                .setValueType(config.getValueType()).setDefaultValue(config.getDefaultValue())
-                .addValueConverters(config.getValueConverters()).setValueFilter(config.getValueFilter()).build();
     }
 
 }

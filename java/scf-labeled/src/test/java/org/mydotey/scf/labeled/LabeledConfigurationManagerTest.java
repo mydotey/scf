@@ -98,7 +98,7 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
                 .setValueType(String.class).setDefaultValue("default-value-1").build();
         property = manager.getProperty(propertyConfig);
         System.out.println(property);
-        Assert.assertEquals("v-0-2", property.getValue());
+        Assert.assertEquals("default-value-1", property.getValue());
 
         labels = new ArrayList<>();
         labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
@@ -126,5 +126,17 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         Thread.sleep(10);
         System.out.println(property);
         Assert.assertEquals("v-1-2", property.getValue());
+
+        labels = new ArrayList<>();
+        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
+        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        propertyLabels = LabeledProperties.newLabels(labels, PropertyLabels.EMPTY);
+        key = LabeledProperties.<String> newKeyBuilder().setKey("labeled-key-1").setPropertyLabels(propertyLabels)
+                .build();
+        propertyConfig = ConfigurationProperties.<LabeledKey<String>, String> newConfigBuilder().setKey(key)
+                .setValueType(String.class).setDefaultValue("default-value-1").build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println(property);
+        Assert.assertEquals("v-0-2", property.getValue());
     }
 }

@@ -7,7 +7,6 @@ import org.mydotey.scf.ConfigurationManagerConfig;
 import org.mydotey.scf.ConfigurationSource;
 import org.mydotey.scf.DefaultConfigurationManager;
 import org.mydotey.scf.PropertyConfig;
-import org.mydotey.scf.facade.LabeledProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,8 @@ public class DefaultLabeledConfigurationManager extends DefaultConfigurationMana
         if (!(propertyConfig.getKey() instanceof LabeledKey))
             return super.getPropertyValue(propertyConfig);
 
-        PropertyConfig<?, V> rawPropertyConfig = LabeledProperties.removeLabels((PropertyConfig) propertyConfig);
+        PropertyConfig<?, V> noLabelPropertyConfig = AbstractLabeledConfigurationSource
+                .removeLabels((PropertyConfig) propertyConfig);
         for (PropertyLabels propertyLabels = ((LabeledKey) propertyConfig.getKey())
                 .getLabels(); propertyLabels != null; propertyLabels = propertyLabels.getAlternative()) {
 
@@ -43,9 +43,9 @@ public class DefaultLabeledConfigurationManager extends DefaultConfigurationMana
 
                 V value = null;
                 if (propertyLabels.getLabels().isEmpty())
-                    value = getPropertyValue(source, rawPropertyConfig);
+                    value = getPropertyValue(source, noLabelPropertyConfig);
                 else
-                    value = getPropertyValue((LabeledConfigurationSource) source, rawPropertyConfig,
+                    value = getPropertyValue((LabeledConfigurationSource) source, noLabelPropertyConfig,
                             propertyLabels.getLabels());
 
                 value = applyValueFilter(propertyConfig, value);

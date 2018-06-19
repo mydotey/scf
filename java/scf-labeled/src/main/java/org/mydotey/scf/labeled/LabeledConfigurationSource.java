@@ -12,6 +12,6 @@ import org.mydotey.scf.PropertyConfig;
  */
 public interface LabeledConfigurationSource extends ConfigurationSource {
 
-    <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig, Collection<PropertyLabel> labels);
+    <K, V> V getPropertyValue(PropertyConfig<K, V> noLabelConfig, Collection<PropertyLabel> labels);
 
 }

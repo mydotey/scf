@@ -1,7 +1,7 @@
 package org.mydotey.scf.facade;
 
-import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
+import org.mydotey.scf.labeled.DefaultLabeledConfigurationManager;
 import org.mydotey.scf.labeled.LabeledConfigurationManager;
 
 /**
@@ -15,8 +15,8 @@ public class LabeledManagers {
 
     }
 
-    public static ConfigurationManager newManager(ConfigurationManagerConfig config) {
-        return new LabeledConfigurationManager(config);
+    public static LabeledConfigurationManager newManager(ConfigurationManagerConfig config) {
+        return new DefaultLabeledConfigurationManager(config);
     }
 
 }

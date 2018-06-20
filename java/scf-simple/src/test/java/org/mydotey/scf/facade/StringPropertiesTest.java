@@ -33,41 +33,41 @@ public class StringPropertiesTest {
         return ConfigurationManagers.newManager(managerConfig);
     }
 
-    protected StringProperties createMoreProperties(String fileName) {
+    protected StringProperties createStringProperties(String fileName) {
         ConfigurationManager manager = createManager(fileName);
         return new StringProperties(manager);
     }
 
     @Test
     public void testGetProperties() {
-        StringProperties moreProperties = createMoreProperties("test.properties");
-        Property<String, String> property = moreProperties.getStringProperty("not-exist");
+        StringProperties stringProperties = createStringProperties("test.properties");
+        Property<String, String> property = stringProperties.getStringProperty("not-exist");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals(null, property.getValue());
 
-        property = moreProperties.getStringProperty("not-exist2", "default");
+        property = stringProperties.getStringProperty("not-exist2", "default");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("default", property.getValue());
 
-        property = moreProperties.getStringProperty("exist", "default");
+        property = stringProperties.getStringProperty("exist", "default");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok", property.getValue());
     }
 
     @Test
     public void testGetTypedProperties() {
-        StringProperties moreProperties = createMoreProperties("test.properties");
-        Property<String, Integer> property = moreProperties.getIntProperty("int-value");
+        StringProperties stringProperties = createStringProperties("test.properties");
+        Property<String, Integer> property = stringProperties.getIntProperty("int-value");
         System.out.println("property: " + property + "\n");
         Integer expected = Integer.valueOf(1);
         Assert.assertEquals(expected, property.getValue());
 
-        Property<String, List<String>> property2 = moreProperties.getListProperty("list-value");
+        Property<String, List<String>> property2 = stringProperties.getListProperty("list-value");
         System.out.println("property: " + property2 + "\n");
         List<String> expected2 = Lists.newArrayList("s1", "s2", "s3");
         Assert.assertEquals(expected2, property2.getValue());
 
-        Property<String, Map<String, String>> property3 = moreProperties.getMapProperty("map-value");
+        Property<String, Map<String, String>> property3 = stringProperties.getMapProperty("map-value");
         System.out.println("property: " + property3 + "\n");
         Map<String, String> expected3 = new HashMap<>();
         expected3.put("k1", "v1");
@@ -75,13 +75,13 @@ public class StringPropertiesTest {
         expected3.put("k3", "v3");
         Assert.assertEquals(expected3, property3.getValue());
 
-        Property<String, List<Integer>> property4 = moreProperties.getListProperty("int-list-value",
+        Property<String, List<Integer>> property4 = stringProperties.getListProperty("int-list-value",
                 StringToIntConverter.DEFAULT);
         System.out.println("property: " + property4 + "\n");
         List<Integer> expected4 = Lists.newArrayList(1, 2, 3);
         Assert.assertEquals(expected4, property4.getValue());
 
-        Property<String, Map<Integer, Long>> property5 = moreProperties.getMapProperty("int-long-map-value",
+        Property<String, Map<Integer, Long>> property5 = stringProperties.getMapProperty("int-long-map-value",
                 StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
         System.out.println("property: " + property5 + "\n");
         Map<Integer, Long> expected5 = new HashMap<>();
@@ -93,28 +93,28 @@ public class StringPropertiesTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
-        StringProperties moreProperties = createMoreProperties("test.properties");
-        Property<String, Map<String, String>> property = moreProperties.getMapProperty("map-value");
+        StringProperties stringProperties = createStringProperties("test.properties");
+        Property<String, Map<String, String>> property = stringProperties.getMapProperty("map-value");
         Map<String, String> expected = new HashMap<>();
         expected.put("k1", "v1");
         expected.put("k2", "v2");
         expected.put("k3", "v3");
         Assert.assertEquals(expected, property.getValue());
 
-        moreProperties.getMapProperty("map-value", StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
+        stringProperties.getMapProperty("map-value", StringToIntConverter.DEFAULT, StringToLongConverter.DEFAULT);
     }
 
     @Test
     public void testSameConfigSameProperty() {
-        StringProperties moreProperties = createMoreProperties("test.properties");
-        Property<String, Map<String, String>> property = moreProperties.getMapProperty("map-value");
+        StringProperties stringProperties = createStringProperties("test.properties");
+        Property<String, Map<String, String>> property = stringProperties.getMapProperty("map-value");
         Map<String, String> expected = new HashMap<>();
         expected.put("k1", "v1");
         expected.put("k2", "v2");
         expected.put("k3", "v3");
         Assert.assertEquals(expected, property.getValue());
 
-        Property<String, Map<String, String>> property2 = moreProperties.getMapProperty("map-value");
+        Property<String, Map<String, String>> property2 = stringProperties.getMapProperty("map-value");
         System.out.println("property2: " + property + "\n");
         Assert.assertTrue(property == property2);
     }

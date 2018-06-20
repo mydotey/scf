@@ -14,9 +14,9 @@ import org.mydotey.scf.labeled.PropertyLabels;
  *
  * Jun 19, 2018
  */
-public class LabeledProperties {
+public class LabeledConfigurationProperties {
 
-    protected LabeledProperties() {
+    protected LabeledConfigurationProperties() {
 
     }
 

@@ -9,9 +9,9 @@ import org.mydotey.scf.labeled.LabeledConfigurationManager;
  *
  * Jun 19, 2018
  */
-public class LabeledManagers {
+public class LabeledConfigurationManagers {
 
-    protected LabeledManagers() {
+    protected LabeledConfigurationManagers() {
 
     }
 

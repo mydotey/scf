@@ -72,18 +72,12 @@
             </dependency>
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
-                <artifactId>scf-core</artifactId>
-                <type>test-jar</type>
+                <artifactId>scf-labeled</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-simple</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mydotey.scf</groupId>
-                <artifactId>scf-labeled</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -103,6 +97,18 @@
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mydotey.scf</groupId>
+                <artifactId>scf-core</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mydotey.scf</groupId>
+                <artifactId>scf-labeled</artifactId>
+                <type>test-jar</type>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

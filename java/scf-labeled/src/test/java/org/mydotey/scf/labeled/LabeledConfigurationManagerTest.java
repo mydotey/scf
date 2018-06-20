@@ -15,8 +15,8 @@ import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
-import org.mydotey.scf.facade.LabeledManagers;
-import org.mydotey.scf.facade.LabeledProperties;
+import org.mydotey.scf.facade.LabeledConfigurationManagers;
+import org.mydotey.scf.facade.LabeledConfigurationProperties;
 
 import com.google.common.collect.Lists;
 
@@ -42,11 +42,11 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         return createLabeledManager(sourceList);
     }
 
-    protected ConfigurationManager createLabeledManager(List<ConfigurationSource> sources) {
+    protected LabeledConfigurationManager createLabeledManager(List<ConfigurationSource> sources) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
                 .addSources(sources).build();
         System.out.println("manager config: " + managerConfig + "\n");
-        return LabeledManagers.newManager(managerConfig);
+        return LabeledConfigurationManagers.newManager(managerConfig);
     }
 
     protected TestLabeledConfigurationSource createLabeledSource(ConfigurationSourceConfig config) {
@@ -73,13 +73,14 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         TestLabeledConfigurationSource labeledSource = createLabeledSource(config);
         config = ConfigurationSources.newConfigBuilder().setName("dynamic-labeled-source").setPriority(2).build();
         TestDynamicLabeledConfigurationSource dynamicLabeledSource = createDynamicLabeledSource(config);
-        ConfigurationManager manager = createLabeledManager(Lists.newArrayList(labeledSource, dynamicLabeledSource));
+        LabeledConfigurationManager manager = createLabeledManager(
+                Lists.newArrayList(labeledSource, dynamicLabeledSource));
 
         List<PropertyLabel> labels = new ArrayList<>();
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        PropertyLabels propertyLabels = LabeledProperties.newLabels(labels);
-        LabeledKey<String> key = LabeledProperties.<String> newKeyBuilder().setKey("labeled-key-1")
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        PropertyLabels propertyLabels = LabeledConfigurationProperties.newLabels(labels);
+        LabeledKey<String> key = LabeledConfigurationProperties.<String> newKeyBuilder().setKey("labeled-key-1")
                 .setPropertyLabels(propertyLabels).build();
         PropertyConfig<LabeledKey<String>, String> propertyConfig = ConfigurationProperties
                 .<LabeledKey<String>, String> newConfigBuilder().setKey(key).setValueType(String.class)
@@ -89,11 +90,11 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         Assert.assertEquals("v-1-2", property.getValue());
 
         labels = new ArrayList<>();
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        propertyLabels = LabeledProperties.newLabels(labels);
-        key = LabeledProperties.<String> newKeyBuilder().setKey("labeled-key-1").setPropertyLabels(propertyLabels)
-                .build();
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        propertyLabels = LabeledConfigurationProperties.newLabels(labels);
+        key = LabeledConfigurationProperties.<String> newKeyBuilder().setKey("labeled-key-1")
+                .setPropertyLabels(propertyLabels).build();
         propertyConfig = ConfigurationProperties.<LabeledKey<String>, String> newConfigBuilder().setKey(key)
                 .setValueType(String.class).setDefaultValue("default-value-1").build();
         property = manager.getProperty(propertyConfig);
@@ -101,15 +102,15 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         Assert.assertEquals("default-value-1", property.getValue());
 
         labels = new ArrayList<>();
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        propertyLabels = LabeledProperties.newLabels(labels);
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        propertyLabels = LabeledConfigurationProperties.newLabels(labels);
         labels = new ArrayList<>();
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        propertyLabels = LabeledProperties.newLabels(labels, propertyLabels);
-        key = LabeledProperties.<String> newKeyBuilder().setKey("labeled-key-1").setPropertyLabels(propertyLabels)
-                .build();
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        propertyLabels = LabeledConfigurationProperties.newLabels(labels, propertyLabels);
+        key = LabeledConfigurationProperties.<String> newKeyBuilder().setKey("labeled-key-1")
+                .setPropertyLabels(propertyLabels).build();
         propertyConfig = ConfigurationProperties.<LabeledKey<String>, String> newConfigBuilder().setKey(key)
                 .setValueType(String.class).setDefaultValue("default-value-1").build();
         property = manager.getProperty(propertyConfig);
@@ -128,11 +129,11 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         Assert.assertEquals("v-1-2", property.getValue());
 
         labels = new ArrayList<>();
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
-        labels.add(LabeledProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        propertyLabels = LabeledProperties.newLabels(labels, PropertyLabels.EMPTY);
-        key = LabeledProperties.<String> newKeyBuilder().setKey("labeled-key-1").setPropertyLabels(propertyLabels)
-                .build();
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
+        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
+        propertyLabels = LabeledConfigurationProperties.newLabels(labels, PropertyLabels.EMPTY);
+        key = LabeledConfigurationProperties.<String> newKeyBuilder().setKey("labeled-key-1")
+                .setPropertyLabels(propertyLabels).build();
         propertyConfig = ConfigurationProperties.<LabeledKey<String>, String> newConfigBuilder().setKey(key)
                 .setValueType(String.class).setDefaultValue("default-value-1").build();
         property = manager.getProperty(propertyConfig);

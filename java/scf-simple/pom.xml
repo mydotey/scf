@@ -25,6 +25,10 @@
             <artifactId>scf-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.mydotey.scf</groupId>
+            <artifactId>scf-labeled</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>test</scope>
@@ -37,6 +41,12 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mydotey.scf</groupId>
+            <artifactId>scf-labeled</artifactId>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

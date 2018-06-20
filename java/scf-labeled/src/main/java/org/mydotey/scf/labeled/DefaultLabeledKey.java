@@ -13,6 +13,8 @@ public class DefaultLabeledKey<K> implements LabeledKey<K>, Cloneable {
     private K _key;
     private PropertyLabels _labels;
 
+    private volatile int _hashCode;
+
     protected DefaultLabeledKey() {
 
     }
@@ -44,11 +46,15 @@ public class DefaultLabeledKey<K> implements LabeledKey<K>, Cloneable {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((_key == null) ? 0 : _key.hashCode());
-        result = prime * result + ((_labels == null) ? 0 : _labels.hashCode());
-        return result;
+        if (_hashCode == 0) {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((_key == null) ? 0 : _key.hashCode());
+            result = prime * result + ((_labels == null) ? 0 : _labels.hashCode());
+            _hashCode = result;
+        }
+
+        return _hashCode;
     }
 
     @Override

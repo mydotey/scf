@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.labeled.LabeledConfigurationManager;
@@ -35,7 +34,7 @@ public class LabeledStringProperties {
         _manager = manager;
     }
 
-    public ConfigurationManager getManager() {
+    public LabeledConfigurationManager getManager() {
         return _manager;
     }
 

@@ -297,11 +297,8 @@ public class StringProperties {
 
     protected <V> PropertyConfig<String, V> createPropertyConfig(String key, Class<V> valueType, V defaultValue,
             TypeConverter valueConverter, Function<V, V> valueFilter) {
-        PropertyConfig.Builder<String, V> builder = ConfigurationProperties.<String, V> newConfigBuilder().setKey(key)
-                .setValueType(valueType).setDefaultValue(defaultValue);
-        if (valueConverter != null)
-            builder.addValueConverter(valueConverter);
-        return builder.setValueFilter(valueFilter).build();
+        return ConfigurationProperties.<String, V> newConfigBuilder().setKey(key).setValueType(valueType)
+                .setDefaultValue(defaultValue).addValueConverter(valueConverter).setValueFilter(valueFilter).build();
     }
 
 }

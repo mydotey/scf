@@ -38,6 +38,14 @@ public class PipelineValueFilter<V> implements Function<V, V> {
         return t;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((_filters == null) ? 0 : _filters.hashCode());
+        return result;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {

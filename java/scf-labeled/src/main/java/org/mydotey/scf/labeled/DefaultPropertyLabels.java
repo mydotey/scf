@@ -48,7 +48,7 @@ public class DefaultPropertyLabels implements PropertyLabels {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((_alternative == null) ? 0 : _alternative.hashCode());
-        result = prime * result + ((_labels == null) ? 0 : _labels.hashCode());
+        result = prime * result + ((_labelMap == null) ? 0 : _labelMap.hashCode());
         return result;
     }
 

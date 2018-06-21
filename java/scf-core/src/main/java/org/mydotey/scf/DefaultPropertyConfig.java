@@ -73,6 +73,18 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((_defaultValue == null) ? 0 : _defaultValue.hashCode());
+        result = prime * result + ((_key == null) ? 0 : _key.hashCode());
+        result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
+        result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
+        result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
+        return result;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (this == other)
             return true;

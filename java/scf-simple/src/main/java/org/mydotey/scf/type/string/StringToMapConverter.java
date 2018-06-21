@@ -71,6 +71,15 @@ public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
         return map;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((_keyConverter == null) ? 0 : _keyConverter.hashCode());
+        result = prime * result + ((_valueConverter == null) ? 0 : _valueConverter.hashCode());
+        return result;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {

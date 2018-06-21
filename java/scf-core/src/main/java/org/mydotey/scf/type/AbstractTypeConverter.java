@@ -29,6 +29,15 @@ public abstract class AbstractTypeConverter<S, T> implements TypeConverter<S, T>
         return _targetType;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((_sourceType == null) ? 0 : _sourceType.hashCode());
+        result = prime * result + ((_targetType == null) ? 0 : _targetType.hashCode());
+        return result;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {

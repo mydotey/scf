@@ -54,6 +54,14 @@ public class StringToListConverter<V> extends StringConverter<List<V>> {
         return list;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((_typeConverter == null) ? 0 : _typeConverter.hashCode());
+        return result;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {

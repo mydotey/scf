@@ -13,14 +13,43 @@ import org.mydotey.scf.type.TypeConverter;
 @SuppressWarnings("rawtypes")
 public interface PropertyConfig<K, V> {
 
+    /**
+     * a unique key in a configuration manager to identify a unique property,
+     * <p>
+     * non-null, non-empty
+     */
     K getKey();
 
+    /**
+     * type of the property value,
+     * <p>
+     * non-null
+     */
     Class<V> getValueType();
 
+    /**
+     * default value of the property
+     * <p>
+     * default to null
+     */
     V getDefaultValue();
 
+    /**
+     * type converters used to convert values of different types,
+     * for example, some configuration source has string value,
+     * but integer is needed, so it's necessary to provide a string-to-int converter
+     * <p>
+     * default to null
+     */
     Collection<TypeConverter> getValueConverters();
 
+    /**
+     * a chance for the user to check the value before using a property value provided by a configuration source,
+     * filter input is non-null, if output is null, the value will be ignored,
+     * if output is non-null, output will be used as the property value
+     * <p>
+     * default to null
+     */
     Function<V, V> getValueFilter();
 
     public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>> {
@@ -29,16 +58,46 @@ public interface PropertyConfig<K, V> {
 
     public interface AbstractBuilder<K, V, B extends AbstractBuilder<K, V, B>> {
 
+        /**
+         * required
+         * <p>
+         * @see PropertyConfig#getKey()
+         */
         B setKey(K key);
 
+        /**
+         * required
+         * <p>
+         * @see PropertyConfig#getValueType()
+         */
         B setValueType(Class<V> valueType);
 
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getDefaultValue()
+         */
         B setDefaultValue(V value);
 
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getValueConverters()
+         */
         B addValueConverter(TypeConverter valueConverter);
 
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getValueConverters()
+         */
         B addValueConverters(Collection<TypeConverter> valueConverters);
 
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getValueFilter()
+         */
         B setValueFilter(Function<V, V> valueFilter);
 
         PropertyConfig<K, V> build();

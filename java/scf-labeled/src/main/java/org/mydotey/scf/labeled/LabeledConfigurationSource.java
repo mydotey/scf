@@ -12,6 +12,9 @@ import org.mydotey.scf.PropertyConfig;
  */
 public interface LabeledConfigurationSource extends ConfigurationSource {
 
+    /**
+     * @param noLabelConfig normal config with plain key (non-labeled-key)
+     */
     <K, V> V getPropertyValue(PropertyConfig<K, V> noLabelConfig, Collection<PropertyLabel> labels);
 
 }

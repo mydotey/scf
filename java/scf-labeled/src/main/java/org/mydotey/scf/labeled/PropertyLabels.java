@@ -10,6 +10,9 @@ import java.util.Collections;
  */
 public interface PropertyLabels {
 
+    /**
+     * empty labels and no altenative
+     */
     PropertyLabels EMPTY = new PropertyLabels() {
         @Override
         public Collection<PropertyLabel> getLabels() {
@@ -27,8 +30,16 @@ public interface PropertyLabels {
         }
     };
 
+    /**
+     * labels
+     */
     Collection<PropertyLabel> getLabels();
 
+    /**
+     * if not configured for @see {@link PropertyLabels#getLabels()}, use the alternative to have a try
+     * <p>
+     * default to null
+     */
     PropertyLabels getAlternative();
 
 }

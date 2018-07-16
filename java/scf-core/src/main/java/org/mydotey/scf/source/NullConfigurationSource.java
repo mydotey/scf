@@ -10,6 +10,8 @@ import org.mydotey.scf.PropertyConfig;
  * @author koqizhao
  *
  * Jul 16, 2018
+ * 
+ * Nothing Done Configuration Source
  */
 public class NullConfigurationSource implements ConfigurationSource {
 
@@ -26,16 +28,25 @@ public class NullConfigurationSource implements ConfigurationSource {
         };
     }
 
+    /**
+     * always null
+     */
     @Override
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
         return null;
     }
 
+    /**
+     * config with name "null-configuration-source"
+     */
     @Override
     public ConfigurationSourceConfig getConfig() {
         return _config;
     }
 
+    /**
+     * always ignore the listeners
+     */
     @Override
     public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
 

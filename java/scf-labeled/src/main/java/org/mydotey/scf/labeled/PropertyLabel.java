@@ -7,8 +7,14 @@ package org.mydotey.scf.labeled;
  */
 public interface PropertyLabel {
 
+    /**
+     * non-null
+     */
     Object getKey();
 
+    /**
+     * non-null
+     */
     Object getValue();
 
 }

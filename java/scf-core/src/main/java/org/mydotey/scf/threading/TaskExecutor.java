@@ -10,6 +10,8 @@ import java.util.function.Consumer;
  * @author koqizhao
  *
  * May 21, 2018
+ * 
+ * Simple Thread Pool
  */
 public class TaskExecutor implements Consumer<Runnable>, Closeable {
 

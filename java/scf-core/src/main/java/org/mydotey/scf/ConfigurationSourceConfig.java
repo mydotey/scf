@@ -7,6 +7,11 @@ package org.mydotey.scf;
  */
 public interface ConfigurationSourceConfig {
 
+    /**
+     * for description use
+     * <p>
+     * non-null, non-empty
+     */
     String getName();
 
     public interface Builder extends AbstractBuilder<Builder> {
@@ -15,6 +20,10 @@ public interface ConfigurationSourceConfig {
 
     public interface AbstractBuilder<B extends AbstractBuilder<B>> {
 
+        /**
+         * required
+         * @see ConfigurationSourceConfig#getName()
+         */
         B setName(String name);
 
         ConfigurationSourceConfig build();

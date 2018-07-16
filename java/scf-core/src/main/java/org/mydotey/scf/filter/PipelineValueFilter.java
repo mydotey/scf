@@ -9,6 +9,10 @@ import java.util.function.Function;
  * @author koqizhao
  *
  * May 21, 2018
+ * 
+ * apply each filter to the value,
+ * if null returned by a filter, stop filtering and return null,
+ * otherwise, apply next filter to the value
  */
 public class PipelineValueFilter<V> implements Function<V, V> {
 

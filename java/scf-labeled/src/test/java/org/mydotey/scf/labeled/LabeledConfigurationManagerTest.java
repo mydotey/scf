@@ -1,7 +1,9 @@
 package org.mydotey.scf.labeled;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,6 +20,7 @@ import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.LabeledConfigurationManagers;
 import org.mydotey.scf.facade.LabeledConfigurationProperties;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -28,21 +31,19 @@ import com.google.common.collect.Lists;
 public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
 
     @Override
-    protected ConfigurationManager createManager(ConfigurationSource... sources) {
-        List<ConfigurationSource> sourceList = Lists.newArrayList(sources);
-        ConfigurationSourceConfig config = ConfigurationSources.newConfigBuilder().setName("labeled-source")
-                .setPriority(Integer.MAX_VALUE - 1).build();
+    protected ConfigurationManager createManager(Map<Integer, ConfigurationSource> sources) {
+        HashMap<Integer, ConfigurationSource> sourceList = new HashMap<>(sources);
+        ConfigurationSourceConfig config = ConfigurationSources.newConfig("labeled-source");
         TestLabeledConfigurationSource source = createLabeledSource(config);
-        sourceList.add(source);
-        config = ConfigurationSources.newConfigBuilder().setName("dynamic-labeled-source")
-                .setPriority(Integer.MAX_VALUE).build();
+        sourceList.put(Integer.MAX_VALUE - 1, source);
+        config = ConfigurationSources.newConfig("dynamic-labeled-source");
         source = createDynamicLabeledSource(config);
-        sourceList.add(source);
+        sourceList.put(Integer.MAX_VALUE, source);
 
         return createLabeledManager(sourceList);
     }
 
-    protected LabeledConfigurationManager createLabeledManager(List<ConfigurationSource> sources) {
+    protected LabeledConfigurationManager createLabeledManager(Map<Integer, ConfigurationSource> sources) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
                 .addSources(sources).build();
         System.out.println("manager config: " + managerConfig + "\n");
@@ -68,13 +69,12 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
 
     @Test
     public void testGetLabeledProperty() throws InterruptedException {
-        ConfigurationSourceConfig config = ConfigurationSources.newConfigBuilder().setName("labeled-source")
-                .setPriority(1).build();
+        ConfigurationSourceConfig config = ConfigurationSources.newConfig("labeled-source");
         TestLabeledConfigurationSource labeledSource = createLabeledSource(config);
-        config = ConfigurationSources.newConfigBuilder().setName("dynamic-labeled-source").setPriority(2).build();
+        config = ConfigurationSources.newConfig("dynamic-labeled-source");
         TestDynamicLabeledConfigurationSource dynamicLabeledSource = createDynamicLabeledSource(config);
         LabeledConfigurationManager manager = createLabeledManager(
-                Lists.newArrayList(labeledSource, dynamicLabeledSource));
+                ImmutableMap.of(1, labeledSource, 2, dynamicLabeledSource));
 
         List<PropertyLabel> labels = new ArrayList<>();
         labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));

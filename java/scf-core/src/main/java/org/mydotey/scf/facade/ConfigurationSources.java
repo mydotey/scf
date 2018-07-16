@@ -14,6 +14,10 @@ public class ConfigurationSources {
 
     }
 
+    public static ConfigurationSourceConfig newConfig(String name) {
+        return newConfigBuilder().setName(name).build();
+    }
+
     public static ConfigurationSourceConfig.Builder newConfigBuilder() {
         return new DefaultConfigurationSourceConfig.Builder();
     }

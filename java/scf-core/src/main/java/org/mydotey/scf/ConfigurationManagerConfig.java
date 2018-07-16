@@ -1,6 +1,6 @@
 package org.mydotey.scf;
 
-import java.util.Collection;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -12,7 +12,7 @@ public interface ConfigurationManagerConfig {
 
     String getName();
 
-    Collection<ConfigurationSource> getSources();
+    Map<Integer, ConfigurationSource> getSources();
 
     Consumer<Runnable> getTaskExecutor();
 
@@ -24,9 +24,9 @@ public interface ConfigurationManagerConfig {
 
         B setName(String name);
 
-        B addSource(ConfigurationSource source);
+        B addSource(int priority, ConfigurationSource source);
 
-        B addSources(Collection<ConfigurationSource> sources);
+        B addSources(Map<Integer, ConfigurationSource> sources);
 
         B setTaskExecutor(Consumer<Runnable> taskExecutor);
 

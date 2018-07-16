@@ -21,8 +21,7 @@ public class PropertiesFileConfigurationSourceConfig extends DefaultConfiguratio
 
     @Override
     public String toString() {
-        return String.format("%s { name: %s, priority: %d, fileName: %s }", getClass().getSimpleName(), getName(),
-                getPriority(), getFileName());
+        return String.format("%s { name: %s, fileName: %s }", getClass().getSimpleName(), getName(), getFileName());
     }
 
     public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {

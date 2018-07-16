@@ -1,11 +1,11 @@
 package org.mydotey.scf;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -21,19 +21,15 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationManager.class);
 
-    protected static final Comparator<ConfigurationSource> SOURCE_COMPARATOR = (s1, s2) -> {
+    protected static final Comparator<Integer> PRIORITY_COMPARATOR = (s1, s2) -> {
         Objects.requireNonNull(s1, "s1 is null");
         Objects.requireNonNull(s2, "s2 is null");
 
-        if (s1.getConfig().getPriority() == s2.getConfig().getPriority())
-            throw new IllegalArgumentException("2 sources have the same priority. s1: " + s1.getConfig().getName()
-                    + ", s2: " + s2.getConfig().getName());
-
-        return s1.getConfig().getPriority() > s2.getConfig().getPriority() ? -1 : 1;
+        return s1 > s2 ? -1 : (s1 == s2 ? 0 : 1);
     };
 
     private ConfigurationManagerConfig _config;
-    private List<ConfigurationSource> _sortedSources;
+    private Map<Integer, ConfigurationSource> _sortedSources;
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
     private Object _propertiesLock;
@@ -43,10 +39,10 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
         _config = config;
 
-        _sortedSources = new ArrayList<>(_config.getSources());
-        Collections.sort(_sortedSources, SOURCE_COMPARATOR);
-        _sortedSources = Collections.unmodifiableList(_sortedSources);
-        _sortedSources.forEach(s -> s.addChangeListener(this::onSourceChange));
+        _sortedSources = new TreeMap<>(PRIORITY_COMPARATOR);
+        _sortedSources.putAll(_config.getSources());
+        _sortedSources = Collections.unmodifiableMap(_sortedSources);
+        _sortedSources.values().forEach(s -> s.addChangeListener(this::onSourceChange));
 
         _properties = new ConcurrentHashMap<>();
         _propertiesLock = new Object();
@@ -64,7 +60,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         return Collections.unmodifiableCollection(_properties.values());
     }
 
-    protected List<ConfigurationSource> getSortedSources() {
+    protected Map<Integer, ConfigurationSource> getSortedSources() {
         return _sortedSources;
     }
 
@@ -96,7 +92,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
-        for (ConfigurationSource source : _sortedSources) {
+        for (ConfigurationSource source : _sortedSources.values()) {
             V value = getPropertyValue(source, propertyConfig);
 
             value = applyValueFilter(propertyConfig, value);

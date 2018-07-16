@@ -8,7 +8,6 @@ package org.mydotey.scf;
 public class DefaultConfigurationSourceConfig implements ConfigurationSourceConfig, Cloneable {
 
     private String _name;
-    private int _priority;
 
     protected DefaultConfigurationSourceConfig() {
 
@@ -17,11 +16,6 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
     @Override
     public String getName() {
         return _name;
-    }
-
-    @Override
-    public int getPriority() {
-        return _priority;
     }
 
     @Override
@@ -38,7 +32,7 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
 
     @Override
     public String toString() {
-        return String.format("%s { name: %s, priority: %s }", getClass().getSimpleName(), _name, _priority);
+        return String.format("%s { name: %s }", getClass().getSimpleName(), _name);
     }
 
     public static class Builder extends DefaultAbstractBuilder<ConfigurationSourceConfig.Builder>
@@ -67,12 +61,6 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
         @Override
         public B setName(String name) {
             _config._name = name;
-            return (B) this;
-        }
-
-        @Override
-        public B setPriority(int priority) {
-            _config._priority = priority;
             return (B) this;
         }
 

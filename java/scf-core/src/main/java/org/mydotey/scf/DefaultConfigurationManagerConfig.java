@@ -1,9 +1,8 @@
 package org.mydotey.scf;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -14,7 +13,7 @@ import java.util.function.Consumer;
 public class DefaultConfigurationManagerConfig implements ConfigurationManagerConfig, Cloneable {
 
     private String _name;
-    private List<ConfigurationSource> _sources;
+    private Map<Integer, ConfigurationSource> _sources;
     private Consumer<Runnable> _taskExecutor;
 
     protected DefaultConfigurationManagerConfig() {
@@ -27,7 +26,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
     }
 
     @Override
-    public Collection<ConfigurationSource> getSources() {
+    public Map<Integer, ConfigurationSource> getSources() {
         return _sources;
     }
 
@@ -46,7 +45,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         }
 
         if (_sources != null)
-            copy._sources = Collections.unmodifiableList(new ArrayList<>(_sources));
+            copy._sources = Collections.unmodifiableMap(new HashMap<>(_sources));
         return copy;
     }
 
@@ -93,18 +92,25 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         }
 
         @Override
-        public B addSource(ConfigurationSource source) {
+        public B addSource(int priority, ConfigurationSource source) {
             if (source != null) {
                 if (_config._sources == null)
-                    _config._sources = new ArrayList<>();
-                _config._sources.add(source);
+                    _config._sources = new HashMap<>();
+                else {
+                    ConfigurationSource existed = _config._sources.get(priority);
+                    if (existed != null)
+                        throw new IllegalArgumentException(String.format(
+                                "duplicate source priority, existing: { priority: %d, source: %s }, new: { priority: %d, source: %s }",
+                                priority, existed, priority, source));
+                }
+                _config._sources.put(priority, source);
             }
 
             return (B) this;
         }
 
         @Override
-        public B addSources(Collection<ConfigurationSource> sources) {
+        public B addSources(Map<Integer, ConfigurationSource> sources) {
             if (sources != null)
                 sources.forEach(this::addSource);
 

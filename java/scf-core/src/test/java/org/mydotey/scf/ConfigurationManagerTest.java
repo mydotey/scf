@@ -1,6 +1,7 @@
 package org.mydotey.scf;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -13,7 +14,7 @@ import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author koqizhao
@@ -22,9 +23,8 @@ import com.google.common.collect.Lists;
  */
 public class ConfigurationManagerTest {
 
-    protected TestConfigurationSource createSource(int priority) {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("test-source")
-                .setPriority(priority).build();
+    protected TestConfigurationSource createSource() {
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfig("test-source");
         HashMap<String, String> properties = new HashMap<>();
         properties.put("exist", "ok");
         properties.put("exist2", "ok2");
@@ -36,9 +36,8 @@ public class ConfigurationManagerTest {
         return source;
     }
 
-    protected TestDynamicConfigurationSource createDynamicSource(int priority) {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("test-source")
-                .setPriority(priority).build();
+    protected TestDynamicConfigurationSource createDynamicSource() {
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfig("test-source");
         HashMap<String, String> properties = new HashMap<>();
         properties.put("exist", "ok.2");
         properties.put("exist2", "ok2.2");
@@ -49,16 +48,23 @@ public class ConfigurationManagerTest {
         return source;
     }
 
-    protected ConfigurationManager createManager(ConfigurationSource... sources) {
+    protected ConfigurationManager createManager(Map<Integer, ConfigurationSource> sources) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSources(Lists.newArrayList(sources)).build();
+                .addSources(sources).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testDuplicatePrioritySource() {
+        TestConfigurationSource source1 = createSource();
+        TestDynamicConfigurationSource source2 = createDynamicSource();
+        ConfigurationManagers.newConfigBuilder().addSource(1, source1).addSource(1, source2);
+    }
+
     @Test
     public void testGetProperties() {
-        ConfigurationManager manager = createManager(createSource(1));
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -80,7 +86,7 @@ public class ConfigurationManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSameKeyDifferentConfig() {
-        ConfigurationManager manager = createManager(createSource(1));
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -94,7 +100,7 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testSameConfigSameProperty() {
-        ConfigurationManager manager = createManager(createSource(1));
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -114,7 +120,7 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testGetPropertyWithFilter() {
-        ConfigurationManager manager = createManager(createSource(1));
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setValueFilter(v -> {
                     if (Objects.equals("ok", v))
@@ -136,7 +142,7 @@ public class ConfigurationManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetPropertyWithDiffFilterInSimilarConfig() {
-        ConfigurationManager manager = createManager(createSource(1));
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setValueFilter(v -> {
                     if (Objects.equals("ok", v))
@@ -159,8 +165,8 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testGetPropertyWithDynamicSource() {
-        TestDynamicConfigurationSource source = createDynamicSource(1);
-        ConfigurationManager manager = createManager(source);
+        TestDynamicConfigurationSource source = createDynamicSource();
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, source));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);
@@ -185,9 +191,9 @@ public class ConfigurationManagerTest {
 
     @Test
     public void testGetPropertiesMultipleSource() {
-        TestConfigurationSource source1 = createSource(1);
-        TestDynamicConfigurationSource source2 = createDynamicSource(2);
-        ConfigurationManager manager = createManager(source1, source2);
+        TestConfigurationSource source1 = createSource();
+        TestDynamicConfigurationSource source2 = createDynamicSource();
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, source1, 2, source2));
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("not-exist").setValueType(String.class).build();
         Property<String, String> property = manager.getProperty(propertyConfig);

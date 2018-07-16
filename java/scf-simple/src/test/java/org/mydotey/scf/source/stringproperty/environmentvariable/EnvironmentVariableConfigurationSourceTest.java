@@ -4,12 +4,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
-import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 
 /**
@@ -20,11 +18,8 @@ import org.mydotey.scf.facade.StringPropertySources;
 public class EnvironmentVariableConfigurationSourceTest {
 
     protected ConfigurationManager createManager() {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("environment-variable")
-                .setPriority(1).build();
-        System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(StringPropertySources.newEnvironmentVariableSource(sourceConfig)).build();
+                .addSource(1, StringPropertySources.newEnvironmentVariableSource("environment-variable")).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

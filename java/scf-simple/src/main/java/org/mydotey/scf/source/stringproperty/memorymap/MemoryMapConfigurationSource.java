@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
 
 /**
@@ -15,15 +16,10 @@ public class MemoryMapConfigurationSource extends StringPropertyConfigurationSou
 
     private ConcurrentHashMap<String, String> _properties;
 
-    public MemoryMapConfigurationSource(MemoryMapConfigurationSourceConfig config) {
+    public MemoryMapConfigurationSource(ConfigurationSourceConfig config) {
         super(config);
 
         _properties = new ConcurrentHashMap<>();
-        if (config.getProperties() != null)
-            config.getProperties().forEach((k, v) -> {
-                if (k != null && v != null)
-                    _properties.put(k, v);
-            });
     }
 
     @Override

@@ -5,12 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
-import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 import org.mydotey.scf.source.stringproperty.systemproperties.SystemPropertiesConfigurationSource;
 import org.mydotey.scf.threading.TaskExecutor;
@@ -23,20 +21,17 @@ import org.mydotey.scf.threading.TaskExecutor;
 public class CascadedConfigurationSourceTest {
 
     protected SystemPropertiesConfigurationSource createSource() {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("system-properties")
-                .setPriority(1).build();
-        System.out.println("source config: " + sourceConfig + "\n");
-        return StringPropertySources.newSystemPropertiesSource(sourceConfig);
+        return StringPropertySources.newSystemPropertiesSource("system-properties");
     }
 
     protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
         CascadedConfigurationSourceConfig sourceConfig = StringPropertySources.newCascadedSourceConfigBuilder()
-                .setName("cascaded-system-properties").setPriority(1).setKeySeparator(".").addCascadedFactor("part1")
+                .setName("cascaded-system-properties").setKeySeparator(".").addCascadedFactor("part1")
                 .addCascadedFactor("part2").build();
         CascadedConfigurationSource cascadedSource = StringPropertySources.newCascadedSource(sourceConfig, source);
         TaskExecutor taskExecutor = new TaskExecutor(1);
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(cascadedSource).setTaskExecutor(taskExecutor).build();
+                .addSource(1, cascadedSource).setTaskExecutor(taskExecutor).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

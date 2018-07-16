@@ -19,15 +19,14 @@ import org.mydotey.scf.threading.TaskExecutor;
 public class MemoryMapConfigurationSourceTest {
 
     protected MemoryMapConfigurationSource createSource() {
-        MemoryMapConfigurationSourceConfig sourceConfig = StringPropertySources.newMemoryMapSourceConfigBuilder()
-                .setName("memory-map").setPriority(1).addProperty("exist", "ok").build();
-        System.out.println("source config: " + sourceConfig + "\n");
-        return StringPropertySources.newMemoryMapSource(sourceConfig);
+        MemoryMapConfigurationSource source = StringPropertySources.newMemoryMapSource("memory-map");
+        source.setPropertyValue("exist", "ok");
+        return source;
     }
 
     protected ConfigurationManager createManager(MemoryMapConfigurationSource source) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(source).setTaskExecutor(new TaskExecutor(1)).build();
+                .addSource(1, source).setTaskExecutor(new TaskExecutor(1)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

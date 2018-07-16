@@ -24,11 +24,10 @@ public class StringPropertiesTest {
 
     protected ConfigurationManager createManager(String fileName) {
         PropertiesFileConfigurationSourceConfig sourceConfig = StringPropertySources
-                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
-                .setFileName(fileName).build();
+                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(StringPropertySources.newPropertiesFileSource(sourceConfig)).build();
+                .addSource(1, StringPropertySources.newPropertiesFileSource(sourceConfig)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

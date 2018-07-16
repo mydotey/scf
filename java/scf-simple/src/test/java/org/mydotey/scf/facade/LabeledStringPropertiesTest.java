@@ -32,11 +32,10 @@ public class LabeledStringPropertiesTest extends StringPropertiesTest {
     @Override
     protected LabeledConfigurationManager createManager(String fileName) {
         PropertiesFileConfigurationSourceConfig sourceConfig = StringPropertySources
-                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setPriority(1)
-                .setFileName(fileName).build();
+                .newPropertiesFileSourceConfigBuilder().setName("properties-source").setFileName(fileName).build();
         System.out.println("source config: " + sourceConfig + "\n");
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(StringPropertySources.newPropertiesFileSource(sourceConfig)).build();
+                .addSource(1, StringPropertySources.newPropertiesFileSource(sourceConfig)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return LabeledConfigurationManagers.newManager(managerConfig);
     }
@@ -53,8 +52,7 @@ public class LabeledStringPropertiesTest extends StringPropertiesTest {
     }
 
     protected LabeledConfigurationManager createLabeledManager() {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("labeled-source")
-                .setPriority(1).build();
+        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfig("labeled-source");
         System.out.println("source config: " + sourceConfig + "\n");
         TestDataCenterSetting setting1 = new TestDataCenterSetting("exist", "ok", "sh-1", "app-1");
         TestDataCenterSetting setting2 = new TestDataCenterSetting("int-value", "1", "sh-1", "app-1");
@@ -67,7 +65,7 @@ public class LabeledStringPropertiesTest extends StringPropertiesTest {
         TestLabeledConfigurationSource source = new TestLabeledConfigurationSource(sourceConfig,
                 Lists.newArrayList(setting1, setting2, setting3, setting4, setting5, setting6));
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(source).build();
+                .addSource(1, source).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return LabeledConfigurationManagers.newManager(managerConfig);
     }

@@ -37,7 +37,7 @@ public class DefaultLabeledConfigurationManager extends DefaultConfigurationMana
         for (PropertyLabels propertyLabels = ((LabeledKey) propertyConfig.getKey())
                 .getLabels(); propertyLabels != null; propertyLabels = propertyLabels.getAlternative()) {
 
-            for (ConfigurationSource source : getSortedSources()) {
+            for (ConfigurationSource source : getSortedSources().values()) {
                 if (!(source instanceof LabeledConfigurationSource) && !propertyLabels.getLabels().isEmpty())
                     continue;
 

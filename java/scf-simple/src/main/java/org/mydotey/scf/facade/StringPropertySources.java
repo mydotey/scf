@@ -6,7 +6,6 @@ import org.mydotey.scf.source.stringproperty.cascaded.CascadedConfigurationSourc
 import org.mydotey.scf.source.stringproperty.cascaded.CascadedConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.environmentvariable.EnvironmentVariableConfigurationSource;
 import org.mydotey.scf.source.stringproperty.memorymap.MemoryMapConfigurationSource;
-import org.mydotey.scf.source.stringproperty.memorymap.MemoryMapConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.propertiesfile.PropertiesFileConfigurationSource;
 import org.mydotey.scf.source.stringproperty.propertiesfile.PropertiesFileConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.systemproperties.SystemPropertiesConfigurationSource;
@@ -22,20 +21,18 @@ public class StringPropertySources {
 
     }
 
-    public static SystemPropertiesConfigurationSource newSystemPropertiesSource(ConfigurationSourceConfig config) {
+    public static SystemPropertiesConfigurationSource newSystemPropertiesSource(String name) {
+        ConfigurationSourceConfig config = ConfigurationSources.newConfig(name);
         return new SystemPropertiesConfigurationSource(config);
     }
 
-    public static EnvironmentVariableConfigurationSource newEnvironmentVariableSource(
-            ConfigurationSourceConfig config) {
+    public static EnvironmentVariableConfigurationSource newEnvironmentVariableSource(String name) {
+        ConfigurationSourceConfig config = ConfigurationSources.newConfig(name);
         return new EnvironmentVariableConfigurationSource(config);
     }
 
-    public static MemoryMapConfigurationSourceConfig.Builder newMemoryMapSourceConfigBuilder() {
-        return new MemoryMapConfigurationSourceConfig.Builder();
-    }
-
-    public static MemoryMapConfigurationSource newMemoryMapSource(MemoryMapConfigurationSourceConfig config) {
+    public static MemoryMapConfigurationSource newMemoryMapSource(String name) {
+        ConfigurationSourceConfig config = ConfigurationSources.newConfig(name);
         return new MemoryMapConfigurationSource(config);
     }
 

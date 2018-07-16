@@ -5,12 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
-import org.mydotey.scf.facade.ConfigurationSources;
 import org.mydotey.scf.facade.StringPropertySources;
 import org.mydotey.scf.threading.TaskExecutor;
 
@@ -22,15 +20,12 @@ import org.mydotey.scf.threading.TaskExecutor;
 public class SystemPropertiesConfigurationSourceTest {
 
     protected SystemPropertiesConfigurationSource createSource() {
-        ConfigurationSourceConfig sourceConfig = ConfigurationSources.newConfigBuilder().setName("system-properties")
-                .setPriority(1).build();
-        System.out.println("source config: " + sourceConfig + "\n");
-        return StringPropertySources.newSystemPropertiesSource(sourceConfig);
+        return StringPropertySources.newSystemPropertiesSource("system-properties");
     }
 
     protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
-                .addSource(source).setTaskExecutor(new TaskExecutor(1)).build();
+                .addSource(1, source).setTaskExecutor(new TaskExecutor(1)).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
     }

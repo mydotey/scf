@@ -9,8 +9,6 @@ public interface ConfigurationSourceConfig {
 
     String getName();
 
-    int getPriority();
-
     public interface Builder extends AbstractBuilder<Builder> {
 
     }
@@ -18,8 +16,6 @@ public interface ConfigurationSourceConfig {
     public interface AbstractBuilder<B extends AbstractBuilder<B>> {
 
         B setName(String name);
-
-        B setPriority(int priority);
 
         ConfigurationSourceConfig build();
     }

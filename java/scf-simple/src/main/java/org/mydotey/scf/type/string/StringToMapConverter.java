@@ -13,6 +13,9 @@ import org.mydotey.scf.type.TypeConverter;
  */
 public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
 
+    public static final StringToMapConverter<String, String> DEFAULT = new StringToMapConverter<>(
+            StringInplaceConverter.DEFAULT, StringInplaceConverter.DEFAULT);
+
     private TypeConverter<String, K> _keyConverter;
     private TypeConverter<String, V> _valueConverter;
 

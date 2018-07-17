@@ -13,6 +13,9 @@ import org.mydotey.scf.type.TypeConverter;
  */
 public class StringToListConverter<V> extends StringConverter<List<V>> {
 
+    public static final StringToListConverter<String> DEFAULT = new StringToListConverter<>(
+            StringInplaceConverter.DEFAULT);
+
     private TypeConverter<String, V> _typeConverter;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

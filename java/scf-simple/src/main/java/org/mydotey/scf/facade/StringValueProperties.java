@@ -190,11 +190,11 @@ public class StringValueProperties<K> {
     }
 
     public Property<K, List<String>> getListProperty(K key, List<String> defaultValue) {
-        return getListProperty(key, defaultValue, StringInplaceConverter.DEFAULT);
+        return getProperty(key, defaultValue, StringToListConverter.DEFAULT);
     }
 
     public List<String> getListPropertyValue(K key, List<String> defaultValue) {
-        return getListPropertyValue(key, defaultValue, StringInplaceConverter.DEFAULT);
+        return getPropertyValue(key, defaultValue, StringToListConverter.DEFAULT);
     }
 
     public <V> Property<K, List<V>> getListProperty(K key, TypeConverter<String, V> typeConverter) {
@@ -233,11 +233,11 @@ public class StringValueProperties<K> {
     }
 
     public Property<K, Map<String, String>> getMapProperty(K key, Map<String, String> defaultValue) {
-        return getMapProperty(key, defaultValue, StringInplaceConverter.DEFAULT, StringInplaceConverter.DEFAULT);
+        return getProperty(key, defaultValue, StringToMapConverter.DEFAULT);
     }
 
     public Map<String, String> getMapPropertyValue(K key, Map<String, String> defaultValue) {
-        return getMapPropertyValue(key, defaultValue, StringInplaceConverter.DEFAULT, StringInplaceConverter.DEFAULT);
+        return getPropertyValue(key, defaultValue, StringToMapConverter.DEFAULT);
     }
 
     public <MK, MV> Property<K, Map<MK, MV>> getMapProperty(K key, TypeConverter<String, MK> keyConverter,

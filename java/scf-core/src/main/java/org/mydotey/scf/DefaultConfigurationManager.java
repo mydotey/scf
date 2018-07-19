@@ -1,12 +1,15 @@
 package org.mydotey.scf;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,8 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     private ConcurrentHashMap<Object, DefaultProperty> _properties;
     private Object _propertiesLock;
+
+    private volatile List<Consumer<PropertyChangeEvent>> _changeListeners;
 
     public DefaultConfigurationManager(ConfigurationManagerConfig config) {
         Objects.requireNonNull(config, "config is null");
@@ -144,20 +149,46 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     protected void onSourceChange(ConfigurationSource source) {
         synchronized (_propertiesLock) {
             _properties.values().forEach(p -> {
-                Object value = getPropertyValue(p.getConfig());
-                if (Objects.equals(p.getValue(), value))
+                Object oldValue = p.getValue();
+                Object newValue = getPropertyValue(p.getConfig());
+                if (Objects.equals(oldValue, newValue))
                     return;
+                p.setValue(newValue);
 
-                p.setValue(value);
+                PropertyChangeEvent event = new DefaultPropertyChangeEvent<>(p, oldValue, newValue);
+                _config.getTaskExecutor().accept(() -> p.raiseChangeEvent(event));
 
-                _config.getTaskExecutor().accept(p::raiseChangeEvent);
+                raiseChangeEvent(event);
             });
         }
     }
 
     @Override
+    public synchronized void addChangeListener(Consumer<PropertyChangeEvent> changeListener) {
+        Objects.requireNonNull("changeListener", "changeListener is null");
+
+        if (_changeListeners == null)
+            _changeListeners = new ArrayList<>();
+        _changeListeners.add(changeListener);
+    }
+
+    protected synchronized void raiseChangeEvent(PropertyChangeEvent event) {
+        if (_changeListeners == null)
+            return;
+
+        _changeListeners.forEach(l -> {
+            try {
+                l.accept(event);
+            } catch (Exception e) {
+                LOGGER.error("property change listener failed to run", e);
+            }
+        });
+    }
+
+    @Override
     public String toString() {
-        return String.format("%s { config: %s, properties: %s }", getClass().getSimpleName(), _config, _properties);
+        return String.format("%s { config: %s, properties: %s, changeListeners: %s }", getClass().getSimpleName(),
+                _config, _properties, _changeListeners);
     }
 
 }

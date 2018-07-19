@@ -24,6 +24,6 @@ public interface Property<K, V> {
     /**
      * listeners to the value change, notified once value changed
      */
-    void addChangeListener(Consumer<Property<K, V>> changeListener);
+    void addChangeListener(Consumer<PropertyChangeEvent<K, V>> changeListener);
 
 }

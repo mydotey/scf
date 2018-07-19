@@ -10,6 +10,10 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * @author koqizhao
  *
  * May 17, 2018
+ * 
+ * Use System.getProperty to get system properties, System.setProperty to change property
+ * 
+ * dynamic source
  */
 public class SystemPropertiesConfigurationSource extends StringPropertyConfigurationSource {
 

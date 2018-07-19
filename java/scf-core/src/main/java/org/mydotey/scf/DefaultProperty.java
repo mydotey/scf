@@ -19,7 +19,7 @@ public class DefaultProperty<K, V> implements Property<K, V> {
 
     private PropertyConfig<K, V> _config;
     private volatile V _value;
-    private volatile List<Consumer<Property<K, V>>> _changeListeners;
+    private volatile List<Consumer<PropertyChangeEvent<K, V>>> _changeListeners;
 
     public DefaultProperty(PropertyConfig<K, V> config, V value) {
         Objects.requireNonNull(config, "config is null");
@@ -38,12 +38,12 @@ public class DefaultProperty<K, V> implements Property<K, V> {
         return _value;
     }
 
-    public void setValue(V value) {
+    protected void setValue(V value) {
         _value = value;
     }
 
     @Override
-    public synchronized void addChangeListener(Consumer<Property<K, V>> changeListener) {
+    public synchronized void addChangeListener(Consumer<PropertyChangeEvent<K, V>> changeListener) {
         Objects.requireNonNull("changeListener", "changeListener is null");
 
         if (_changeListeners == null)
@@ -51,13 +51,13 @@ public class DefaultProperty<K, V> implements Property<K, V> {
         _changeListeners.add(changeListener);
     }
 
-    public synchronized void raiseChangeEvent() {
+    protected synchronized void raiseChangeEvent(PropertyChangeEvent<K, V> event) {
         if (_changeListeners == null)
             return;
 
         _changeListeners.forEach(l -> {
             try {
-                l.accept(DefaultProperty.this);
+                l.accept(event);
             } catch (Exception e) {
                 LOGGER.error("property change listener failed to run", e);
             }

@@ -1,6 +1,7 @@
 package org.mydotey.scf;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * @author koqizhao
@@ -42,5 +43,11 @@ public interface ConfigurationManager {
      * after handling all sources, no non-null value got, return null
      */
     <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig);
+
+    /**
+     * listeners to the property change, notified once property changed
+     */
+    @SuppressWarnings("rawtypes")
+    void addChangeListener(Consumer<PropertyChangeEvent> changeListener);
 
 }

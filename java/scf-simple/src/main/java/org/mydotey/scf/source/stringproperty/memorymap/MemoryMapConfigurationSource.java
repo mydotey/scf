@@ -11,6 +11,10 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * @author koqizhao
  *
  * May 17, 2018
+ * 
+ * all properties stored in a memory concurrent HashMap
+ * 
+ * dynamic source
  */
 public class MemoryMapConfigurationSource extends StringPropertyConfigurationSource {
 

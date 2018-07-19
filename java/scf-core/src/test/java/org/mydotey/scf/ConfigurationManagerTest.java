@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -225,6 +226,40 @@ public class ConfigurationManagerTest {
         source2.setPropertyValue("exist5", null);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok5", property.getValue());
+    }
+
+    @Test
+    public void testChangeListener() {
+        TestDynamicConfigurationSource source = createDynamicSource();
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, source));
+        AtomicInteger changeCount = new AtomicInteger();
+        manager.addChangeListener(e -> {
+            changeCount.incrementAndGet();
+            System.out.println("property changed: " + e);
+        });
+
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        AtomicInteger changeCount2 = new AtomicInteger();
+        property.addChangeListener(p -> changeCount2.incrementAndGet());
+
+        source.setPropertyValue("exist", "okx");
+        Assert.assertEquals(1, changeCount.get());
+        Assert.assertEquals(1, changeCount2.get());
+
+        source.setPropertyValue("exist", "ok.2");
+        Assert.assertEquals(2, changeCount.get());
+        Assert.assertEquals(2, changeCount2.get());
+
+        source.setPropertyValue("exist", "okx");
+        Assert.assertEquals(3, changeCount.get());
+        Assert.assertEquals(3, changeCount2.get());
+
+        // value not change, no change event
+        source.setPropertyValue("exist", "okx");
+        Assert.assertEquals(3, changeCount.get());
+        Assert.assertEquals(3, changeCount2.get());
     }
 
 }

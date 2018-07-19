@@ -157,8 +157,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
                 PropertyChangeEvent event = new DefaultPropertyChangeEvent<>(p, oldValue, newValue);
                 _config.getTaskExecutor().accept(() -> p.raiseChangeEvent(event));
-
-                raiseChangeEvent(event);
+                _config.getTaskExecutor().accept(() -> raiseChangeEvent(event));
             });
         }
     }

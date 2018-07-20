@@ -44,6 +44,7 @@
         <slf4j.version>1.7.21</slf4j.version>
         <guava.version>19.0</guava.version>
         <junit.version>4.12</junit.version>
+        <cascaded-key-map.version>1.0.0</cascaded-key-map.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-doc-plugin.version>3.0.0</maven-doc-plugin.version>
@@ -96,6 +97,12 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
                 <version>${slf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mydotey.cascadedkeymap</groupId>
+                <artifactId>cascaded-key-map</artifactId>
+                <version>${cascaded-key-map.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

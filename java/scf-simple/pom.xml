@@ -44,6 +44,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mydotey.cascadedkeymap</groupId>
+            <artifactId>cascaded-key-map</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mydotey.scf</groupId>
             <artifactId>scf-labeled</artifactId>
             <type>test-jar</type>

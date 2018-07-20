@@ -36,6 +36,18 @@ public class CascadedConfigurationSourceTest {
         return ConfigurationManagers.newManager(managerConfig);
     }
 
+    protected ConfigurationManager createKeyCachedManager(SystemPropertiesConfigurationSource source) {
+        CascadedConfigurationSourceConfig sourceConfig = StringPropertySources.newCascadedSourceConfigBuilder()
+                .setName("cascaded-system-properties").setKeySeparator(".").addCascadedFactor("part1")
+                .addCascadedFactor("part2").build();
+        CascadedConfigurationSource cascadedSource = new KeyCachedCascadedConfigurationSource(sourceConfig, source);
+        TaskExecutor taskExecutor = new TaskExecutor(1);
+        ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
+                .addSource(1, cascadedSource).setTaskExecutor(taskExecutor).build();
+        System.out.println("manager config: " + managerConfig + "\n");
+        return ConfigurationManagers.newManager(managerConfig);
+    }
+
     @After
     public void tearDown() {
         System.clearProperty("exist");
@@ -107,6 +119,35 @@ public class CascadedConfigurationSourceTest {
 
         SystemPropertiesConfigurationSource source = createSource();
         ConfigurationManager manager = createManager(source);
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).setDefaultValue("default").build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok", property.getValue());
+
+        System.setProperty("exist.part1", "ok1");
+        Thread.sleep(10);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok", property.getValue());
+
+        source.setProperty("exist.part1.part2", "ok2");
+        Thread.sleep(10);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok2", property.getValue());
+
+        System.clearProperty("exist");
+        source.clearProperty("exist.part1.part2");
+        Thread.sleep(10);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok1", property.getValue());
+    }
+
+    @Test
+    public void testKeyCachedCascadedProperty() throws InterruptedException {
+        System.setProperty("exist", "ok");
+
+        SystemPropertiesConfigurationSource source = createSource();
+        ConfigurationManager manager = createKeyCachedManager(source);
         PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
                 .setKey("exist").setValueType(String.class).setDefaultValue("default").build();
         Property<String, String> property = manager.getProperty(propertyConfig);

@@ -8,7 +8,9 @@ import java.util.Objects;
 import org.mydotey.scf.DefaultConfigurationSourceConfig;
 
 /**
- * Created by Qiang Zhao on 10/05/2016.
+ * @author koqizhao
+ *
+ * May 17, 2018
  */
 public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourceConfig {
 

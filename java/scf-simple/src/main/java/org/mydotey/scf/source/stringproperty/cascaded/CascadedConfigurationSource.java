@@ -17,7 +17,7 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  *  key.a
  *  key.a.b
  * priority:
- *  key.a.b > k.a > key
+ *  key.a.b &gt; k.a &gt; key
  */
 public class CascadedConfigurationSource extends StringPropertyConfigurationSource {
 
@@ -70,6 +70,8 @@ public class CascadedConfigurationSource extends StringPropertyConfigurationSour
     /**
      * allow user to override
      * if the key count is limited, can cache the key and have less memory use
+     * @param keyParts
+     * @return property value
      */
     protected String getKey(String... keyParts) {
         if (keyParts == null)

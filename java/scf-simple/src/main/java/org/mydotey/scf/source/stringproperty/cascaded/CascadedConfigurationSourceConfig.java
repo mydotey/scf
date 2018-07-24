@@ -48,7 +48,7 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
     public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
 
         @Override
-        protected DefaultConfigurationSourceConfig newConfig() {
+        protected CascadedConfigurationSourceConfig newConfig() {
             return new CascadedConfigurationSourceConfig();
         }
 

@@ -1,8 +1,5 @@
 package org.mydotey.scf.labeled;
 
-import org.mydotey.scf.PropertyConfig;
-import org.mydotey.scf.type.TypeConverter;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +36,12 @@ public class TestLabeledConfigurationSource extends AbstractLabeledConfiguration
         _settings = new HashMap<>();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig, Collection<PropertyLabel> labels) {
-        if (propertyConfig.getKey().getClass() != String.class)
+    protected Object getPropertyValue(Object key, Collection<PropertyLabel> labels) {
+        if (key.getClass() != String.class)
             return null;
 
-        TestDataCenterSetting setting = new TestDataCenterSetting((String) propertyConfig.getKey(), null, null, null);
+        TestDataCenterSetting setting = new TestDataCenterSetting((String) key, null, null, null);
         if (labels != null) {
             labels.forEach(l -> {
                 if (l == null)
@@ -60,28 +56,7 @@ public class TestLabeledConfigurationSource extends AbstractLabeledConfiguration
         }
 
         TestDataCenterSetting labeledSetting = _settings.get(setting);
-
-        if (labeledSetting == null)
-            return null;
-
-        String value = labeledSetting.getValue();
-        if (value == null || value.isEmpty())
-            return null;
-
-        value = value.trim();
-        if (value.isEmpty())
-            return null;
-
-        if (propertyConfig.getValueType() == String.class)
-            return (V) value;
-
-        for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
-            if (typeConverter.getSourceType() == String.class
-                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType()))
-                return ((TypeConverter<String, V>) typeConverter).convert(value);
-        }
-
-        return null;
+        return labeledSetting == null ? null : labeledSetting.getValue();
     }
 
 }

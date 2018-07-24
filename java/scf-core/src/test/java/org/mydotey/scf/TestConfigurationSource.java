@@ -1,13 +1,10 @@
 package org.mydotey.scf;
 
-import org.mydotey.scf.PropertyConfig;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.mydotey.scf.AbstractConfigurationSource;
 import org.mydotey.scf.ConfigurationSourceConfig;
-import org.mydotey.scf.type.TypeConverter;
 
 /**
  * @author koqizhao
@@ -34,30 +31,9 @@ public class TestConfigurationSource extends AbstractConfigurationSource {
         _properties = new HashMap<>();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
-        if (propertyConfig.getKey().getClass() != String.class)
-            return null;
-
-        String value = _properties.get(propertyConfig.getKey());
-        if (value == null || value.isEmpty())
-            return null;
-
-        value = value.trim();
-        if (value.isEmpty())
-            return null;
-
-        if (propertyConfig.getValueType() == String.class)
-            return (V) value;
-
-        for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
-            if (typeConverter.getSourceType() == String.class
-                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType()))
-                return ((TypeConverter<String, V>) typeConverter).convert(value);
-        }
-
-        return null;
+    protected Object getPropertyValue(Object key) {
+        return _properties.get(key);
     }
 
 }

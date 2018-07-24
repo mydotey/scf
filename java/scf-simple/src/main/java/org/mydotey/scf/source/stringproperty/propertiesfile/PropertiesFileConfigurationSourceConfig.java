@@ -27,7 +27,7 @@ public class PropertiesFileConfigurationSourceConfig extends DefaultConfiguratio
     public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
 
         @Override
-        protected DefaultConfigurationSourceConfig newConfig() {
+        protected PropertiesFileConfigurationSourceConfig newConfig() {
             return new PropertiesFileConfigurationSourceConfig();
         }
 

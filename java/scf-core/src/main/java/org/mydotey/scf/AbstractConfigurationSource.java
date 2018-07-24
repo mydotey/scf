@@ -1,10 +1,14 @@
 package org.mydotey.scf;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.mydotey.scf.type.TypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +61,51 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
                 }
             });
         }
+    }
+
+    @Override
+    public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        Object value = getPropertyValue(propertyConfig.getKey());
+        return convert(propertyConfig, value);
+    }
+
+    protected abstract <K> Object getPropertyValue(K key);
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected <K, V> V convert(PropertyConfig<K, V> propertyConfig, Object value) {
+        if (isNull(value))
+            return null;
+
+        if (propertyConfig.getValueType().isAssignableFrom(value.getClass()))
+            return (V) value;
+
+        for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
+            if (typeConverter.getSourceType() == value.getClass()
+                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType()))
+                return (V) ((TypeConverter) typeConverter).convert(value);
+        }
+
+        return null;
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected boolean isNull(Object value) {
+        if (value == null)
+            return true;
+
+        if (value instanceof String)
+            return ((String) value).trim().isEmpty();
+
+        if (value instanceof Collection)
+            return ((Collection) value).isEmpty();
+
+        if (value instanceof Map)
+            return ((Map) value).isEmpty();
+
+        if (value.getClass().isArray())
+            return Array.getLength(value) == 0;
+
+        return false;
     }
 
     @Override

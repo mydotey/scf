@@ -101,10 +101,9 @@ public class LabeledConfigurationManagerTest extends ConfigurationManagerTest {
         System.out.println(property);
         Assert.assertEquals("default-value-1", property.getValue());
 
-        labels = new ArrayList<>();
-        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"));
-        labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
-        propertyLabels = LabeledConfigurationProperties.newLabels(labels);
+        propertyLabels = LabeledConfigurationProperties.newLabels(
+                LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1"),
+                LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));
         labels = new ArrayList<>();
         labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.DC_KEY, "sh-1-not-exist"));
         labels.add(LabeledConfigurationProperties.newLabel(TestDataCenterSetting.APP_KEY, "app-1"));

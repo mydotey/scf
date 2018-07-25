@@ -1,5 +1,6 @@
 package org.mydotey.scf.facade;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.mydotey.scf.labeled.DefaultLabeledKey;
@@ -26,6 +27,10 @@ public class LabeledConfigurationProperties {
 
     public static PropertyLabel newLabel(Object key, Object value) {
         return new DefaultPropertyLabel(key, value);
+    }
+
+    public static PropertyLabels newLabels(PropertyLabel... labels) {
+        return newLabels(Arrays.asList(labels), null);
     }
 
     public static PropertyLabels newLabels(Collection<PropertyLabel> labels) {

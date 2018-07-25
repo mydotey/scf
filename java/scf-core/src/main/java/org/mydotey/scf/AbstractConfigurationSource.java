@@ -69,7 +69,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
         return convert(propertyConfig, value);
     }
 
-    protected abstract <K> Object getPropertyValue(K key);
+    protected abstract Object getPropertyValue(Object key);
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected <K, V> V convert(PropertyConfig<K, V> propertyConfig, Object value) {

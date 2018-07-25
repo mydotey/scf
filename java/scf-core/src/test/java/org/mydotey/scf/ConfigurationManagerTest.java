@@ -83,6 +83,12 @@ public class ConfigurationManagerTest {
         property = manager.getProperty(propertyConfig);
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("ok", property.getValue());
+
+        PropertyConfig<String, Integer> propertyConfig2 = ConfigurationProperties.<String, Integer> newConfigBuilder()
+                .setKey("exist2").setValueType(Integer.class).build();
+        Property<String, Integer> property2 = manager.getProperty(propertyConfig2);
+        System.out.println("property: " + property2 + "\n");
+        Assert.assertEquals(null, property2.getValue());
     }
 
     @Test(expected = IllegalArgumentException.class)

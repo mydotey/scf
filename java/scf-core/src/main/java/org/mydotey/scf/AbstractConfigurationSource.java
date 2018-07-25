@@ -83,7 +83,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
             return null;
 
         for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
-            if (typeConverter.getSourceType() == value.getClass()
+            if (typeConverter.getSourceType().isAssignableFrom(value.getClass())
                     && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType()))
                 return (V) ((TypeConverter) typeConverter).convert(value);
         }

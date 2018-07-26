@@ -68,6 +68,9 @@ public class DefaultLabeledKey<K> implements LabeledKey<K>, Cloneable {
         if (getClass() != other.getClass())
             return false;
 
+        if (hashCode() != other.hashCode())
+            return false;
+
         DefaultLabeledKey<K> labeledKey = (DefaultLabeledKey<K>) other;
 
         if (!Objects.equals(_key, labeledKey._key))

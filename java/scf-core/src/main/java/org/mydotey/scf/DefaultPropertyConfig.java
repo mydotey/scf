@@ -23,6 +23,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     private List<TypeConverter> _valueConverters;
     private Function<V, V> _valueFilter;
 
+    private volatile int _hashCode;
+
     protected DefaultPropertyConfig() {
 
     }
@@ -74,14 +76,18 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((_defaultValue == null) ? 0 : _defaultValue.hashCode());
-        result = prime * result + ((_key == null) ? 0 : _key.hashCode());
-        result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
-        result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
-        result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
-        return result;
+        if (_hashCode == 0) {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((_defaultValue == null) ? 0 : _defaultValue.hashCode());
+            result = prime * result + ((_key == null) ? 0 : _key.hashCode());
+            result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
+            result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
+            result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
+            _hashCode = result;
+        }
+
+        return _hashCode;
     }
 
     @Override
@@ -93,6 +99,9 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
             return false;
 
         if (getClass() != other.getClass())
+            return false;
+
+        if (hashCode() != other.hashCode())
             return false;
 
         DefaultPropertyConfig<K, V> propertyConfig = (DefaultPropertyConfig<K, V>) other;

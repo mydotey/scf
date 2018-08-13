@@ -190,6 +190,8 @@ public class ConfigurationManagerTest {
 
         AtomicBoolean touched = new AtomicBoolean();
         property.addChangeListener(p -> touched.set(true));
+        property.addChangeListener(e -> System.out.printf("property: %s, changeTime: %s, from: %s, to: %s\n",
+                e.getProperty(), e.getChangeTime(), e.getOldValue(), e.getNewValue()));
         source.setPropertyValue("exist", "okx");
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("okx", property.getValue());

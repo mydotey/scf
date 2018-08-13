@@ -6,7 +6,7 @@
 
 ## Usage
 
-- java: https://github.com/mydotey/scf/java/
+- java: https://github.com/mydotey/scf/tree/master/java
 
 ## Examples
 

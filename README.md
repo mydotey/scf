@@ -42,6 +42,8 @@ Some extentions:
 
 - [scf-spring](https://github.com/mydotey/scf-spring)
 
+- [scf-labeled](https://github.com/mydotey/scf-labeled)
+
 ### Lightweight
 
 No thread is used. Only use a little memory to cache the properties.

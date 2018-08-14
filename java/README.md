@@ -29,17 +29,12 @@
 <dependency>
     <groupId>org.mydotey.scf</groupId>
     <artifactId>scf-core</artifactId>
-    <version>1.2.1</version>
-</dependency>
-<dependency>
-    <groupId>org.mydotey.scf</groupId>
-    <artifactId>scf-labeled</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0</version>
 </dependency>
 <dependency>
     <groupId>org.mydotey.scf</groupId>
     <artifactId>scf-simple</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
@@ -210,7 +205,8 @@ public class MyCustomType {
 
     @Override
     public String toString() {
-        return String.format("%s { name: %s, say: %s, times: %d }", getClass().getSimpleName(), name, say, times);
+        return String.format("%s { name: %s, say: %s, times: %d }",
+            getClass().getSimpleName(), name, say, times);
     }
 }
 ```

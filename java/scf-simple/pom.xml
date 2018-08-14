@@ -24,11 +24,7 @@
             <groupId>org.mydotey.scf</groupId>
             <artifactId>scf-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.mydotey.scf</groupId>
-            <artifactId>scf-labeled</artifactId>
-        </dependency>
-        <dependency>
+       <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>test</scope>
@@ -46,12 +42,6 @@
         <dependency>
             <groupId>org.mydotey.cascadedkeymap</groupId>
             <artifactId>cascaded-key-map</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mydotey.scf</groupId>
-            <artifactId>scf-labeled</artifactId>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -56,7 +56,6 @@
     <modules>
         <module>scf-core</module>
         <module>scf-simple</module>
-        <module>scf-labeled</module>
     </modules>
 
     <dependencyManagement>
@@ -69,11 +68,6 @@
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mydotey.scf</groupId>
-                <artifactId>scf-labeled</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -113,7 +107,7 @@
             </dependency>
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
-                <artifactId>scf-labeled</artifactId>
+                <artifactId>scf-simple</artifactId>
                 <type>test-jar</type>
                 <version>${project.version}</version>
             </dependency>

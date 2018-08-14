@@ -36,13 +36,11 @@ Multiple sources can work together with different priorities. Property value is 
 
 Some extentions:
 
+- [scf-labeled](https://github.com/mydotey/scf-labeled)
+
 - [scf-yaml](https://github.com/mydotey/scf-yaml)
 
 - [scf-apollo](https://github.com/mydotey/scf-apollo)
-
-- [scf-spring](https://github.com/mydotey/scf-spring)
-
-- [scf-labeled](https://github.com/mydotey/scf-labeled)
 
 ### Lightweight
 

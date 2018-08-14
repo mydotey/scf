@@ -7,7 +7,7 @@ package org.mydotey.scf.type.string;
  */
 public class StringToFloatConverter extends StringConverter<Float> {
 
-    public static StringToFloatConverter DEFAULT = new StringToFloatConverter();
+    public static final StringToFloatConverter DEFAULT = new StringToFloatConverter();
 
     public StringToFloatConverter() {
         super(Float.class);

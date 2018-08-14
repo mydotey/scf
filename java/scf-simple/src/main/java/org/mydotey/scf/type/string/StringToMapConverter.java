@@ -90,7 +90,7 @@ public class StringToMapConverter<K, V> extends StringConverter<Map<K, V>> {
             return false;
 
         StringToMapConverter other = (StringToMapConverter) obj;
-        return Objects.equals(_keyConverter, other._valueConverter)
+        return Objects.equals(_keyConverter, other._keyConverter)
                 && Objects.equals(_valueConverter, other._valueConverter);
     }
 

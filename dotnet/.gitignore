@@ -1,0 +1,13 @@
+*.user
+*.suo
+*.dll
+*.bin
+*.dat
+*.dump
+.vs
+
+bin
+obj
+packages
+project.lock.json
+artifacts

@@ -7,7 +7,7 @@ package org.mydotey.scf.type.string;
  */
 public class StringToIntConverter extends StringConverter<Integer> {
 
-    public static StringToIntConverter DEFAULT = new StringToIntConverter();
+    public static final StringToIntConverter DEFAULT = new StringToIntConverter();
 
     public StringToIntConverter() {
         super(Integer.class);

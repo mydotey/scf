@@ -7,7 +7,7 @@ package org.mydotey.scf.type.string;
  */
 public class StringToDoubleConverter extends StringConverter<Double> {
 
-    public static StringToDoubleConverter DEFAULT = new StringToDoubleConverter();
+    public static final StringToDoubleConverter DEFAULT = new StringToDoubleConverter();
 
     public StringToDoubleConverter() {
         super(Double.class);

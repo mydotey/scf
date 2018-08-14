@@ -38,7 +38,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     @Override
     public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
-        Objects.requireNonNull("changeListener", "changeListener is null");
+        Objects.requireNonNull(changeListener, "changeListener is null");
 
         synchronized (this) {
             if (_changeListeners == null)

@@ -7,7 +7,7 @@ package org.mydotey.scf.type.string;
  */
 public class StringToBooleanConverter extends StringConverter<Boolean> {
 
-    public static StringToBooleanConverter DEFAULT = new StringToBooleanConverter();
+    public static final StringToBooleanConverter DEFAULT = new StringToBooleanConverter();
 
     public StringToBooleanConverter() {
         super(Boolean.class);

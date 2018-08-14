@@ -64,12 +64,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
     public static abstract class DefaultAbstractBuilder<B extends ConfigurationManagerConfig.AbstractBuilder<B>>
             implements ConfigurationManagerConfig.AbstractBuilder<B> {
 
-        protected static final Consumer<Runnable> DEFAULT_TASK_EXECUTOR = new Consumer<Runnable>() {
-            @Override
-            public void accept(Runnable t) {
-                t.run();
-            }
-        };
+        protected static final Consumer<Runnable> DEFAULT_TASK_EXECUTOR = t -> t.run();
 
         private DefaultConfigurationManagerConfig _config;
 

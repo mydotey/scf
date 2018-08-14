@@ -9,7 +9,7 @@ import org.mydotey.scf.type.InplaceConverter;
  */
 public class StringInplaceConverter extends InplaceConverter<String> {
 
-    public static StringInplaceConverter DEFAULT = new StringInplaceConverter();
+    public static final StringInplaceConverter DEFAULT = new StringInplaceConverter();
 
     public StringInplaceConverter() {
         super(String.class);

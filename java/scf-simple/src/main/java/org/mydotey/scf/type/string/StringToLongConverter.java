@@ -7,7 +7,7 @@ package org.mydotey.scf.type.string;
  */
 public class StringToLongConverter extends StringConverter<Long> {
 
-    public static StringToLongConverter DEFAULT = new StringToLongConverter();
+    public static final StringToLongConverter DEFAULT = new StringToLongConverter();
 
     public StringToLongConverter() {
         super(Long.class);

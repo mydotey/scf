@@ -41,7 +41,7 @@ namespace MyDotey.SCF.Filter
                 return false;
 
             DefaultValueFilter<V> other = (DefaultValueFilter<V>)obj;
-            return _filter.Equals(other._filter);
+            return object.Equals(_filter, other._filter);
         }
 
         public override string ToString()

@@ -20,22 +20,6 @@ namespace MyDotey.SCF.Filter
 
         public abstract V Filter(V t);
 
-        public override int GetHashCode()
-        {
-            return GetType().GetHashCode();
-        }
-
-        public override bool Equals(Object obj)
-        {
-            if (object.ReferenceEquals(this, obj))
-                return true;
-
-            if (obj == null)
-                return false;
-
-            return GetType() == obj.GetType();
-        }
-
         public override string ToString()
         {
             return GetType().Name;

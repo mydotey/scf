@@ -8,6 +8,8 @@
 
 - java: https://github.com/mydotey/scf/tree/master/java
 
+- dotnet: https://github.com/mydotey/scf/tree/master/dotnet
+
 ## Examples
 
 https://github.com/mydotey/scf-best-practice
@@ -35,6 +37,8 @@ Multiple sources can work together with different priorities. Property value is 
 **scf-core** only has a few interface abstractions and default implementation. Feel free to extend the default or write your own new implementation.
 
 Some extentions:
+
+- [scf-simple](https://github.com/mydotey/scf-simple)
 
 - [scf-labeled](https://github.com/mydotey/scf-labeled)
 

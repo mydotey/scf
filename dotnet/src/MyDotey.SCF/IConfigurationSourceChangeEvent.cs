@@ -10,6 +10,6 @@ namespace MyDotey.SCF
     public interface IConfigurationSourceChangeEvent
     {
         IConfigurationSource Source { get; }
-        long ChangeTime { get; }
+        DateTime ChangeTime { get; }
     }
 }

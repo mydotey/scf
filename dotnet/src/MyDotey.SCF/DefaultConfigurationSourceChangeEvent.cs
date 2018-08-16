@@ -9,16 +9,16 @@ namespace MyDotey.SCF
      */
     public class DefaultConfigurationSourceChangeEvent : IConfigurationSourceChangeEvent
     {
-        public virtual IConfigurationSource Source { get; protected set; }
-        public virtual long ChangeTime { get; protected set; }
+        public virtual IConfigurationSource Source { get; private set; }
+        public virtual DateTime ChangeTime { get; private set; }
 
         public DefaultConfigurationSourceChangeEvent(IConfigurationSource source)
-            : this(source, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond)
+            : this(source, DateTime.Now)
         {
 
         }
 
-        public DefaultConfigurationSourceChangeEvent(IConfigurationSource source, long changeTime)
+        public DefaultConfigurationSourceChangeEvent(IConfigurationSource source, DateTime changeTime)
         {
             if (source == null)
                 throw new ArgumentNullException("source is null");

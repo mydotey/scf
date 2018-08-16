@@ -10,7 +10,7 @@ namespace MyDotey.SCF
 
         object NewValue { get; }
 
-        long ChangeTime { get; }
+        DateTime ChangeTime { get; }
     }
 
     /**

@@ -9,46 +9,38 @@ namespace MyDotey.SCF
      */
     public class DefaultPropertyChangeEvent<K, V> : IPropertyChangeEvent<K, V>
     {
-        private IProperty<K, V> _property;
-        private V _oldValue;
-        private V _newValue;
-        private long _changeTime;
+        public virtual IProperty<K, V> Property { get; private set; }
+        public virtual V OldValue { get; private set; }
+        public virtual DateTime ChangeTime { get; private set; }
+        public virtual V NewValue { get; private set; }
 
         public DefaultPropertyChangeEvent(IProperty<K, V> property, V oldValue, V newValue)
-            : this(property, oldValue, newValue, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond)
+            : this(property, oldValue, newValue, DateTime.Now)
         {
 
         }
 
-        public DefaultPropertyChangeEvent(IProperty<K, V> property, V oldValue, V newValue, long changeTime)
+        public DefaultPropertyChangeEvent(IProperty<K, V> property, V oldValue, V newValue, DateTime changeTime)
         {
             if (property == null)
                 throw new ArgumentNullException("property is null");
 
-            _property = property;
-            _oldValue = oldValue;
-            _newValue = newValue;
-            _changeTime = changeTime;
+            Property = property;
+            OldValue = oldValue;
+            NewValue = newValue;
+            ChangeTime = changeTime;
         }
 
         IProperty IPropertyChangeEvent.Property { get { return Property; } }
 
-        public virtual IProperty<K, V> Property { get { return _property; } }
-
         object IPropertyChangeEvent.OldValue { get { return OldValue; } }
 
-        public virtual V OldValue { get { return _oldValue; } }
-
         object IPropertyChangeEvent.NewValue { get { return NewValue; } }
-
-        public virtual V NewValue { get { return _newValue; } }
-
-        public virtual long ChangeTime { get { return _changeTime; } }
 
         public override String ToString()
         {
             return string.Format("{0} {{ property: {1}, oldValue: {2}, newValue: {3}, changeTime: {4} }}",
-                    GetType().Name, _property, _oldValue, _newValue, _changeTime);
+                    GetType().Name, Property, OldValue, NewValue, ChangeTime);
         }
     }
 }

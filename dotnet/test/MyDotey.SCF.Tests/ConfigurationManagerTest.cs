@@ -322,6 +322,13 @@ namespace MyDotey.SCF
             Assert.True(l3.Equal(l3));
         }
 
+        [Fact]
+        public virtual void TestValueTypeObject()
+        {
+            object obj = 1;
+            Assert.True(obj.GetType() == typeof(int));
+        }
+
         public class ObjectReference<T>
         {
             private volatile object _value;

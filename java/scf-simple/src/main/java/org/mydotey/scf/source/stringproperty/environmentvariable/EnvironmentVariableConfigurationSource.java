@@ -12,7 +12,8 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * 
  * non-dynamic source
  */
-public class EnvironmentVariableConfigurationSource extends StringPropertyConfigurationSource {
+public class EnvironmentVariableConfigurationSource
+        extends StringPropertyConfigurationSource<ConfigurationSourceConfig> {
 
     public EnvironmentVariableConfigurationSource(ConfigurationSourceConfig config) {
         super(config);

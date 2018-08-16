@@ -14,11 +14,11 @@ public interface ConfigurationSourceConfig {
      */
     String getName();
 
-    public interface Builder extends AbstractBuilder<Builder> {
+    public interface Builder extends AbstractBuilder<Builder, ConfigurationSourceConfig> {
 
     }
 
-    public interface AbstractBuilder<B extends AbstractBuilder<B>> {
+    public interface AbstractBuilder<B extends AbstractBuilder<B, C>, C extends ConfigurationSourceConfig> {
 
         /**
          * required
@@ -26,7 +26,7 @@ public interface ConfigurationSourceConfig {
          */
         B setName(String name);
 
-        ConfigurationSourceConfig build();
+        C build();
     }
 
 }

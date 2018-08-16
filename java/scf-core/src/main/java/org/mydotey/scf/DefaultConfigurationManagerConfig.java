@@ -55,29 +55,30 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
                 _taskExecutor, _sources);
     }
 
-    public static class Builder extends DefaultAbstractBuilder<ConfigurationManagerConfig.Builder>
+    public static class Builder
+            extends DefaultAbstractBuilder<ConfigurationManagerConfig.Builder, ConfigurationManagerConfig>
             implements ConfigurationManagerConfig.Builder {
 
     }
 
     @SuppressWarnings("unchecked")
-    public static abstract class DefaultAbstractBuilder<B extends ConfigurationManagerConfig.AbstractBuilder<B>>
-            implements ConfigurationManagerConfig.AbstractBuilder<B> {
+    public static abstract class DefaultAbstractBuilder<B extends ConfigurationManagerConfig.AbstractBuilder<B, C>, C extends ConfigurationManagerConfig>
+            implements ConfigurationManagerConfig.AbstractBuilder<B, C> {
 
         protected static final Consumer<Runnable> DEFAULT_TASK_EXECUTOR = t -> t.run();
 
         private DefaultConfigurationManagerConfig _config;
 
         protected DefaultAbstractBuilder() {
-            _config = newConfig();
+            _config = (DefaultConfigurationManagerConfig) newConfig();
         }
 
-        protected DefaultConfigurationManagerConfig newConfig() {
-            return new DefaultConfigurationManagerConfig();
+        protected C newConfig() {
+            return (C) new DefaultConfigurationManagerConfig();
         }
 
-        protected DefaultConfigurationManagerConfig getConfig() {
-            return _config;
+        protected C getConfig() {
+            return (C) _config;
         }
 
         @Override
@@ -119,7 +120,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
         }
 
         @Override
-        public DefaultConfigurationManagerConfig build() {
+        public C build() {
             if (_config._name == null || _config._name.trim().isEmpty())
                 throw new IllegalArgumentException("name is null or empty");
             _config._name = _config._name.trim();
@@ -130,7 +131,7 @@ public class DefaultConfigurationManagerConfig implements ConfigurationManagerCo
             if (_config._taskExecutor == null)
                 _config._taskExecutor = DEFAULT_TASK_EXECUTOR;
 
-            return _config.clone();
+            return (C) _config.clone();
         }
 
     }

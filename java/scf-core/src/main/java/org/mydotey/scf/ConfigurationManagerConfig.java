@@ -39,11 +39,11 @@ public interface ConfigurationManagerConfig {
      */
     Consumer<Runnable> getTaskExecutor();
 
-    public interface Builder extends AbstractBuilder<Builder> {
+    public interface Builder extends AbstractBuilder<Builder, ConfigurationManagerConfig> {
 
     }
 
-    public interface AbstractBuilder<B extends AbstractBuilder<B>> {
+    public interface AbstractBuilder<B extends AbstractBuilder<B, C>, C extends ConfigurationManagerConfig> {
 
         /**
          * required
@@ -69,7 +69,7 @@ public interface ConfigurationManagerConfig {
          */
         B setTaskExecutor(Consumer<Runnable> taskExecutor);
 
-        ConfigurationManagerConfig build();
+        C build();
 
     }
 

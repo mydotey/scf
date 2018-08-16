@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mydotey.scf.ConfigurationManager;
 import org.mydotey.scf.ConfigurationManagerConfig;
+import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.Property;
 import org.mydotey.scf.PropertyConfig;
 import org.mydotey.scf.facade.ConfigurationManagers;
@@ -25,10 +26,11 @@ public class CascadedConfigurationSourceTest {
     }
 
     protected ConfigurationManager createManager(SystemPropertiesConfigurationSource source) {
-        CascadedConfigurationSourceConfig sourceConfig = StringPropertySources.newCascadedSourceConfigBuilder()
-                .setName("cascaded-system-properties").setKeySeparator(".").addCascadedFactor("part1")
-                .addCascadedFactor("part2").build();
-        CascadedConfigurationSource cascadedSource = StringPropertySources.newCascadedSource(sourceConfig, source);
+        CascadedConfigurationSourceConfig<ConfigurationSourceConfig> sourceConfig = StringPropertySources
+                .newCascadedSourceConfigBuilder().setName("cascaded-system-properties").setKeySeparator(".")
+                .addCascadedFactor("part1").addCascadedFactor("part2").setSource(source).build();
+        CascadedConfigurationSource<ConfigurationSourceConfig> cascadedSource = StringPropertySources
+                .newCascadedSource(sourceConfig);
         TaskExecutor taskExecutor = new TaskExecutor(1);
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
                 .addSource(1, cascadedSource).setTaskExecutor(taskExecutor).build();
@@ -37,10 +39,11 @@ public class CascadedConfigurationSourceTest {
     }
 
     protected ConfigurationManager createKeyCachedManager(SystemPropertiesConfigurationSource source) {
-        CascadedConfigurationSourceConfig sourceConfig = StringPropertySources.newCascadedSourceConfigBuilder()
-                .setName("cascaded-system-properties").setKeySeparator(".").addCascadedFactor("part1")
-                .addCascadedFactor("part2").build();
-        CascadedConfigurationSource cascadedSource = new KeyCachedCascadedConfigurationSource(sourceConfig, source);
+        CascadedConfigurationSourceConfig<ConfigurationSourceConfig> sourceConfig = StringPropertySources
+                .newCascadedSourceConfigBuilder().setName("cascaded-system-properties").setKeySeparator(".")
+                .addCascadedFactor("part1").addCascadedFactor("part2").setSource(source).build();
+        CascadedConfigurationSource<ConfigurationSourceConfig> cascadedSource = new KeyCachedCascadedConfigurationSource<>(
+                sourceConfig);
         TaskExecutor taskExecutor = new TaskExecutor(1);
         ConfigurationManagerConfig managerConfig = ConfigurationManagers.newConfigBuilder().setName("test")
                 .addSource(1, cascadedSource).setTaskExecutor(taskExecutor).build();

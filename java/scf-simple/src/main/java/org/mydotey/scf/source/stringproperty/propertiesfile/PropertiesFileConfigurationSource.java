@@ -12,7 +12,8 @@ import org.slf4j.LoggerFactory;
  *
  * May 17, 2018
  */
-public class PropertiesFileConfigurationSource extends StringPropertyConfigurationSource {
+public class PropertiesFileConfigurationSource
+        extends StringPropertyConfigurationSource<PropertiesFileConfigurationSourceConfig> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesFileConfigurationSource.class);
 

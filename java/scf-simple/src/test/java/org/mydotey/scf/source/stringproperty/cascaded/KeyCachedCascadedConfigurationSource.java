@@ -1,7 +1,7 @@
 package org.mydotey.scf.source.stringproperty.cascaded;
 
 import org.mydotey.collection.CascadedKeyMap;
-import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
+import org.mydotey.scf.ConfigurationSourceConfig;
 
 /**
  * @author koqizhao
@@ -10,13 +10,13 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * 
  * use CascadedKeyMap to cache the keys so as to prevent temp string creation and have better young gc
  */
-public class KeyCachedCascadedConfigurationSource extends CascadedConfigurationSource {
+public class KeyCachedCascadedConfigurationSource<C extends ConfigurationSourceConfig>
+        extends CascadedConfigurationSource<C> {
 
     private CascadedKeyMap<String, String> _cascadedKeyMap;
 
-    public KeyCachedCascadedConfigurationSource(CascadedConfigurationSourceConfig config,
-            StringPropertyConfigurationSource source) {
-        super(config, source);
+    public KeyCachedCascadedConfigurationSource(CascadedConfigurationSourceConfig<C> config) {
+        super(config);
 
         _cascadedKeyMap = new CascadedKeyMap<>();
     }

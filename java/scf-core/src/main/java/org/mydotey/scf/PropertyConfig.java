@@ -52,11 +52,11 @@ public interface PropertyConfig<K, V> {
      */
     Function<V, V> getValueFilter();
 
-    public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>> {
+    public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>, PropertyConfig<K, V>> {
 
     }
 
-    public interface AbstractBuilder<K, V, B extends AbstractBuilder<K, V, B>> {
+    public interface AbstractBuilder<K, V, B extends AbstractBuilder<K, V, B, C>, C extends PropertyConfig<K, V>> {
 
         /**
          * required
@@ -100,7 +100,7 @@ public interface PropertyConfig<K, V> {
          */
         B setValueFilter(Function<V, V> valueFilter);
 
-        PropertyConfig<K, V> build();
+        C build();
     }
 
 }

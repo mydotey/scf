@@ -24,16 +24,12 @@ public class PropertiesFileConfigurationSourceConfig extends DefaultConfiguratio
         return String.format("%s { name: %s, fileName: %s }", getClass().getSimpleName(), getName(), getFileName());
     }
 
-    public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
+    public static class Builder extends
+            DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder, PropertiesFileConfigurationSourceConfig> {
 
         @Override
         protected PropertiesFileConfigurationSourceConfig newConfig() {
             return new PropertiesFileConfigurationSourceConfig();
-        }
-
-        @Override
-        protected PropertiesFileConfigurationSourceConfig getConfig() {
-            return (PropertiesFileConfigurationSourceConfig) super.getConfig();
         }
 
         public Builder setFileName(String fileName) {

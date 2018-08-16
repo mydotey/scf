@@ -17,22 +17,22 @@ import org.slf4j.LoggerFactory;
  *
  * May 16, 2018
  */
-public abstract class AbstractConfigurationSource implements ConfigurationSource {
+public abstract class AbstractConfigurationSource<C extends ConfigurationSourceConfig> implements ConfigurationSource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigurationSource.class);
 
-    private ConfigurationSourceConfig _config;
+    private C _config;
 
     private volatile List<Consumer<ConfigurationSourceChangeEvent>> _changeListeners;
 
-    public AbstractConfigurationSource(ConfigurationSourceConfig config) {
+    public AbstractConfigurationSource(C config) {
         Objects.requireNonNull(config, "config is null");
 
         _config = config;
     }
 
     @Override
-    public ConfigurationSourceConfig getConfig() {
+    public C getConfig() {
         return _config;
     }
 

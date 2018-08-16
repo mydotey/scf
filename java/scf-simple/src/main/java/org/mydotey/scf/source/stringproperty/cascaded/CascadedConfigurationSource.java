@@ -3,8 +3,8 @@ package org.mydotey.scf.source.stringproperty.cascaded;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
 
 /**
@@ -19,26 +19,19 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * priority:
  *  key.a.b &gt; k.a &gt; key
  */
-public class CascadedConfigurationSource extends StringPropertyConfigurationSource {
+public class CascadedConfigurationSource<C extends ConfigurationSourceConfig>
+        extends StringPropertyConfigurationSource<CascadedConfigurationSourceConfig<C>> {
 
-    private StringPropertyConfigurationSource _source;
+    private StringPropertyConfigurationSource<C> _source;
     private List<String> _cascadedKeyParts;
 
-    public CascadedConfigurationSource(CascadedConfigurationSourceConfig config,
-            StringPropertyConfigurationSource source) {
+    public CascadedConfigurationSource(CascadedConfigurationSourceConfig<C> config) {
         super(config);
 
-        Objects.requireNonNull(source, "source is null");
-
-        _source = source;
+        _source = config.getSource();
         _source.addChangeListener(s -> CascadedConfigurationSource.this.raiseChangeEvent());
 
         init();
-    }
-
-    @Override
-    public CascadedConfigurationSourceConfig getConfig() {
-        return (CascadedConfigurationSourceConfig) super.getConfig();
     }
 
     protected void init() {

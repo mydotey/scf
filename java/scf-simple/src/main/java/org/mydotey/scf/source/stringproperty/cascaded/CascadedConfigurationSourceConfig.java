@@ -5,17 +5,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.DefaultConfigurationSourceConfig;
+import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
 
 /**
  * @author koqizhao
  *
  * May 17, 2018
  */
-public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourceConfig {
+public class CascadedConfigurationSourceConfig<C extends ConfigurationSourceConfig>
+        extends DefaultConfigurationSourceConfig {
 
     private String _keySeparator;
     private List<String> _cascadedFactors;
+
+    private StringPropertyConfigurationSource<C> _source;
 
     protected CascadedConfigurationSourceConfig() {
 
@@ -29,9 +34,14 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
         return _cascadedFactors;
     }
 
+    public StringPropertyConfigurationSource<C> getSource() {
+        return _source;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
-    public CascadedConfigurationSourceConfig clone() {
-        CascadedConfigurationSourceConfig copy = (CascadedConfigurationSourceConfig) super.clone();
+    public CascadedConfigurationSourceConfig<C> clone() {
+        CascadedConfigurationSourceConfig<C> copy = (CascadedConfigurationSourceConfig<C>) super.clone();
 
         if (_cascadedFactors != null)
             copy._cascadedFactors = Collections.unmodifiableList(new ArrayList<>(_cascadedFactors));
@@ -45,24 +55,20 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
                 getName(), _keySeparator, _cascadedFactors);
     }
 
-    public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
+    public static class Builder<C extends ConfigurationSourceConfig> extends
+            DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder<C>, CascadedConfigurationSourceConfig<C>> {
 
         @Override
-        protected CascadedConfigurationSourceConfig newConfig() {
-            return new CascadedConfigurationSourceConfig();
+        protected CascadedConfigurationSourceConfig<C> newConfig() {
+            return new CascadedConfigurationSourceConfig<>();
         }
 
-        @Override
-        protected CascadedConfigurationSourceConfig getConfig() {
-            return (CascadedConfigurationSourceConfig) super.getConfig();
-        }
-
-        public Builder setKeySeparator(String keySeparator) {
+        public Builder<C> setKeySeparator(String keySeparator) {
             getConfig()._keySeparator = keySeparator;
             return this;
         }
 
-        public Builder addCascadedFactor(String cascadedFactor) {
+        public Builder<C> addCascadedFactor(String cascadedFactor) {
             if (cascadedFactor == null)
                 return this;
 
@@ -77,7 +83,12 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
             return this;
         }
 
-        public Builder addCascadedFactors(List<String> cascadedFactors) {
+        public Builder<C> setSource(StringPropertyConfigurationSource<C> source) {
+            getConfig()._source = source;
+            return this;
+        }
+
+        public Builder<C> addCascadedFactors(List<String> cascadedFactors) {
             if (cascadedFactors != null)
                 cascadedFactors.forEach(this::addCascadedFactor);
 
@@ -85,7 +96,7 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
         }
 
         @Override
-        public CascadedConfigurationSourceConfig build() {
+        public CascadedConfigurationSourceConfig<C> build() {
             Objects.requireNonNull(getConfig()._keySeparator, "keySeparator is null");
             getConfig()._keySeparator = getConfig().getKeySeparator().trim();
             if (getConfig().getKeySeparator().isEmpty())
@@ -95,7 +106,9 @@ public class CascadedConfigurationSourceConfig extends DefaultConfigurationSourc
             if (getConfig().getCascadedFactors().isEmpty())
                 throw new IllegalArgumentException("cascadedFactors is empty");
 
-            return (CascadedConfigurationSourceConfig) super.build();
+            Objects.requireNonNull(getConfig()._source, "source is null");
+
+            return (CascadedConfigurationSourceConfig<C>) super.build();
         }
     }
 

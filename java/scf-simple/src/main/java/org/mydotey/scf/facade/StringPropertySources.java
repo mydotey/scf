@@ -1,7 +1,6 @@
 package org.mydotey.scf.facade;
 
 import org.mydotey.scf.ConfigurationSourceConfig;
-import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
 import org.mydotey.scf.source.stringproperty.cascaded.CascadedConfigurationSource;
 import org.mydotey.scf.source.stringproperty.cascaded.CascadedConfigurationSourceConfig;
 import org.mydotey.scf.source.stringproperty.environmentvariable.EnvironmentVariableConfigurationSource;
@@ -45,13 +44,13 @@ public class StringPropertySources {
         return new PropertiesFileConfigurationSource(config);
     }
 
-    public static CascadedConfigurationSourceConfig.Builder newCascadedSourceConfigBuilder() {
-        return new CascadedConfigurationSourceConfig.Builder();
+    public static <C extends ConfigurationSourceConfig> CascadedConfigurationSourceConfig.Builder<C> newCascadedSourceConfigBuilder() {
+        return new CascadedConfigurationSourceConfig.Builder<>();
     }
 
-    public static CascadedConfigurationSource newCascadedSource(CascadedConfigurationSourceConfig config,
-            StringPropertyConfigurationSource source) {
-        return new CascadedConfigurationSource(config, source);
+    public static <C extends ConfigurationSourceConfig> CascadedConfigurationSource<C> newCascadedSource(
+            CascadedConfigurationSourceConfig<C> config) {
+        return new CascadedConfigurationSource<>(config);
     }
 
 }

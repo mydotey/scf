@@ -35,27 +35,28 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
         return String.format("%s { name: %s }", getClass().getSimpleName(), _name);
     }
 
-    public static class Builder extends DefaultAbstractBuilder<ConfigurationSourceConfig.Builder>
+    public static class Builder
+            extends DefaultAbstractBuilder<ConfigurationSourceConfig.Builder, ConfigurationSourceConfig>
             implements ConfigurationSourceConfig.Builder {
 
     }
 
     @SuppressWarnings("unchecked")
-    public static abstract class DefaultAbstractBuilder<B extends ConfigurationSourceConfig.AbstractBuilder<B>>
-            implements ConfigurationSourceConfig.AbstractBuilder<B> {
+    public static abstract class DefaultAbstractBuilder<B extends ConfigurationSourceConfig.AbstractBuilder<B, C>, C extends ConfigurationSourceConfig>
+            implements ConfigurationSourceConfig.AbstractBuilder<B, C> {
 
         private DefaultConfigurationSourceConfig _config;
 
         protected DefaultAbstractBuilder() {
-            _config = newConfig();
+            _config = (DefaultConfigurationSourceConfig) newConfig();
         }
 
-        protected DefaultConfigurationSourceConfig newConfig() {
-            return new DefaultConfigurationSourceConfig();
+        protected C newConfig() {
+            return (C) new DefaultConfigurationSourceConfig();
         }
 
-        protected DefaultConfigurationSourceConfig getConfig() {
-            return _config;
+        protected C getConfig() {
+            return (C) _config;
         }
 
         @Override
@@ -65,12 +66,12 @@ public class DefaultConfigurationSourceConfig implements ConfigurationSourceConf
         }
 
         @Override
-        public DefaultConfigurationSourceConfig build() {
+        public C build() {
             if (_config._name == null || _config._name.trim().isEmpty())
                 throw new IllegalArgumentException("name is null or empty");
             _config._name = _config._name.trim();
 
-            return _config.clone();
+            return (C) _config.clone();
         }
 
     }

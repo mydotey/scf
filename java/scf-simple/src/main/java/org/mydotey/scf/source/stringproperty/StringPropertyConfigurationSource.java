@@ -8,9 +8,10 @@ import org.mydotey.scf.ConfigurationSourceConfig;
  *
  * May 17, 2018
  */
-public abstract class StringPropertyConfigurationSource extends AbstractConfigurationSource {
+public abstract class StringPropertyConfigurationSource<C extends ConfigurationSourceConfig>
+        extends AbstractConfigurationSource<C> {
 
-    public StringPropertyConfigurationSource(ConfigurationSourceConfig config) {
+    public StringPropertyConfigurationSource(C config) {
         super(config);
     }
 

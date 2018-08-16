@@ -16,7 +16,7 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * 
  * dynamic source
  */
-public class MemoryMapConfigurationSource extends StringPropertyConfigurationSource {
+public class MemoryMapConfigurationSource extends StringPropertyConfigurationSource<ConfigurationSourceConfig> {
 
     private ConcurrentHashMap<String, String> _properties;
 

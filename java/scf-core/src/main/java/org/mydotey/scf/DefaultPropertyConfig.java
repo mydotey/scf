@@ -124,26 +124,27 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         return true;
     }
 
-    public static class Builder<K, V> extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>>
+    public static class Builder<K, V>
+            extends DefaultAbstractBuilder<K, V, PropertyConfig.Builder<K, V>, PropertyConfig<K, V>>
             implements PropertyConfig.Builder<K, V> {
 
     }
 
-    public static abstract class DefaultAbstractBuilder<K, V, B extends PropertyConfig.AbstractBuilder<K, V, B>>
-            implements PropertyConfig.AbstractBuilder<K, V, B> {
+    public static abstract class DefaultAbstractBuilder<K, V, B extends PropertyConfig.AbstractBuilder<K, V, B, C>, C extends PropertyConfig<K, V>>
+            implements PropertyConfig.AbstractBuilder<K, V, B, C> {
 
         private DefaultPropertyConfig<K, V> _config;
 
         protected DefaultAbstractBuilder() {
-            _config = newConfig();
+            _config = (DefaultPropertyConfig<K, V>) newConfig();
         }
 
-        protected DefaultPropertyConfig<K, V> newConfig() {
-            return new DefaultPropertyConfig<>();
+        protected C newConfig() {
+            return (C) new DefaultPropertyConfig<>();
         }
 
-        protected DefaultPropertyConfig<K, V> getConfig() {
-            return _config;
+        protected C getConfig() {
+            return (C) _config;
         }
 
         @Override
@@ -190,13 +191,11 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         }
 
         @Override
-        public DefaultPropertyConfig<K, V> build() {
+        public C build() {
             Objects.requireNonNull(_config._key, "key is null");
             Objects.requireNonNull(_config._valueType, "valueType is null");
 
-            return _config.clone();
+            return (C) _config.clone();
         }
-
     }
-
 }

@@ -15,7 +15,7 @@ import org.mydotey.scf.source.stringproperty.StringPropertyConfigurationSource;
  * 
  * dynamic source
  */
-public class SystemPropertiesConfigurationSource extends StringPropertyConfigurationSource {
+public class SystemPropertiesConfigurationSource extends StringPropertyConfigurationSource<ConfigurationSourceConfig> {
 
     public SystemPropertiesConfigurationSource(ConfigurationSourceConfig config) {
         super(config);

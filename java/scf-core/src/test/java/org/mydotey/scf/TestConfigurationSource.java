@@ -11,7 +11,7 @@ import org.mydotey.scf.ConfigurationSourceConfig;
  *
  * May 17, 2018
  */
-public class TestConfigurationSource extends AbstractConfigurationSource {
+public class TestConfigurationSource extends AbstractConfigurationSource<ConfigurationSourceConfig> {
 
     protected Map<String, String> _properties;
 

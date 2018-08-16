@@ -19,7 +19,7 @@ namespace MyDotey.SCF
 
         private C _config;
 
-        private volatile List<Action<ConfigurationSource>> _changeListeners;
+        private volatile List<Action<ConfigurationSourceChangeEvent>> _changeListeners;
 
         public AbstractConfigurationSource(C config)
         {
@@ -39,7 +39,7 @@ namespace MyDotey.SCF
             return _config;
         }
 
-        public virtual void addChangeListener(Action<ConfigurationSource> changeListener)
+        public virtual void addChangeListener(Action<ConfigurationSourceChangeEvent> changeListener)
         {
             if (changeListener == null)
                 throw new ArgumentNullException("changeListener is null");
@@ -47,7 +47,7 @@ namespace MyDotey.SCF
             lock (this)
             {
                 if (_changeListeners == null)
-                    _changeListeners = new List<Action<ConfigurationSource>>();
+                    _changeListeners = new List<Action<ConfigurationSourceChangeEvent>>();
 
                 _changeListeners.Add(changeListener);
             }
@@ -64,7 +64,7 @@ namespace MyDotey.SCF
                 {
                     try
                     {
-                        l(this);
+                        l(new DefaultConfigurationSourceChangeEvent(this));
                     }
                     catch (Exception e)
                     {

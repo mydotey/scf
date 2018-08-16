@@ -3,6 +3,7 @@ package org.mydotey.scf.source;
 import java.util.function.Consumer;
 
 import org.mydotey.scf.ConfigurationSource;
+import org.mydotey.scf.ConfigurationSourceChangeEvent;
 import org.mydotey.scf.ConfigurationSourceConfig;
 import org.mydotey.scf.PropertyConfig;
 
@@ -48,7 +49,7 @@ public class NullConfigurationSource implements ConfigurationSource {
      * always ignore the listeners
      */
     @Override
-    public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
+    public void addChangeListener(Consumer<ConfigurationSourceChangeEvent> changeListener) {
 
     }
 

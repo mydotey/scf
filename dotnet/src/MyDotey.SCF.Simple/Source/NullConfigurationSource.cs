@@ -39,7 +39,7 @@ namespace MyDotey.SCF.Source
         /**
          * always ignore the listeners
          */
-        public void addChangeListener(Action<ConfigurationSource> changeListener)
+        public void addChangeListener(Action<ConfigurationSourceChangeEvent> changeListener)
         {
 
         }

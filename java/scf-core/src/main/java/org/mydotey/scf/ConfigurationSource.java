@@ -30,6 +30,6 @@ public interface ConfigurationSource {
      * <p>
      * will be used by the configuration manager
      */
-    void addChangeListener(Consumer<ConfigurationSource> changeListener);
+    void addChangeListener(Consumer<ConfigurationSourceChangeEvent> changeListener);
 
 }

@@ -1,5 +1,7 @@
 package org.mydotey.scf;
 
+import java.util.Objects;
+
 /**
  * @author koqizhao
  *
@@ -17,6 +19,8 @@ public class DefaultPropertyChangeEvent<K, V> implements PropertyChangeEvent<K, 
     }
 
     public DefaultPropertyChangeEvent(Property<K, V> property, V oldValue, V newValue, long changeTime) {
+        Objects.requireNonNull(property, "property is null");
+
         _property = property;
         _oldValue = oldValue;
         _newValue = newValue;

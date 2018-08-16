@@ -169,7 +169,7 @@ namespace MyDotey.SCF
             return new DefaultProperty<K, V>(config, value);
         }
 
-        protected virtual void onSourceChange(ConfigurationSource source)
+        protected virtual void onSourceChange(ConfigurationSourceChangeEvent sourceEvent)
         {
             lock (_propertiesLock)
             {

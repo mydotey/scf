@@ -23,7 +23,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
     private ConfigurationSourceConfig _config;
 
-    private volatile List<Consumer<ConfigurationSource>> _changeListeners;
+    private volatile List<Consumer<ConfigurationSourceChangeEvent>> _changeListeners;
 
     public AbstractConfigurationSource(ConfigurationSourceConfig config) {
         Objects.requireNonNull(config, "config is null");
@@ -37,7 +37,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
     }
 
     @Override
-    public void addChangeListener(Consumer<ConfigurationSource> changeListener) {
+    public void addChangeListener(Consumer<ConfigurationSourceChangeEvent> changeListener) {
         Objects.requireNonNull(changeListener, "changeListener is null");
 
         synchronized (this) {
@@ -55,7 +55,7 @@ public abstract class AbstractConfigurationSource implements ConfigurationSource
 
             _changeListeners.forEach(l -> {
                 try {
-                    l.accept(AbstractConfigurationSource.this);
+                    l.accept(new DefaultConfigurationSourceChangeEvent(AbstractConfigurationSource.this));
                 } catch (Exception e) {
                     LOGGER.error("source change listener failed to run", e);
                 }

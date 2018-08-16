@@ -22,6 +22,9 @@ namespace MyDotey.SCF
 
         public DefaultPropertyChangeEvent(Property<K, V> property, V oldValue, V newValue, long changeTime)
         {
+            if (property == null)
+                throw new ArgumentNullException("property is null");
+
             _property = property;
             _oldValue = oldValue;
             _newValue = newValue;

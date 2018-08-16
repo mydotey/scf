@@ -146,7 +146,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
         return new DefaultProperty<K, V>(config, value);
     }
 
-    protected void onSourceChange(ConfigurationSource source) {
+    protected void onSourceChange(ConfigurationSourceChangeEvent sourceEvent) {
         synchronized (_propertiesLock) {
             _properties.values().forEach(p -> {
                 Object oldValue = p.getValue();

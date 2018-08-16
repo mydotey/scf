@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq;
 using sType = System.Type;
 using System.Reflection;
@@ -29,7 +30,7 @@ namespace MyDotey.SCF
         protected static readonly IComparer<int> PRIORITY_COMPARATOR = new PriorityComparer();
 
         private ConfigurationManagerConfig _config;
-        private SortedDictionary<int, IConfigurationSource> _sortedSources;
+        private IDictionary<int, IConfigurationSource> _sortedSources;
 
         private ConcurrentDictionary<object, IProperty> _properties;
         private object _propertiesLock;
@@ -47,7 +48,7 @@ namespace MyDotey.SCF
 
             _config = config;
 
-            _sortedSources = new SortedDictionary<int, IConfigurationSource>(_config.Sources, PRIORITY_COMPARATOR);
+            _sortedSources = ImmutableSortedDictionary.CreateRange(PRIORITY_COMPARATOR, _config.Sources);
             _sortedSources.Values.ToList().ForEach(s => s.AddChangeListener(OnSourceChange));
 
             _properties = new ConcurrentDictionary<object, IProperty>();
@@ -64,9 +65,9 @@ namespace MyDotey.SCF
 
         public virtual ConfigurationManagerConfig Config { get { return _config; } }
 
-        public virtual ICollection<IProperty> Properties { get { return _properties.Values.ToList(); } }
+        public virtual ICollection<IProperty> Properties { get { return ImmutableList.CreateRange(_properties.Values); } }
 
-        protected virtual SortedDictionary<int, IConfigurationSource> SortedSources { get { return _sortedSources; } }
+        protected virtual IDictionary<int, IConfigurationSource> SortedSources { get { return _sortedSources; } }
 
         public virtual IProperty<K, V> GetProperty<K, V>(PropertyConfig<K, V> propertyConfig)
         {

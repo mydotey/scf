@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using System.Linq;
 
@@ -13,7 +14,7 @@ namespace MyDotey.SCF
     public class DefaultConfigurationManagerConfig : ConfigurationManagerConfig, ICloneable
     {
         private string _name;
-        private Dictionary<int, IConfigurationSource> _sources;
+        private IDictionary<int, IConfigurationSource> _sources;
         private Action<Action> _taskExecutor;
 
         protected DefaultConfigurationManagerConfig()
@@ -23,7 +24,7 @@ namespace MyDotey.SCF
 
         public override string Name { get { return _name; } }
 
-        public override Dictionary<int, IConfigurationSource> Sources { get { return _sources; } }
+        public override IDictionary<int, IConfigurationSource> Sources { get { return _sources; } }
 
         public override Action<Action> TaskExecutor { get { return _taskExecutor; } }
 
@@ -31,7 +32,7 @@ namespace MyDotey.SCF
         {
             DefaultConfigurationManagerConfig copy = (DefaultConfigurationManagerConfig)MemberwiseClone();
             if (_sources != null)
-                copy._sources = new Dictionary<int, IConfigurationSource>(_sources);
+                copy._sources = ImmutableDictionary.CreateRange(_sources);
             return copy;
         }
 

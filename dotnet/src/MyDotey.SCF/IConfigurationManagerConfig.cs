@@ -24,7 +24,7 @@ namespace MyDotey.SCF
          * <p>
          * non-null, non-empty
          */
-        public abstract Dictionary<int, IConfigurationSource> Sources { get; }
+        public abstract IDictionary<int, IConfigurationSource> Sources { get; }
 
         /**
          * thread pool for property value update and property change listeners

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 using MyDotey.SCF.Type;
@@ -16,7 +17,7 @@ namespace MyDotey.SCF
     {
         private K _key;
         private V _defaultValue;
-        private List<ITypeConverter> _valueConverters;
+        private IList<ITypeConverter> _valueConverters;
         private IValueFilter<V> _valueFilter;
 
         private volatile int _hashCode;
@@ -38,7 +39,7 @@ namespace MyDotey.SCF
         {
             DefaultPropertyConfig<K, V> copy = (DefaultPropertyConfig<K, V>)MemberwiseClone();
             if (_valueConverters != null)
-                copy._valueConverters = new List<ITypeConverter>(_valueConverters);
+                copy._valueConverters = ImmutableList.CreateRange(_valueConverters);
             return copy;
         }
 

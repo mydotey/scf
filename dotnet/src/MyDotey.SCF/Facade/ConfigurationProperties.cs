@@ -14,7 +14,7 @@ namespace MyDotey.SCF.Facade
 
         }
 
-        public static PropertyConfig<K, V>.Builder newConfigBuilder<K, V>()
+        public static PropertyConfig<K, V>.IBuilder NewConfigBuilder<K, V>()
         {
             return new DefaultPropertyConfig<K, V>.Builder();
         }

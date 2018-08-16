@@ -11,13 +11,13 @@ namespace MyDotey.SCF
      *
      * May 16, 2018
      */
-    public class DefaultProperty<K, V> : Property<K, V>
+    public class DefaultProperty<K, V> : IProperty<K, V>
     {
-        private static Logger LOGGER = LogManager.GetCurrentClassLogger(typeof(DefaultProperty<,>));
+        private static Logger Logger = LogManager.GetCurrentClassLogger(typeof(DefaultProperty<,>));
 
         private PropertyConfig<K, V> _config;
         private volatile object _value;
-        private volatile List<Action<PropertyChangeEvent<K, V>>> _changeListeners;
+        private volatile List<Action<IPropertyChangeEvent<K, V>>> _changeListeners;
 
         public DefaultProperty(PropertyConfig<K, V> config, V value)
         {
@@ -28,32 +28,20 @@ namespace MyDotey.SCF
             _value = value;
         }
 
-        PropertyConfig Property.getConfig()
-        {
-            return getConfig();
-        }
+        IPropertyConfig IProperty.Config { get { return Config; } }
 
-        public virtual PropertyConfig<K, V> getConfig()
-        {
-            return _config;
-        }
+        public virtual PropertyConfig<K, V> Config { get { return _config; } }
 
-        object Property.getValue()
-        {
-            return getValue();
-        }
+        object IProperty.Value { get { return Value; } }
 
-        public virtual V getValue()
-        {
-            return (V)_value;
-        }
+        public virtual V Value { get { return (V)_value; } }
 
-        protected internal virtual void setValue(object value)
+        protected internal virtual void SetValue(object value)
         {
             _value = (V)value;
         }
 
-        public virtual void addChangeListener(Action<PropertyChangeEvent<K, V>> changeListener)
+        public virtual void AddChangeListener(Action<IPropertyChangeEvent<K, V>> changeListener)
         {
             if (changeListener == null)
                 throw new ArgumentNullException("changeListener", "changeListener is null");
@@ -61,12 +49,12 @@ namespace MyDotey.SCF
             lock (this)
             {
                 if (_changeListeners == null)
-                    _changeListeners = new List<Action<PropertyChangeEvent<K, V>>>();
+                    _changeListeners = new List<Action<IPropertyChangeEvent<K, V>>>();
                 _changeListeners.Add(changeListener);
             }
         }
 
-        protected virtual void raiseChangeEvent(PropertyChangeEvent<K, V> @event)
+        protected virtual void RaiseChangeEvent(IPropertyChangeEvent<K, V> @event)
         {
             if (_changeListeners == null)
                 return;
@@ -81,7 +69,7 @@ namespace MyDotey.SCF
                     }
                     catch (Exception e)
                     {
-                        LOGGER.Error(e, "property change listener failed to run");
+                        Logger.Error(e, "property change listener failed to run");
                     }
                 });
             }

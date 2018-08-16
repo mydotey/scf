@@ -15,12 +15,12 @@ namespace MyDotey.SCF.Facade
 
         }
 
-        public static ConfigurationManagerConfig.Builder newConfigBuilder()
+        public static ConfigurationManagerConfig.IBuilder NewConfigBuilder()
         {
             return new DefaultConfigurationManagerConfig.Builder();
         }
 
-        public static ConfigurationManager newManager(ConfigurationManagerConfig config)
+        public static IConfigurationManager NewManager(ConfigurationManagerConfig config)
         {
             return new DefaultConfigurationManager(config);
         }

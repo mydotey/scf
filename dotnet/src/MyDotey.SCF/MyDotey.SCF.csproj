@@ -2,6 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyTitle>MyDotey.SCF</AssemblyTitle>
+    <AssemblyName>MyDotey.SCF</AssemblyName>
+    <PackageId>MyDotey.SCF</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>koqizhao</Authors>
+    <Description>SCF, short for Simple Configuration Facade, an abstraction between code and outer configuration</Description>
+    <Copyright>koqizhao</Copyright>
+
+    <PackageTags>scf;configuration;facade</PackageTags>
+    <PackageReleaseNotes>SCF, short for Simple Configuration Facade, an abstraction between code and outer configuration</PackageReleaseNotes>
+    <PackageIconUrl>http://numl.net/images/ico.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/mydotey/scf</PackageProjectUrl>
+    <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/mydotey/scf.git</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

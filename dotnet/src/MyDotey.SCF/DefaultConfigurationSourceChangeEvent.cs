@@ -7,18 +7,18 @@ namespace MyDotey.SCF
      *
      * Jul 19, 2018
      */
-    public class DefaultConfigurationSourceChangeEvent : ConfigurationSourceChangeEvent
+    public class DefaultConfigurationSourceChangeEvent : IConfigurationSourceChangeEvent
     {
-        public virtual ConfigurationSource Source { get; protected set; }
+        public virtual IConfigurationSource Source { get; protected set; }
         public virtual long ChangeTime { get; protected set; }
 
-        public DefaultConfigurationSourceChangeEvent(ConfigurationSource source)
+        public DefaultConfigurationSourceChangeEvent(IConfigurationSource source)
             : this(source, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond)
         {
 
         }
 
-        public DefaultConfigurationSourceChangeEvent(ConfigurationSource source, long changeTime)
+        public DefaultConfigurationSourceChangeEvent(IConfigurationSource source, long changeTime)
         {
             if (source == null)
                 throw new ArgumentNullException("source is null");

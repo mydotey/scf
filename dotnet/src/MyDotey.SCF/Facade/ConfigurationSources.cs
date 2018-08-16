@@ -14,12 +14,12 @@ namespace MyDotey.SCF.Facade
 
         }
 
-        public static ConfigurationSourceConfig newConfig(String name)
+        public static ConfigurationSourceConfig NewConfig(String name)
         {
-            return newConfigBuilder().setName(name).build();
+            return NewConfigBuilder().SetName(name).Build();
         }
 
-        public static ConfigurationSourceConfig.Builder newConfigBuilder()
+        public static ConfigurationSourceConfig.IBuilder NewConfigBuilder()
         {
             return new DefaultConfigurationSourceConfig.Builder();
         }

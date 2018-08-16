@@ -16,8 +16,8 @@ namespace MyDotey.SCF
     {
         private K _key;
         private V _defaultValue;
-        private List<TypeConverter> _valueConverters;
-        private ValueFilter<V> _valueFilter;
+        private List<ITypeConverter> _valueConverters;
+        private IValueFilter<V> _valueFilter;
 
         private volatile int _hashCode;
 
@@ -26,31 +26,19 @@ namespace MyDotey.SCF
 
         }
 
-        public override K getKey()
-        {
-            return _key;
-        }
+        public override K Key { get { return _key; } }
 
-        public override V getDefaultValue()
-        {
-            return _defaultValue;
-        }
+        public override V DefaultValue { get { return _defaultValue; } }
 
-        public override ICollection<TypeConverter> getValueConverters()
-        {
-            return _valueConverters;
-        }
+        public override ICollection<ITypeConverter> ValueConverters { get { return _valueConverters; } }
 
-        public override ValueFilter<V> getValueFilter()
-        {
-            return _valueFilter;
-        }
+        public override IValueFilter<V> ValueFilter { get { return _valueFilter; } }
 
         public virtual object Clone()
         {
             DefaultPropertyConfig<K, V> copy = (DefaultPropertyConfig<K, V>)MemberwiseClone();
             if (_valueConverters != null)
-                copy._valueConverters = new List<TypeConverter>(_valueConverters);
+                copy._valueConverters = new List<ITypeConverter>(_valueConverters);
             return copy;
         }
 
@@ -109,79 +97,76 @@ namespace MyDotey.SCF
             return true;
         }
 
-        public new class Builder : DefaultAbstractBuilder<PropertyConfig<K, V>.Builder, PropertyConfig<K, V>>
-            , PropertyConfig<K, V>.Builder
+        public class Builder : DefaultAbstractBuilder<PropertyConfig<K, V>.IBuilder, PropertyConfig<K, V>>
+            , PropertyConfig<K, V>.IBuilder
         {
 
         }
 
         public abstract class DefaultAbstractBuilder<B, C>
-                : PropertyConfig<K, V>.AbstractBuilder<B, C>
-                where B : PropertyConfig<K, V>.AbstractBuilder<B, C>
+                : PropertyConfig<K, V>.IAbstractBuilder<B, C>
+                where B : PropertyConfig<K, V>.IAbstractBuilder<B, C>
                 where C : PropertyConfig<K, V>
         {
             private DefaultPropertyConfig<K, V> _config;
 
             protected DefaultAbstractBuilder()
             {
-                _config = (DefaultPropertyConfig<K, V>)(object)newConfig();
+                _config = (DefaultPropertyConfig<K, V>)(object)NewConfig();
             }
 
-            protected virtual C newConfig()
+            protected virtual C NewConfig()
             {
                 return (C)(object)(new DefaultPropertyConfig<K, V>());
             }
 
-            protected virtual C getConfig()
-            {
-                return (C)(object)_config;
-            }
+            protected virtual C Config { get  { return (C)(object)_config; } }
 
-            public virtual B setKey(K key)
+            public virtual B SetKey(K key)
             {
                 _config._key = key;
                 return (B)(object)this;
             }
 
-            public virtual B setDefaultValue(V value)
+            public virtual B SetDefaultValue(V value)
             {
                 _config._defaultValue = value;
                 return (B)(object)this;
             }
 
-            public virtual B addValueConverter(TypeConverter valueConverter)
+            public virtual B AddValueConverter(ITypeConverter valueConverter)
             {
                 if (valueConverter != null)
                 {
                     if (_config._valueConverters == null)
-                        _config._valueConverters = new List<TypeConverter>();
+                        _config._valueConverters = new List<ITypeConverter>();
                     _config._valueConverters.Add(valueConverter);
                 }
 
                 return (B)(object)this;
             }
 
-            public virtual B addValueConverters(ICollection<TypeConverter> valueConverters)
+            public virtual B AddValueConverters(ICollection<ITypeConverter> valueConverters)
             {
                 if (valueConverters != null)
-                    valueConverters.ToList().ForEach(c => addValueConverter(c));
+                    valueConverters.ToList().ForEach(c => AddValueConverter(c));
 
                 return (B)(object)this;
             }
 
-            public virtual B setValueFilter(ValueFilter<V> valueFilter)
+            public virtual B SetValueFilter(IValueFilter<V> valueFilter)
             {
                 _config._valueFilter = valueFilter;
                 return (B)(object)this;
             }
 
-            public virtual B setValueFilter(Func<V, V> valueFilter)
+            public virtual B SetValueFilter(Func<V, V> valueFilter)
             {
                 _config._valueFilter = valueFilter == null ? null : new DefaultValueFilter<V>(valueFilter);
                 return (B)(object)this;
             }
 
-            public virtual C build()
+            public virtual C Build()
             {
                 if (_config._key == null)
                     throw new ArgumentNullException("key is null");

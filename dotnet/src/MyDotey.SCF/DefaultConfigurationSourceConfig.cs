@@ -16,10 +16,7 @@ namespace MyDotey.SCF
 
         }
 
-        public override string getName()
-        {
-            return _name;
-        }
+        public override string Name { get { return _name; } }
 
         public virtual object Clone()
         {
@@ -31,41 +28,38 @@ namespace MyDotey.SCF
             return string.Format("{0} {{ name: {1} }}", GetType().Name, _name);
         }
 
-        public new class Builder : DefaultAbstractBuilder<ConfigurationSourceConfig.Builder, ConfigurationSourceConfig>
-                , ConfigurationSourceConfig.Builder
+        public class Builder : DefaultAbstractBuilder<ConfigurationSourceConfig.IBuilder, ConfigurationSourceConfig>
+                , ConfigurationSourceConfig.IBuilder
         {
 
         }
 
         public abstract class DefaultAbstractBuilder<B, C>
-                : ConfigurationSourceConfig.AbstractBuilder<B, C>
-                where B : ConfigurationSourceConfig.AbstractBuilder<B, C>
+                : ConfigurationSourceConfig.IAbstractBuilder<B, C>
+                where B : ConfigurationSourceConfig.IAbstractBuilder<B, C>
                 where C : ConfigurationSourceConfig
         {
             private DefaultConfigurationSourceConfig _config;
 
             protected DefaultAbstractBuilder()
             {
-                _config = (DefaultConfigurationSourceConfig)(object)newConfig();
+                _config = (DefaultConfigurationSourceConfig)(object)NewConfig();
             }
 
-            protected virtual C newConfig()
+            protected virtual C NewConfig()
             {
                 return (C)(object)(new DefaultConfigurationSourceConfig());
             }
 
-            protected virtual C getConfig()
-            {
-                return (C)(object)_config;
-            }
+            protected virtual C Config { get { return (C)(object)_config; } }
 
-            public virtual B setName(String name)
+            public virtual B SetName(String name)
             {
                 _config._name = name;
                 return (B)(object)this;
             }
 
-            public virtual C build()
+            public virtual C Build()
             {
                 if (string.IsNullOrWhiteSpace(_config._name))
                     throw new ArgumentNullException("name is null or empty");

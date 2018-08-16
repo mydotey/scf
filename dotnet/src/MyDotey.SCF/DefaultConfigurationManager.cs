@@ -14,9 +14,9 @@ namespace MyDotey.SCF
      *
      * May 16, 2018
      */
-    public class DefaultConfigurationManager : ConfigurationManager
+    public class DefaultConfigurationManager : IConfigurationManager
     {
-        private static Logger LOGGER = LogManager.GetCurrentClassLogger(typeof(DefaultConfigurationManager));
+        private static Logger Logger = LogManager.GetCurrentClassLogger(typeof(DefaultConfigurationManager));
 
         protected class PriorityComparer : IComparer<int>
         {
@@ -29,12 +29,12 @@ namespace MyDotey.SCF
         protected static readonly IComparer<int> PRIORITY_COMPARATOR = new PriorityComparer();
 
         private ConfigurationManagerConfig _config;
-        private SortedDictionary<int, ConfigurationSource> _sortedSources;
+        private SortedDictionary<int, IConfigurationSource> _sortedSources;
 
-        private ConcurrentDictionary<object, Property> _properties;
+        private ConcurrentDictionary<object, IProperty> _properties;
         private object _propertiesLock;
 
-        private volatile List<Action<PropertyChangeEvent>> _changeListeners;
+        private volatile List<Action<IPropertyChangeEvent>> _changeListeners;
 
         private MethodInfo _genericGetPropertyValueMethod;
 
@@ -47,148 +47,139 @@ namespace MyDotey.SCF
 
             _config = config;
 
-            _sortedSources = new SortedDictionary<int, ConfigurationSource>(_config.getSources(), PRIORITY_COMPARATOR);
-            _sortedSources.Values.ToList().ForEach(s => s.addChangeListener(onSourceChange));
+            _sortedSources = new SortedDictionary<int, IConfigurationSource>(_config.Sources, PRIORITY_COMPARATOR);
+            _sortedSources.Values.ToList().ForEach(s => s.AddChangeListener(OnSourceChange));
 
-            _properties = new ConcurrentDictionary<object, Property>();
+            _properties = new ConcurrentDictionary<object, IProperty>();
             _propertiesLock = new object();
 
             _genericGetPropertyValueMethod = GetType().GetMethods().Where(methodInfo =>
-                methodInfo.Name == "getPropertyValue"
+                methodInfo.Name == "GetPropertyValue"
                 && methodInfo.IsGenericMethod && methodInfo.GetGenericArguments().Length == 2
                 && methodInfo.GetParameters().Count() == 1
             ).Single();
 
-            LOGGER.Info("Configuration Manager created: {0}", ToString());
+            Logger.Info("Configuration Manager created: {0}", ToString());
         }
 
-        public virtual ConfigurationManagerConfig getConfig()
-        {
-            return _config;
-        }
+        public virtual ConfigurationManagerConfig Config { get { return _config; } }
 
-        public virtual ICollection<Property> getProperties()
-        {
-            return _properties.Values.ToList();
-        }
+        public virtual ICollection<IProperty> Properties { get { return _properties.Values.ToList(); } }
 
-        protected virtual SortedDictionary<int, ConfigurationSource> getSortedSources()
-        {
-            return _sortedSources;
-        }
+        protected virtual SortedDictionary<int, IConfigurationSource> SortedSources { get { return _sortedSources; } }
 
-        public virtual Property<K, V> getProperty<K, V>(PropertyConfig<K, V> propertyConfig)
+        public virtual IProperty<K, V> GetProperty<K, V>(PropertyConfig<K, V> propertyConfig)
         {
             if (propertyConfig == null)
                 throw new ArgumentNullException("propertyConfig is null");
 
-            _properties.TryGetValue(propertyConfig.getKey(), out Property property);
+            _properties.TryGetValue(propertyConfig.Key, out IProperty property);
             if (property == null)
             {
                 lock (_propertiesLock)
                 {
-                    _properties.TryGetValue(propertyConfig.getKey(), out property);
+                    _properties.TryGetValue(propertyConfig.Key, out property);
                     if (property == null)
                     {
-                        V value = getPropertyValue(propertyConfig);
-                        property = newProperty(propertyConfig, value);
-                        _properties[propertyConfig.getKey()] = property;
+                        V value = GetPropertyValue(propertyConfig);
+                        property = NewProperty(propertyConfig, value);
+                        _properties[propertyConfig.Key] = property;
                     }
                 }
             }
 
-            if (!Object.Equals(property.getConfig(), propertyConfig))
+            if (!Object.Equals(property.Config, propertyConfig))
                 throw new ArgumentException(string.Format(
                         "make sure using same config for property: {0}, previous config: {1}, current Config: {2}",
-                        propertyConfig.getKey(), property.getConfig(), propertyConfig));
+                        propertyConfig.Key, property.Config, propertyConfig));
 
-            return (Property<K, V>)property;
+            return (IProperty<K, V>)property;
         }
 
-        public virtual V getPropertyValue<K, V>(PropertyConfig<K, V> propertyConfig)
+        public virtual V GetPropertyValue<K, V>(PropertyConfig<K, V> propertyConfig)
         {
             if (propertyConfig == null)
                 throw new ArgumentNullException("propertyConfig is null");
 
-            foreach (ConfigurationSource source in _sortedSources.Values)
+            foreach (IConfigurationSource source in _sortedSources.Values)
             {
-                V value = getPropertyValue(source, propertyConfig);
+                V value = GetPropertyValue(source, propertyConfig);
 
-                value = applyValueFilter(propertyConfig, value);
+                value = ApplyValueFilter(propertyConfig, value);
 
                 if (value != null)
                     return value;
             }
 
-            return propertyConfig.getDefaultValue();
+            return propertyConfig.DefaultValue;
         }
 
-        protected virtual V getPropertyValue<K, V>(ConfigurationSource source, PropertyConfig<K, V> propertyConfig)
+        protected virtual V GetPropertyValue<K, V>(IConfigurationSource source, PropertyConfig<K, V> propertyConfig)
         {
             V value = default(V);
             try
             {
-                value = source.getPropertyValue(propertyConfig);
+                value = source.GetPropertyValue(propertyConfig);
             }
             catch (Exception e)
             {
                 string message = string.Format(
                         "error occurred when getting property value, ignore the source. source: {0}, propertyConfig: {1}",
                         source, propertyConfig);
-                LOGGER.Error(e, message);
+                Logger.Error(e, message);
             }
 
             return value;
         }
 
-        protected virtual V applyValueFilter<K, V>(PropertyConfig<K, V> propertyConfig, V value)
+        protected virtual V ApplyValueFilter<K, V>(PropertyConfig<K, V> propertyConfig, V value)
         {
             if (Object.Equals(value, default(V)))
                 return value;
 
-            if (propertyConfig.getValueFilter() == null)
+            if (propertyConfig.ValueFilter == null)
                 return value;
 
             try
             {
-                value = propertyConfig.getValueFilter().Filter(value);
+                value = propertyConfig.ValueFilter.Filter(value);
             }
             catch (Exception e)
             {
                 string message = string.Format(
                         "failed to run valueFilter, ignore the filter. value: {0}, valueFilter: {1}, propertyConfig: {2}",
-                        value, propertyConfig.getValueFilter(), propertyConfig);
-                LOGGER.Error(e, message);
+                        value, propertyConfig.ValueFilter, propertyConfig);
+                Logger.Error(e, message);
             }
 
             return value;
         }
 
-        protected virtual DefaultProperty<K, V> newProperty<K, V>(PropertyConfig<K, V> config, V value)
+        protected virtual DefaultProperty<K, V> NewProperty<K, V>(PropertyConfig<K, V> config, V value)
         {
             return new DefaultProperty<K, V>(config, value);
         }
 
-        protected virtual void onSourceChange(ConfigurationSourceChangeEvent sourceEvent)
+        protected virtual void OnSourceChange(IConfigurationSourceChangeEvent sourceEvent)
         {
             lock (_propertiesLock)
             {
-                foreach (Property p in _properties.Values)
+                foreach (IProperty p in _properties.Values)
                 {
-                    object oldValue = p.getValue();
-                    object newValue = getPropertyValue(p.getConfig());
+                    object oldValue = p.Value;
+                    object newValue = GetPropertyValue(p.Config);
                     if (Object.Equals(oldValue, newValue))
                         continue;
-                    setPropertyValue(p, newValue);
+                    SetPropertyValue(p, newValue);
 
-                    PropertyChangeEvent @event = newPropertyChangeEvent(p, oldValue, newValue);
-                    _config.getTaskExecutor()(() => raiseChangeEvent(p, @event));
-                    _config.getTaskExecutor()(() => raiseChangeEvent(@event));
+                    IPropertyChangeEvent @event = NewPropertyChangeEvent(p, oldValue, newValue);
+                    _config.TaskExecutor(() => RaiseChangeEvent(p, @event));
+                    _config.TaskExecutor(() => RaiseChangeEvent(@event));
                 }
             }
         }
 
-        public virtual void addChangeListener(Action<PropertyChangeEvent> changeListener)
+        public virtual void AddChangeListener(Action<IPropertyChangeEvent> changeListener)
         {
             if (changeListener == null)
                 throw new ArgumentNullException("changeListener is null");
@@ -196,12 +187,12 @@ namespace MyDotey.SCF
             lock (this)
             {
                 if (_changeListeners == null)
-                    _changeListeners = new List<Action<PropertyChangeEvent>>();
+                    _changeListeners = new List<Action<IPropertyChangeEvent>>();
                 _changeListeners.Add(changeListener);
             }
         }
 
-        protected virtual void raiseChangeEvent(PropertyChangeEvent @event)
+        protected virtual void RaiseChangeEvent(IPropertyChangeEvent @event)
         {
             if (_changeListeners == null)
                 return;
@@ -216,7 +207,7 @@ namespace MyDotey.SCF
                     }
                     catch (Exception e)
                     {
-                        LOGGER.Error(e, "property change listener failed to run");
+                        Logger.Error(e, "property change listener failed to run");
                     }
                 });
             }
@@ -229,31 +220,31 @@ namespace MyDotey.SCF
                     _changeListeners == null ? null : string.Join(", ", _changeListeners));
         }
 
-        protected virtual object getPropertyValue(PropertyConfig propertyConfig)
+        protected virtual object GetPropertyValue(IPropertyConfig propertyConfig)
         {
             return _genericGetPropertyValueMethod
-                .MakeGenericMethod(propertyConfig.getKey().GetType(), propertyConfig.getValueType())
+                .MakeGenericMethod(propertyConfig.Key.GetType(), propertyConfig.ValueType)
                 .Invoke(this, new object[] { propertyConfig });
         }
 
-        protected virtual void setPropertyValue(Property property, object value)
+        protected virtual void SetPropertyValue(IProperty property, object value)
         {
             MethodInfo setPropertyMethod = property.GetType()
-                .GetMethod("setValue", BindingFlags.Instance | BindingFlags.NonPublic);
+                .GetMethod("SetValue", BindingFlags.Instance | BindingFlags.NonPublic);
             setPropertyMethod.Invoke(property, new object[] { value });
         }
 
-        protected virtual PropertyChangeEvent newPropertyChangeEvent(Property property, object oldValue, object newValue)
+        protected virtual IPropertyChangeEvent NewPropertyChangeEvent(IProperty property, object oldValue, object newValue)
         {
             sType realType = _defaultPropertyChangeEventType
-                .MakeGenericType(property.getConfig().getKey().GetType(), property.getConfig().getValueType());
-            return (PropertyChangeEvent)Activator.CreateInstance(realType, property, oldValue, newValue);
+                .MakeGenericType(property.Config.Key.GetType(), property.Config.ValueType);
+            return (IPropertyChangeEvent)Activator.CreateInstance(realType, property, oldValue, newValue);
         }
 
-        protected virtual void raiseChangeEvent(Property property, PropertyChangeEvent @event)
+        protected virtual void RaiseChangeEvent(IProperty property, IPropertyChangeEvent @event)
         {
             MethodInfo raiseChangeEventMethod = property.GetType()
-                .GetMethod("raiseChangeEvent", BindingFlags.Instance | BindingFlags.NonPublic);
+                .GetMethod("RaiseChangeEvent", BindingFlags.Instance | BindingFlags.NonPublic);
             raiseChangeEventMethod.Invoke(property, new object[] { @event });
         }
     }

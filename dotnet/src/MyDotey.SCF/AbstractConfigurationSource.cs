@@ -12,14 +12,14 @@ namespace MyDotey.SCF
      *
      * May 16, 2018
      */
-    public abstract class AbstractConfigurationSource<C> : ConfigurationSource
+    public abstract class AbstractConfigurationSource<C> : IConfigurationSource
         where C : ConfigurationSourceConfig
     {
         private static readonly Logger LOGGER = LogManager.GetCurrentClassLogger(typeof(AbstractConfigurationSource<>));
 
         private C _config;
 
-        private volatile List<Action<ConfigurationSourceChangeEvent>> _changeListeners;
+        private volatile List<Action<IConfigurationSourceChangeEvent>> _changeListeners;
 
         public AbstractConfigurationSource(C config)
         {
@@ -29,17 +29,11 @@ namespace MyDotey.SCF
             _config = config;
         }
 
-        ConfigurationSourceConfig ConfigurationSource.getConfig()
-        {
-            return getConfig();
-        }
+        ConfigurationSourceConfig IConfigurationSource.Config { get { return Config; } }
 
-        public virtual C getConfig()
-        {
-            return _config;
-        }
+        public virtual C Config { get { return _config; } } 
 
-        public virtual void addChangeListener(Action<ConfigurationSourceChangeEvent> changeListener)
+        public virtual void AddChangeListener(Action<IConfigurationSourceChangeEvent> changeListener)
         {
             if (changeListener == null)
                 throw new ArgumentNullException("changeListener is null");
@@ -47,13 +41,13 @@ namespace MyDotey.SCF
             lock (this)
             {
                 if (_changeListeners == null)
-                    _changeListeners = new List<Action<ConfigurationSourceChangeEvent>>();
+                    _changeListeners = new List<Action<IConfigurationSourceChangeEvent>>();
 
                 _changeListeners.Add(changeListener);
             }
         }
 
-        protected virtual void raiseChangeEvent()
+        protected virtual void RaiseChangeEvent()
         {
             lock (this)
             {
@@ -74,26 +68,26 @@ namespace MyDotey.SCF
             }
         }
 
-        public virtual V getPropertyValue<K, V>(PropertyConfig<K, V> propertyConfig)
+        public virtual V GetPropertyValue<K, V>(PropertyConfig<K, V> propertyConfig)
         {
-            object value = getPropertyValue(propertyConfig.getKey());
-            return convert(propertyConfig, value);
+            object value = GetPropertyValue(propertyConfig.Key);
+            return Convert(propertyConfig, value);
         }
 
-        protected abstract object getPropertyValue(object key);
+        protected abstract object GetPropertyValue(object key);
 
-        protected virtual V convert<K, V>(PropertyConfig<K, V> propertyConfig, object value)
+        protected virtual V Convert<K, V>(PropertyConfig<K, V> propertyConfig, object value)
         {
-            if (isNull<V>(value))
+            if (IsNull<V>(value))
                 return default(V);
 
             if (value is V)
                 return (V)value;
 
-            if (propertyConfig.getValueConverters() == null)
+            if (propertyConfig.ValueConverters == null)
                 return default(V);
 
-            foreach (TypeConverter typeConverter in propertyConfig.getValueConverters())
+            foreach (ITypeConverter typeConverter in propertyConfig.ValueConverters)
             {
                 if (typeConverter.SourceType.IsAssignableFrom(value.GetType())
                         && typeof(V).IsAssignableFrom(typeConverter.TargetType))
@@ -103,7 +97,7 @@ namespace MyDotey.SCF
             return default(V);
         }
 
-        protected virtual bool isNull<V>(object value)
+        protected virtual bool IsNull<V>(object value)
         {
             if (Object.Equals(value, default(V)))
                 return true;
@@ -122,7 +116,7 @@ namespace MyDotey.SCF
 
         public override string ToString()
         {
-            return string.Format("{0} {{ config: {1}, changeListeners: [ {2} ] }}", GetType().Name, getConfig(),
+            return string.Format("{0} {{ config: {1}, changeListeners: [ {2} ] }}", GetType().Name, Config,
                     _changeListeners == null ? null : string.Join(", ", _changeListeners));
         }
     }

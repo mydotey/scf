@@ -8,7 +8,7 @@ namespace MyDotey.SCF.Type
      *
      * May 22, 2018
      */
-    public abstract class AbstractTypeConverter<S, T> : TypeConverter<S, T>
+    public abstract class AbstractTypeConverter<S, T> : ITypeConverter<S, T>
     {
         public virtual sType SourceType { get; protected set; }
         public virtual sType TargetType { get; protected set; }

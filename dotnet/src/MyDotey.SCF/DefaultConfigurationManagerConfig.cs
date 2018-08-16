@@ -13,7 +13,7 @@ namespace MyDotey.SCF
     public class DefaultConfigurationManagerConfig : ConfigurationManagerConfig, ICloneable
     {
         private string _name;
-        private Dictionary<int, ConfigurationSource> _sources;
+        private Dictionary<int, IConfigurationSource> _sources;
         private Action<Action> _taskExecutor;
 
         protected DefaultConfigurationManagerConfig()
@@ -21,26 +21,17 @@ namespace MyDotey.SCF
 
         }
 
-        public override string getName()
-        {
-            return _name;
-        }
+        public override string Name { get { return _name; } }
 
-        public override Dictionary<int, ConfigurationSource> getSources()
-        {
-            return _sources;
-        }
+        public override Dictionary<int, IConfigurationSource> Sources { get { return _sources; } }
 
-        public override Action<Action> getTaskExecutor()
-        {
-            return _taskExecutor;
-        }
+        public override Action<Action> TaskExecutor { get { return _taskExecutor; } }
 
         public virtual object Clone()
         {
             DefaultConfigurationManagerConfig copy = (DefaultConfigurationManagerConfig)MemberwiseClone();
             if (_sources != null)
-                copy._sources = new Dictionary<int, ConfigurationSource>(_sources);
+                copy._sources = new Dictionary<int, IConfigurationSource>(_sources);
             return copy;
         }
 
@@ -50,15 +41,15 @@ namespace MyDotey.SCF
                     _taskExecutor, _sources == null ? null : string.Join(", ", _sources));
         }
 
-        public new class Builder : DefaultAbstractBuilder<ConfigurationManagerConfig.Builder, ConfigurationManagerConfig>
-                , ConfigurationManagerConfig.Builder
+        public class Builder : DefaultAbstractBuilder<ConfigurationManagerConfig.IBuilder, ConfigurationManagerConfig>
+                , ConfigurationManagerConfig.IBuilder
         {
 
         }
 
         public abstract class DefaultAbstractBuilder<B, C>
-                : ConfigurationManagerConfig.AbstractBuilder<B, C>
-                where B : ConfigurationManagerConfig.AbstractBuilder<B, C>
+                : ConfigurationManagerConfig.IAbstractBuilder<B, C>
+                where B : ConfigurationManagerConfig.IAbstractBuilder<B, C>
                 where C : ConfigurationManagerConfig
         {
             protected static readonly Action<Action> DEFAULT_TASK_EXECUTOR = t => t();
@@ -67,34 +58,31 @@ namespace MyDotey.SCF
 
             protected DefaultAbstractBuilder()
             {
-                _config = (DefaultConfigurationManagerConfig)(object)newConfig();
+                _config = (DefaultConfigurationManagerConfig)(object)NewConfig();
             }
 
-            protected virtual C newConfig()
+            protected virtual C NewConfig()
             {
                 return (C)(object)(new DefaultConfigurationManagerConfig());
             }
 
-            protected virtual C getConfig()
-            {
-                return (C)(object)_config;
-            }
+            protected virtual C Config { get { return (C)(object)_config; } }
 
-            public virtual B setName(String name)
+            public virtual B SetName(String name)
             {
                 _config._name = name;
                 return (B)(object)this;
             }
 
-            public virtual B addSource(int priority, ConfigurationSource source)
+            public virtual B AddSource(int priority, IConfigurationSource source)
             {
                 if (source != null)
                 {
                     if (_config._sources == null)
-                        _config._sources = new Dictionary<int, ConfigurationSource>();
+                        _config._sources = new Dictionary<int, IConfigurationSource>();
                     else
                     {
-                        _config._sources.TryGetValue(priority, out ConfigurationSource existed);
+                        _config._sources.TryGetValue(priority, out IConfigurationSource existed);
                         if (existed != null)
                             throw new ArgumentException(string.Format(
                                 "duplicate source priority, existing: {{ priority: {0}, source: {1} }}, new: {{ priority: {2}, source: {3} }}",
@@ -106,21 +94,21 @@ namespace MyDotey.SCF
                 return (B)(object)this;
             }
 
-            public virtual B addSources(Dictionary<int, ConfigurationSource> sources)
+            public virtual B AddSources(Dictionary<int, IConfigurationSource> sources)
             {
                 if (sources != null)
-                    sources.ToList().ForEach(p => addSource(p.Key, p.Value));
+                    sources.ToList().ForEach(p => AddSource(p.Key, p.Value));
 
                 return (B)(object)this;
             }
 
-            public virtual B setTaskExecutor(Action<Action> taskExecutor)
+            public virtual B SetTaskExecutor(Action<Action> taskExecutor)
             {
                 _config._taskExecutor = taskExecutor;
                 return (B)(object)this;
             }
 
-            public virtual C build()
+            public virtual C Build()
             {
                 if (string.IsNullOrWhiteSpace(_config._name))
                     throw new ArgumentNullException("name is null or empty");

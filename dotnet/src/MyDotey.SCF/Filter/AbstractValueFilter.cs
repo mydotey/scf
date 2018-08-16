@@ -11,9 +11,9 @@ namespace MyDotey.SCF.Filter
      * if null returned by a filter, stop filtering and return null,
      * otherwise, apply next filter to the value
      */
-    public abstract class AbstractValueFilter<V> : ValueFilter<V>
+    public abstract class AbstractValueFilter<V> : IValueFilter<V>
     {
-        object ValueFilter.Filter(object v)
+        object IValueFilter.Filter(object v)
         {
             return Filter((V)v);
         }

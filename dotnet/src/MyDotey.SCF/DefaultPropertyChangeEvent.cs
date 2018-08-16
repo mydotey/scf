@@ -7,20 +7,20 @@ namespace MyDotey.SCF
      *
      * Jul 19, 2018
      */
-    public class DefaultPropertyChangeEvent<K, V> : PropertyChangeEvent<K, V>
+    public class DefaultPropertyChangeEvent<K, V> : IPropertyChangeEvent<K, V>
     {
-        private Property<K, V> _property;
+        private IProperty<K, V> _property;
         private V _oldValue;
         private V _newValue;
         private long _changeTime;
 
-        public DefaultPropertyChangeEvent(Property<K, V> property, V oldValue, V newValue)
+        public DefaultPropertyChangeEvent(IProperty<K, V> property, V oldValue, V newValue)
             : this(property, oldValue, newValue, DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond)
         {
 
         }
 
-        public DefaultPropertyChangeEvent(Property<K, V> property, V oldValue, V newValue, long changeTime)
+        public DefaultPropertyChangeEvent(IProperty<K, V> property, V oldValue, V newValue, long changeTime)
         {
             if (property == null)
                 throw new ArgumentNullException("property is null");
@@ -31,40 +31,19 @@ namespace MyDotey.SCF
             _changeTime = changeTime;
         }
 
-        Property PropertyChangeEvent.getProperty()
-        {
-            return getProperty();
-        }
+        IProperty IPropertyChangeEvent.Property { get { return Property; } }
 
-        public virtual Property<K, V> getProperty()
-        {
-            return _property;
-        }
+        public virtual IProperty<K, V> Property { get { return _property; } }
 
-        object PropertyChangeEvent.getOldValue()
-        {
-            return getOldValue();
-        }
+        object IPropertyChangeEvent.OldValue { get { return OldValue; } }
 
-        public virtual V getOldValue()
-        {
-            return _oldValue;
-        }
+        public virtual V OldValue { get { return _oldValue; } }
 
-        object PropertyChangeEvent.getNewValue()
-        {
-            return getNewValue();
-        }
+        object IPropertyChangeEvent.NewValue { get { return NewValue; } }
 
-        public virtual V getNewValue()
-        {
-            return _newValue;
-        }
+        public virtual V NewValue { get { return _newValue; } }
 
-        public virtual long getChangeTime()
-        {
-            return _changeTime;
-        }
+        public virtual long ChangeTime { get { return _changeTime; } }
 
         public override String ToString()
         {

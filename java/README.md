@@ -26,16 +26,28 @@
 ## Maven Dependency
 
 ```xml
-<dependency>
-    <groupId>org.mydotey.scf</groupId>
-    <artifactId>scf-core</artifactId>
-    <version>1.4.0</version>
-</dependency>
-<dependency>
-    <groupId>org.mydotey.scf</groupId>
-    <artifactId>scf-simple</artifactId>
-    <version>1.4.0</version>
-</dependency>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.mydotey.scf</groupId>
+                <artifactId>scf-bom</artifactId>
+                <version>1.4.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mydotey.scf</groupId>
+            <artifactId>scf-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mydotey.scf</groupId>
+            <artifactId>scf-simple</artifactId>
+        </dependency>
+    </dependencies>
 ```
 
 ## Usage

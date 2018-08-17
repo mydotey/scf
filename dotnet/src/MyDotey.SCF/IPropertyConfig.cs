@@ -7,6 +7,11 @@ using MyDotey.SCF.Filter;
 
 namespace MyDotey.SCF
 {
+    /**
+     * @author koqizhao
+     *
+     * May 17, 2018
+     */
     public interface IPropertyConfig
     {
         object Key { get; }
@@ -95,6 +100,8 @@ namespace MyDotey.SCF
              * @see PropertyConfig#getValueConverters()
              */
             B AddValueConverter(ITypeConverter valueConverter);
+
+            B AddValueConverter<S, T>(Func<S, T> valueConverter);
 
             /**
              * optional

@@ -4,6 +4,11 @@ using System.Linq;
 
 namespace MyDotey.SCF
 {
+    /**
+     * @author koqizhao
+     *
+     * May 17, 2018
+     */
     public static class EqualityExtensions
     {
         public static int HashCode<T>(this IEnumerable<T> collection)

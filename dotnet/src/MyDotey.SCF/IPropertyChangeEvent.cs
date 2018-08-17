@@ -2,6 +2,11 @@ using System;
 
 namespace MyDotey.SCF
 {
+    /**
+     * @author koqizhao
+     *
+     * May 17, 2018
+     */
     public interface IPropertyChangeEvent
     {
         IProperty Property { get; }

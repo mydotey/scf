@@ -147,6 +147,14 @@ namespace MyDotey.SCF
                 return (B)(object)this;
             }
 
+            public virtual B AddValueConverter<S, T>(Func<S, T> valueConverter)
+            {
+                if (valueConverter != null)
+                    AddValueConverter(new DefaultTypeConverter<S, T>(valueConverter));
+
+                return (B)(object)this;
+            }
+
             public virtual B AddValueConverters(ICollection<ITypeConverter> valueConverters)
             {
                 if (valueConverters != null)

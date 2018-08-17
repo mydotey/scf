@@ -231,16 +231,12 @@ public class ApolloConfigurationSourceConfig extends DefaultConfigurationSourceC
         return _apolloConfig;
     }
 
-    public static class Builder extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder> {
+    public static class Builder
+            extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder, ApolloConfigurationSourceConfig> {
 
         @Override
-        protected DefaultConfigurationSourceConfig newConfig() {
+        protected ApolloConfigurationSourceConfig newConfig() {
             return new ApolloConfigurationSourceConfig();
-        }
-
-        @Override
-        protected ApolloConfigurationSourceConfig getConfig() {
-            return (ApolloConfigurationSourceConfig) super.getConfig();
         }
 
         public Builder setApolloConfig(Config config) {
@@ -252,7 +248,7 @@ public class ApolloConfigurationSourceConfig extends DefaultConfigurationSourceC
         public ApolloConfigurationSourceConfig build() {
             Objects.requireNonNull(getConfig()._apolloConfig, "apolloConfig is null");
 
-            return (ApolloConfigurationSourceConfig) super.build();
+            return super.build();
         }
 
     }
@@ -261,17 +257,11 @@ public class ApolloConfigurationSourceConfig extends DefaultConfigurationSourceC
 ```
 
 ```java
-public class ApolloConfigurationSource extends StringPropertyConfigurationSource {
+public class ApolloConfigurationSource extends StringPropertyConfigurationSource<ApolloConfigurationSourceConfig> {
 
     public ApolloConfigurationSource(ApolloConfigurationSourceConfig config) {
         super(config);
-        getConfig().getApolloConfig().addChangeListener(
-            e -> ApolloConfigurationSource.this.raiseChangeEvent());
-    }
-
-    @Override
-    public ApolloConfigurationSourceConfig getConfig() {
-        return (ApolloConfigurationSourceConfig) super.getConfig();
+        getConfig().getApolloConfig().addChangeListener(e -> ApolloConfigurationSource.this.raiseChangeEvent());
     }
 
     @Override

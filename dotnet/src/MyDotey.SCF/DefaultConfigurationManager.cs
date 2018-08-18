@@ -108,7 +108,7 @@ namespace MyDotey.SCF
 
                 value = ApplyValueFilter(propertyConfig, value);
 
-                if (value != null)
+                if (!object.Equals(value, default(V)))
                     return value;
             }
 
@@ -224,7 +224,7 @@ namespace MyDotey.SCF
         protected virtual object GetPropertyValue(IPropertyConfig propertyConfig)
         {
             return _genericGetPropertyValueMethod
-                .MakeGenericMethod(propertyConfig.Key.GetType(), propertyConfig.ValueType)
+                .MakeGenericMethod(propertyConfig.GetType().GetGenericArguments())
                 .Invoke(this, new object[] { propertyConfig });
         }
 
@@ -238,7 +238,7 @@ namespace MyDotey.SCF
         protected virtual IPropertyChangeEvent NewPropertyChangeEvent(IProperty property, object oldValue, object newValue)
         {
             sType realType = _defaultPropertyChangeEventType
-                .MakeGenericType(property.Config.Key.GetType(), property.Config.ValueType);
+                .MakeGenericType(property.Config.GetType().GetGenericArguments());
             return (IPropertyChangeEvent)Activator.CreateInstance(realType, property, oldValue, newValue);
         }
 

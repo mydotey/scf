@@ -53,7 +53,7 @@ namespace MyDotey.SCF
                 where B : ConfigurationManagerConfig.IAbstractBuilder<B, C>
                 where C : ConfigurationManagerConfig
         {
-            protected static readonly Action<Action> DEFAULT_TASK_EXECUTOR = t => t();
+            protected static readonly Action<Action> DefaultTaskExecutor = t => t();
 
             private DefaultConfigurationManagerConfig _config;
 
@@ -119,7 +119,7 @@ namespace MyDotey.SCF
                     throw new ArgumentNullException("sources is null or empty");
 
                 if (_config._taskExecutor == null)
-                    _config._taskExecutor = DEFAULT_TASK_EXECUTOR;
+                    _config._taskExecutor = DefaultTaskExecutor;
 
                 return (C)_config.Clone();
             }

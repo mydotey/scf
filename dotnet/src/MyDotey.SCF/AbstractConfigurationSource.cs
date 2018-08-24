@@ -15,7 +15,7 @@ namespace MyDotey.SCF
     public abstract class AbstractConfigurationSource<C> : IConfigurationSource
         where C : ConfigurationSourceConfig
     {
-        private static readonly Logger LOGGER = LogManager.GetCurrentClassLogger(typeof(AbstractConfigurationSource<>));
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger(typeof(AbstractConfigurationSource<>));
 
         private C _config;
 
@@ -62,7 +62,7 @@ namespace MyDotey.SCF
                     }
                     catch (Exception e)
                     {
-                        LOGGER.Error(e, "source change listener failed to run");
+                        Logger.Error(e, "source change listener failed to run");
                     }
                 });
             }

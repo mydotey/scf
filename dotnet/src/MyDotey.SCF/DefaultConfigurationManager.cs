@@ -27,7 +27,7 @@ namespace MyDotey.SCF
             }
         }
 
-        protected static readonly IComparer<int> PRIORITY_COMPARATOR = new PriorityComparer();
+        protected static readonly IComparer<int> PriorityComparator = new PriorityComparer();
 
         private ConfigurationManagerConfig _config;
         private IDictionary<int, IConfigurationSource> _sortedSources;
@@ -48,7 +48,7 @@ namespace MyDotey.SCF
 
             _config = config;
 
-            _sortedSources = ImmutableSortedDictionary.CreateRange(PRIORITY_COMPARATOR, _config.Sources);
+            _sortedSources = ImmutableSortedDictionary.CreateRange(PriorityComparator, _config.Sources);
             _sortedSources.Values.ToList().ForEach(s => s.AddChangeListener(OnSourceChange));
 
             _properties = new ConcurrentDictionary<object, IProperty>();

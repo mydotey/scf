@@ -60,7 +60,7 @@ PropertiesFileConfigurationSourceConfig sourceConfig = StringPropertySources
 PropertiesFileConfigurationSource source = StringPropertySources.newPropertiesFileSource(sourceConfig);
 ```
 
-More Sources in StringPropertiesSources
+More Sources in StringPropertySources
 
 - EnvironmentVariableConfigurationSource
 

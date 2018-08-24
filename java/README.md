@@ -243,8 +243,8 @@ public class ApolloConfigurationSourceConfig extends DefaultConfigurationSourceC
         return _apolloConfig;
     }
 
-    public static class Builder
-            extends DefaultConfigurationSourceConfig.DefaultAbstractBuilder<Builder, ApolloConfigurationSourceConfig> {
+    public static class Builder extends DefaultConfigurationSourceConfig
+        .DefaultAbstractBuilder<Builder, ApolloConfigurationSourceConfig> {
 
         @Override
         protected ApolloConfigurationSourceConfig newConfig() {
@@ -269,11 +269,13 @@ public class ApolloConfigurationSourceConfig extends DefaultConfigurationSourceC
 ```
 
 ```java
-public class ApolloConfigurationSource extends StringPropertyConfigurationSource<ApolloConfigurationSourceConfig> {
+public class ApolloConfigurationSource extends
+    StringPropertyConfigurationSource<ApolloConfigurationSourceConfig> {
 
     public ApolloConfigurationSource(ApolloConfigurationSourceConfig config) {
         super(config);
-        getConfig().getApolloConfig().addChangeListener(e -> ApolloConfigurationSource.this.raiseChangeEvent());
+        getConfig().getApolloConfig().addChangeListener(
+            e -> ApolloConfigurationSource.this.raiseChangeEvent());
     }
 
     @Override

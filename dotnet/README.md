@@ -39,6 +39,10 @@ More Sources in StringPropertySources
 
 - EnvironmentVariableConfigurationSource
 
+- CommandLineConfigurationSource
+
+- AppSettingsConfigurationSource
+
 - MemoryDictionaryConfigurationSource
 
 - PropertiesFileConfigurationSource

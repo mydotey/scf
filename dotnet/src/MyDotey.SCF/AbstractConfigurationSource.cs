@@ -86,7 +86,7 @@ namespace MyDotey.SCF
 
         protected virtual V Convert<K, V>(PropertyConfig<K, V> propertyConfig, object value)
         {
-            if (IsNull<V>(value))
+            if (IsDefault<V>(value))
                 return default(V);
 
             if (value is V)
@@ -105,7 +105,7 @@ namespace MyDotey.SCF
             return default(V);
         }
 
-        protected virtual bool IsNull<V>(object value)
+        protected virtual bool IsDefault<V>(object value)
         {
             if (Object.Equals(value, default(V)))
                 return true;

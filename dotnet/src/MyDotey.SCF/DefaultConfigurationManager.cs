@@ -35,7 +35,7 @@ namespace MyDotey.SCF
         private ConcurrentDictionary<object, IProperty> _properties;
         private object _propertiesLock;
 
-        private volatile List<Action<IPropertyChangeEvent>> _changeListeners;
+        private volatile List<EventHandler<IPropertyChangeEvent>> _changeListeners;
 
         private MethodInfo _genericGetPropertyValueMethod;
 
@@ -49,7 +49,7 @@ namespace MyDotey.SCF
             _config = config;
 
             _sortedSources = ImmutableSortedDictionary.CreateRange(PriorityComparator, _config.Sources);
-            _sortedSources.Values.ToList().ForEach(s => s.AddChangeListener(OnSourceChange));
+            _sortedSources.Values.ToList().ForEach(s => s.OnChange += OnSourceChange);
 
             _properties = new ConcurrentDictionary<object, IProperty>();
             _propertiesLock = new object();
@@ -161,7 +161,7 @@ namespace MyDotey.SCF
             return new DefaultProperty<K, V>(config, value);
         }
 
-        protected virtual void OnSourceChange(IConfigurationSourceChangeEvent sourceEvent)
+        protected virtual void OnSourceChange(object source, IConfigurationSourceChangeEvent sourceEvent)
         {
             lock (_propertiesLock)
             {
@@ -180,16 +180,24 @@ namespace MyDotey.SCF
             }
         }
 
-        public virtual void AddChangeListener(Action<IPropertyChangeEvent> changeListener)
+        public virtual event EventHandler<IPropertyChangeEvent> OnChange
         {
-            if (changeListener == null)
-                throw new ArgumentNullException("changeListener is null");
-
-            lock (this)
+            add
             {
-                if (_changeListeners == null)
-                    _changeListeners = new List<Action<IPropertyChangeEvent>>();
-                _changeListeners.Add(changeListener);
+                if (value == null)
+                    throw new ArgumentNullException("changeListener is null");
+
+                lock (this)
+                {
+                    if (_changeListeners == null)
+                        _changeListeners = new List<EventHandler<IPropertyChangeEvent>>();
+                    _changeListeners.Add(value);
+                }
+            }
+
+            remove
+            {
+                throw new NotSupportedException("remove is not supported");
             }
         }
 
@@ -204,7 +212,7 @@ namespace MyDotey.SCF
                 {
                     try
                     {
-                        l(@event);
+                        l(@event.Property, @event);
                     }
                     catch (Exception e)
                     {

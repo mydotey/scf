@@ -30,6 +30,6 @@ namespace MyDotey.SCF
          * <p>
          * will be used by the configuration manager
          */
-        void AddChangeListener(Action<IConfigurationSourceChangeEvent> changeListener);
+        event EventHandler<IConfigurationSourceChangeEvent> OnChange;
     }
 }

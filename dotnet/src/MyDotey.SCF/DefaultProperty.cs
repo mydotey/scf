@@ -17,7 +17,7 @@ namespace MyDotey.SCF
 
         private PropertyConfig<K, V> _config;
         private volatile object _value;
-        private volatile List<Action<IPropertyChangeEvent<K, V>>> _changeListeners;
+        private volatile List<EventHandler<IPropertyChangeEvent<K, V>>> _changeListeners;
 
         public DefaultProperty(PropertyConfig<K, V> config, V value)
         {
@@ -41,16 +41,24 @@ namespace MyDotey.SCF
             _value = (V)value;
         }
 
-        public virtual void AddChangeListener(Action<IPropertyChangeEvent<K, V>> changeListener)
+        public virtual event EventHandler<IPropertyChangeEvent<K, V>> OnChange
         {
-            if (changeListener == null)
-                throw new ArgumentNullException("changeListener", "changeListener is null");
-
-            lock (this)
+            add
             {
-                if (_changeListeners == null)
-                    _changeListeners = new List<Action<IPropertyChangeEvent<K, V>>>();
-                _changeListeners.Add(changeListener);
+                if (value == null)
+                    throw new ArgumentNullException("changeListener is null");
+
+                lock (this)
+                {
+                    if (_changeListeners == null)
+                        _changeListeners = new List<EventHandler<IPropertyChangeEvent<K, V>>>();
+                    _changeListeners.Add(value);
+                }
+            }
+
+            remove
+            {
+                throw new NotSupportedException("remove is not supported");
             }
         }
 
@@ -65,7 +73,7 @@ namespace MyDotey.SCF
                 {
                     try
                     {
-                        l(@event);
+                        l(this, @event);
                     }
                     catch (Exception e)
                     {

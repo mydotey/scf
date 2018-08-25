@@ -205,9 +205,9 @@ namespace MyDotey.SCF
             Assert.Equal("ok.2", property.Value);
 
             ObjectReference<bool> touched = new ObjectReference<bool>();
-            property.AddChangeListener(p => touched.Value = true);
-            property.AddChangeListener(e => Console.WriteLine("property: {0}, changeTime: {1}, from: {2}, to: {3}\n",
-                    e.Property, e.ChangeTime, e.OldValue, e.NewValue));
+            property.OnChange += (o, e) => touched.Value = true;
+            property.OnChange += (o, e) => Console.WriteLine("property: {0}, changeTime: {1}, from: {2}, to: {3}\n",
+                    e.Property, e.ChangeTime, e.OldValue, e.NewValue);
             source.SetPropertyValue("exist", "okx");
             Console.WriteLine("property: " + property + "\n");
             Assert.Equal("okx", property.Value);
@@ -264,17 +264,17 @@ namespace MyDotey.SCF
             TestDynamicConfigurationSource source = CreateDynamicSource();
             IConfigurationManager manager = CreateManager(new Dictionary<int, IConfigurationSource>() { { 1, source } });
             ObjectReference<int> changeCount = new ObjectReference<int>();
-            manager.AddChangeListener(e =>
+            manager.OnChange += (o, e) =>
             {
                 changeCount.Value = changeCount.Value + 1;
                 Console.WriteLine("property changed: " + e);
-            });
+            };
 
             PropertyConfig<string, string> propertyConfig = ConfigurationProperties.NewConfigBuilder<string, string>()
                     .SetKey("exist").Build();
             IProperty<string, string> property = manager.GetProperty(propertyConfig);
             ObjectReference<int> changeCount2 = new ObjectReference<int>();
-            property.AddChangeListener(p => changeCount2.Value = changeCount2.Value + 1);
+            property.OnChange += (o, e) => changeCount2.Value = changeCount2.Value + 1;
 
             source.SetPropertyValue("exist", "okx");
             Assert.Equal(1, changeCount.Value);

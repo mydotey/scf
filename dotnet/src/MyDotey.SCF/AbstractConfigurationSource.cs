@@ -19,7 +19,7 @@ namespace MyDotey.SCF
 
         private C _config;
 
-        private volatile List<Action<IConfigurationSourceChangeEvent>> _changeListeners;
+        private volatile List<EventHandler<IConfigurationSourceChangeEvent>> _changeListeners;
 
         public AbstractConfigurationSource(C config)
         {
@@ -31,19 +31,27 @@ namespace MyDotey.SCF
 
         ConfigurationSourceConfig IConfigurationSource.Config { get { return Config; } }
 
-        public virtual C Config { get { return _config; } } 
+        public virtual C Config { get { return _config; } }
 
-        public virtual void AddChangeListener(Action<IConfigurationSourceChangeEvent> changeListener)
+        public virtual event EventHandler<IConfigurationSourceChangeEvent> OnChange
         {
-            if (changeListener == null)
-                throw new ArgumentNullException("changeListener is null");
-
-            lock (this)
+            add
             {
-                if (_changeListeners == null)
-                    _changeListeners = new List<Action<IConfigurationSourceChangeEvent>>();
+                if (value == null)
+                    throw new ArgumentNullException("changeListener is null");
 
-                _changeListeners.Add(changeListener);
+                lock (this)
+                {
+                    if (_changeListeners == null)
+                        _changeListeners = new List<EventHandler<IConfigurationSourceChangeEvent>>();
+
+                    _changeListeners.Add(value);
+                }
+            }
+
+            remove
+            {
+                throw new NotSupportedException("remove is not supported");
             }
         }
 
@@ -58,7 +66,7 @@ namespace MyDotey.SCF
                 {
                     try
                     {
-                        l(new DefaultConfigurationSourceChangeEvent(this));
+                        l(this, new DefaultConfigurationSourceChangeEvent(this));
                     }
                     catch (Exception e)
                     {

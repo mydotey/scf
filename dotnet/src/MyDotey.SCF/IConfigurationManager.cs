@@ -46,6 +46,6 @@ namespace MyDotey.SCF
         /**
          * listeners to the property change, notified once property changed
          */
-        void AddChangeListener(Action<IPropertyChangeEvent> changeListener);
+        event EventHandler<IPropertyChangeEvent> OnChange;
     }
 }

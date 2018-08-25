@@ -21,8 +21,8 @@
 ## NuGet Package
 
 ```sh
-dotnet add package MyDotey.SCF -v 1.4.2
-dotnet add package MyDotey.SCF.Simple -v 1.4.3
+dotnet add package MyDotey.SCF -v 1.4.3
+dotnet add package MyDotey.SCF.Simple -v 1.4.4
 ```
 
 ## Usage
@@ -74,8 +74,8 @@ Console.WriteLine("key: {0}, value: {1}", property.Config.Key, property.Value);
 ### Add Change Listener
 
 ```java
-property.AddChangeListener(e => Console.WriteLine("property: {0}, changeTime: {1}, from: {2}, to: {3}",
-    e.Property, e.ChangeTime, e.OldValue, e.NewValue));
+property.OnChange += (o, e) => Console.WriteLine("property: {0}, changeTime: {1}, from: {2}, to: {3}",
+    e.Property, e.ChangeTime, e.OldValue, e.NewValue);
 ```
 
 ### Add Value Filter

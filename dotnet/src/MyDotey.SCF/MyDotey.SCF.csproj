@@ -5,7 +5,7 @@
     <AssemblyTitle>MyDotey.SCF</AssemblyTitle>
     <AssemblyName>MyDotey.SCF</AssemblyName>
     <PackageId>MyDotey.SCF</PackageId>
-    <Version>1.4.2</Version>
+    <Version>1.4.3</Version>
     <Authors>koqizhao</Authors>
     <Description>SCF, short for Simple Configuration Facade, an abstraction between code and outer configuration</Description>
     <Copyright>koqizhao</Copyright>

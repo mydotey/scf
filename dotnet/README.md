@@ -25,6 +25,12 @@ dotnet add package MyDotey.SCF -v 1.4.3
 dotnet add package MyDotey.SCF.Simple -v 1.4.4
 ```
 
+Or use a single meta package
+
+```sh
+dotnet add package MyDotey.SCF.Bom -v 1.4.0
+```
+
 ## Usage
 
 ### Create ConfigurationSource

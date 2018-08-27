@@ -141,7 +141,7 @@ public class MyCustomType
         }
     }
 
-    public static readonly StringConverter<MyCustomType> CONVERTER = new MyConverter();
+    public static readonly StringConverter<MyCustomType> Converter = new MyConverter();
 
     public string Name { get; private set; }
     public string Say { get; private set; }
@@ -203,7 +203,7 @@ public class MyCustomType
 
 ```c#
 IProperty<string, MyCustomType> customTypeProperty =
-    stringProperties.GetProperty("my-custom-type-property", MyCustomType.CONVERTER);
+    stringProperties.GetProperty("my-custom-type-property", MyCustomType.Converter);
 ```
 
 ### Custom Source

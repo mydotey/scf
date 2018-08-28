@@ -2,6 +2,8 @@
 
 [SCF](https://github.com/mydotey/scf), short for Simple Configuration Facade, is an abtraction between **Code** and **Outer Configuration** (properties file, env variable, system property, yaml file, ... , etc.). It's namely like [slf4j](https://www.slf4j.org/) (Simple Logging Facade for Java), and has the same position in the configuration world.
 
+SCF makes code use a property and not care where/how it is configured!
+
 ![arch](./resources/images/scf.png)
 
 ## Usage
@@ -34,7 +36,7 @@ Multiple sources can work together with different priorities. Property value is 
 
 ### Extensible
 
-**scf-core** only has a few interface abstractions and default implementation. Feel free to extend the default or write your own new implementation.
+**scf-core** only has a few interface abstractions and default implementation. All the key concepts are extensible (Configuration Manager, Configuration Source, Property, ...). Feel free to extend the default or write your own new implementation.
 
 Some extentions:
 
@@ -49,6 +51,10 @@ Some extentions:
 ### Lightweight
 
 No thread is used. Only use a little memory to cache the properties.
+
+### Concurrent
+
+All the Manager/Property APIs are thread-safe and have O(1) complexity as the ConcurrentHashMap.
 
 ### Easy to Use
 

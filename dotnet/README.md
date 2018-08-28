@@ -3,6 +3,7 @@
 <!-- TOC -->
 
 - [SCF: Simple Configuration Facade](#scf-simple-configuration-facade)
+    - [Requirements](#requirements)
     - [NuGet Package](#nuget-package)
     - [Usage](#usage)
         - [Create ConfigurationSource](#create-configurationsource)
@@ -17,6 +18,10 @@
         - [Custom Source](#custom-source)
 
 <!-- /TOC -->
+
+## Requirements
+
+- **.NETStandard 2.0**
 
 ## NuGet Package
 
@@ -126,6 +131,8 @@ IProperty<string, Dictionary<int?, long?>> property5 = stringProperties.GetDicti
 ## Extension
 
 ### Custom Value Type
+
+**Important**: Custom Value Type must **override** the **Equals** method so as to know whether it changes.
 
 ```c#
 public class MyCustomType

@@ -145,6 +145,8 @@ Property<String, Map<Integer, Long>> property5 = stringProperties.getMapProperty
 
 ### Custom Value Type
 
+**Important**: Custom Value Type must **override** the **equals** method so as to know whether it changes.
+
 ```java
 public class MyCustomType {
     public static final StringConverter<MyCustomType> CONVERTER = new StringConverter<MyCustomType>(

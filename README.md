@@ -1,10 +1,12 @@
 # SCF: Simple Configuration Facade
 
+[[English](https://github.com/mydotey/scf)]&nbsp;&nbsp;[[中文](https://github.com/mydotey/scf/blob/master/README-cn.md)]
+
 [SCF](https://github.com/mydotey/scf), short for Simple Configuration Facade, is an abtraction between **Code** and **Outer Configuration** (properties file, env variable, system property, yaml file, ... , etc.). It's namely like [slf4j](https://www.slf4j.org/) (Simple Logging Facade for Java), and has the same position in the configuration world.
 
-SCF makes code use a property and not care where/how it is configured!
+SCF separates code from outer configuration. Make code use a property and not care where/how it is configured!
 
-![arch](./resources/images/scf.png)
+![arch](https://raw.githubusercontent.com/mydotey/scf/master/resources/images/scf.png)
 
 ## Usage
 
@@ -20,7 +22,7 @@ https://github.com/mydotey/scf-best-practice
 
 ### Strong Type
 
-Core abstraction is Property<K, V>, with strong-typed K & strong-typed value.
+Core abstraction is Property<K, V>, with strong-typed Key & strong-typed value.
 
 ### Safe
 
@@ -94,17 +96,19 @@ A property can be configured in various ways. For example, a HashMap in memory, 
 
 Multiple ways can be used together! Each way is a configuration source. Each source is responsible for providing a value for a property.
 
-Sometimes a source cannot provide a value, provide null instead.
+Sometimes a source cannot provide a value, provide null instead. (no such property in the source)
 
-- The key is not recognized by the source. For example, key type is another strong-typed object *{ key: request.timeout, labels: { dc: aws-us-east1, app: 100000 } }*, but the source only accepts *String key*.
+- The key is not recognized by the source. For example, key type is a strong-typed object `{ key: request.timeout, labels: { dc: aws-us-east1, app: 100000 } }`, but the source only accepts *String key*.
 
 - The property is not configured in the source.
 
-- The property value in the source is of type A, but the code needs type B, and no converter <A, B> provided in the property config
+- The property value in the source is of type A, but the code needs type B, and no converter <A, B> provided in the property config. The source cannot convert A to B too.
 
 ### Configuration Manager
 
 A configuration manager is a configuration facade for the *Code*. *Code* gets a property from the manager, and doesn't care how/where the property is configured.
+
+Code can have 1 single manager or multiple managers as the need. Each component can have different manager. Manager can be shared/passed from 1 component to another as well.
 
 Manager provides 2 kinds of API:
 
@@ -112,17 +116,17 @@ Manager provides 2 kinds of API:
 
 - `<V> V getPropertyValue(PropertyConfig<K, V> config)`: used for **non-stable** properties with a **non-stable** key. For example, a visitor **IP** is used as part of a key, don't know how many keys app has, don't know when the property is configured and used.
 
-#### Sources & Source Priority
+### Sources & Source Priority
 
 A manager can manage multiple configuration sources. **Different source has different priority.** The manager gets property value from the sources in the order of the source priority.
 
 ### Relationship of Core Concepts
 
-![arch-class](./resources/images/scf-class.png)
+![arch-class](https://raw.githubusercontent.com/mydotey/scf/master/resources/images/scf-class.png)
 
 ## Core Logic
 
-![get-property-value](./resources/images/get-property-value.png)
+![get-property-value](https://raw.githubusercontent.com/mydotey/scf/master/resources/images/get-property-value.png)
 
 ## Developers
 

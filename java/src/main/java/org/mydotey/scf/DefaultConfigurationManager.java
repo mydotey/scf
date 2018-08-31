@@ -151,7 +151,7 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             _properties.values().forEach(p -> {
                 Object oldValue = p.getValue();
                 Object newValue = getPropertyValue(p.getConfig());
-                if (Objects.equals(oldValue, newValue))
+                if (p.getConfig().getValueComparator().compare(oldValue, newValue) == 0)
                     return;
                 p.setValue(newValue);
 

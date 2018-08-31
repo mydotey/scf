@@ -3,6 +3,7 @@ package org.mydotey.scf;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -22,6 +23,7 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     private V _defaultValue;
     private List<TypeConverter> _valueConverters;
     private Function<V, V> _valueFilter;
+    private Comparator<V> _valueComparator;
 
     private volatile int _hashCode;
 
@@ -55,6 +57,11 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     }
 
     @Override
+    public Comparator<V> getValueComparator() {
+        return _valueComparator;
+    }
+
+    @Override
     public DefaultPropertyConfig<K, V> clone() {
         DefaultPropertyConfig<K, V> copy = null;
         try {
@@ -70,8 +77,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     @Override
     public String toString() {
-        return String.format("%s { key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s }",
-                getClass().getSimpleName(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter);
+        return String.format("%s { key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s, valueComparator: %s }",
+                getClass().getSimpleName(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter, _valueComparator);
     }
 
     @Override
@@ -83,6 +90,7 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
             result = prime * result + ((_key == null) ? 0 : _key.hashCode());
             result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
             result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
+            result = prime * result + ((_valueComparator == null) ? 0 : _valueComparator.hashCode());
             result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
             _hashCode = result;
         }
@@ -121,6 +129,9 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         if (!Objects.equals(_valueFilter, propertyConfig._valueFilter))
             return false;
 
+        if (!Objects.equals(_valueComparator, propertyConfig._valueComparator))
+            return false;
+
         return true;
     }
 
@@ -132,6 +143,8 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     public static abstract class DefaultAbstractBuilder<K, V, B extends PropertyConfig.AbstractBuilder<K, V, B, C>, C extends PropertyConfig<K, V>>
             implements PropertyConfig.AbstractBuilder<K, V, B, C> {
+
+        protected static final Comparator DEFAULT_COMPARATOR = (o1, o2) -> Objects.equals(o1, o2) ? 0 : -1;
 
         private DefaultPropertyConfig<K, V> _config;
 
@@ -191,9 +204,18 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         }
 
         @Override
+        public B setValueComparator(Comparator<V> valueComparator) {
+            _config._valueComparator = valueComparator;
+            return (B) this;
+        }
+
+        @Override
         public C build() {
             Objects.requireNonNull(_config._key, "key is null");
             Objects.requireNonNull(_config._valueType, "valueType is null");
+
+            if (_config._valueComparator == null)
+                _config._valueComparator = DEFAULT_COMPARATOR;
 
             return (C) _config.clone();
         }

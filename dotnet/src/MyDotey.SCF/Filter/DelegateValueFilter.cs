@@ -11,11 +11,11 @@ namespace MyDotey.SCF.Filter
      * if null returned by a filter, stop filtering and return null,
      * otherwise, apply next filter to the value
      */
-    public class DefaultValueFilter<V> : AbstractValueFilter<V>
+    public class DelegateValueFilter<V> : AbstractValueFilter<V>
     {
         private Func<V, V> _filter;
 
-        public DefaultValueFilter(Func<V, V> filter)
+        public DelegateValueFilter(Func<V, V> filter)
         {
             if (filter == null)
                 throw new ArgumentNullException("filter is null");
@@ -35,12 +35,15 @@ namespace MyDotey.SCF.Filter
             return result;
         }
 
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
-            if (!base.Equals(obj))
+            if (object.ReferenceEquals(this, obj))
+                return true;
+
+            if (obj == null)
                 return false;
 
-            DefaultValueFilter<V> other = (DefaultValueFilter<V>)obj;
+            DelegateValueFilter<V> other = (DelegateValueFilter<V>)obj;
             return object.Equals(_filter, other._filter);
         }
 

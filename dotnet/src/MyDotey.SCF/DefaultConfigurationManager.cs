@@ -169,7 +169,7 @@ namespace MyDotey.SCF
                 {
                     object oldValue = p.Value;
                     object newValue = GetPropertyValue(p.Config);
-                    if (Object.Equals(oldValue, newValue))
+                    if (p.Config.ValueComparator.Compare(oldValue, newValue) == 0)
                         continue;
                     SetPropertyValue(p, newValue);
 

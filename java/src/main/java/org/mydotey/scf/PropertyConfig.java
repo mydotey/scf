@@ -1,6 +1,7 @@
 package org.mydotey.scf;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.function.Function;
 
 import org.mydotey.scf.type.TypeConverter;
@@ -52,6 +53,13 @@ public interface PropertyConfig<K, V> {
      */
     Function<V, V> getValueFilter();
 
+    /**
+     * if a value type is not comparable by the equals method, can give a comparator instead
+     * <p>
+     * default to null
+     */
+    Comparator<V> getValueComparator();
+
     public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>, PropertyConfig<K, V>> {
 
     }
@@ -99,6 +107,13 @@ public interface PropertyConfig<K, V> {
          * @see PropertyConfig#getValueFilter()
          */
         B setValueFilter(Function<V, V> valueFilter);
+
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getValueComparator()
+         */
+        B setValueComparator(Comparator<V> valueComparator);
 
         C build();
     }

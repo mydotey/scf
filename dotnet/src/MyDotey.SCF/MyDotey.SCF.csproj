@@ -5,13 +5,13 @@
     <AssemblyTitle>MyDotey.SCF</AssemblyTitle>
     <AssemblyName>MyDotey.SCF</AssemblyName>
     <PackageId>MyDotey.SCF</PackageId>
-    <Version>1.4.3</Version>
+    <Version>1.5.0</Version>
     <Authors>koqizhao</Authors>
     <Description>SCF, short for Simple Configuration Facade, an abstraction between code and outer configuration</Description>
     <Copyright>koqizhao</Copyright>
 
     <PackageTags>scf;configuration;facade</PackageTags>
-    <PackageReleaseNotes>SCF, short for Simple Configuration Facade, an abstraction between code and outer configuration</PackageReleaseNotes>
+    <PackageReleaseNotes>Add support for custom ValueComparator</PackageReleaseNotes>
     <PackageIconUrl>http://numl.net/images/ico.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/mydotey/scf</PackageProjectUrl>
     <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>

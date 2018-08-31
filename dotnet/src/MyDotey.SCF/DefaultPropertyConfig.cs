@@ -19,6 +19,7 @@ namespace MyDotey.SCF
         private V _defaultValue;
         private IList<ITypeConverter> _valueConverters;
         private IValueFilter<V> _valueFilter;
+        private IComparer<V> _valueComparator;
 
         private volatile int _hashCode;
 
@@ -35,6 +36,8 @@ namespace MyDotey.SCF
 
         public override IValueFilter<V> ValueFilter { get { return _valueFilter; } }
 
+        public override IComparer<V> ValueComparator { get { return _valueComparator; } }
+
         public virtual object Clone()
         {
             DefaultPropertyConfig<K, V> copy = (DefaultPropertyConfig<K, V>)MemberwiseClone();
@@ -45,9 +48,9 @@ namespace MyDotey.SCF
 
         public override string ToString()
         {
-            return string.Format("{0} {{ key: {1}, valueType: {2}, defaultValue: {3}, valueConverters: [ {4} ], valueFilter: {5} }}",
-                    GetType().Name, _key, typeof(V), _defaultValue,
-                    _valueConverters == null ? null : string.Join(", ", _valueConverters), _valueFilter);
+            return string.Format("{0} {{ key: {1}, valueType: {2}, defaultValue: {3}, valueConverters: [ {4} ], valueFilter: {5}, valueComparator: {6} }}",
+                GetType().Name, _key, typeof(V), _defaultValue,
+                _valueConverters == null ? null : string.Join(", ", _valueConverters), _valueFilter, _valueComparator);
         }
 
         public override int GetHashCode()
@@ -60,6 +63,7 @@ namespace MyDotey.SCF
                 result = prime * result + ((_key == null) ? 0 : _key.GetHashCode());
                 result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.HashCode());
                 result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.GetHashCode());
+                result = prime * result + ((_valueComparator == null) ? 0 : _valueComparator.GetHashCode());
                 result = prime * result + typeof(V).GetHashCode();
                 _hashCode = result;
             }
@@ -95,6 +99,9 @@ namespace MyDotey.SCF
             if (!object.Equals(_valueFilter, propertyConfig._valueFilter))
                 return false;
 
+            if (!object.Equals(_valueComparator, propertyConfig._valueComparator))
+                return false;
+
             return true;
         }
 
@@ -109,6 +116,8 @@ namespace MyDotey.SCF
                 where B : PropertyConfig<K, V>.IAbstractBuilder<B, C>
                 where C : PropertyConfig<K, V>
         {
+            protected static readonly Func<V, V, int> DefaultValueComparator = (o1, o2) => object.Equals(o1, o2) ? 0 : -1;
+
             private DefaultPropertyConfig<K, V> _config;
 
             protected DefaultAbstractBuilder()
@@ -171,7 +180,19 @@ namespace MyDotey.SCF
 
             public virtual B SetValueFilter(Func<V, V> valueFilter)
             {
-                _config._valueFilter = valueFilter == null ? null : new DefaultValueFilter<V>(valueFilter);
+                _config._valueFilter = valueFilter == null ? null : new DelegateValueFilter<V>(valueFilter);
+                return (B)(object)this;
+            }
+
+            public virtual B SetValueComparator(IComparer<V> valueComparator)
+            {
+                _config._valueComparator = valueComparator;
+                return (B)(object)this;
+            }
+
+            public virtual B SetValueComparator(Func<V, V, int> valueComparator)
+            {
+                _config._valueComparator = valueComparator == null ? null : new DelegateComparator<V>(valueComparator);
                 return (B)(object)this;
             }
 
@@ -179,6 +200,9 @@ namespace MyDotey.SCF
             {
                 if (_config._key == null)
                     throw new ArgumentNullException("key is null");
+
+                if (_config._valueComparator == null)
+                    SetValueComparator(DefaultValueComparator);
 
                 return (C)_config.Clone();
             }

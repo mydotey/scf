@@ -215,6 +215,54 @@ namespace MyDotey.SCF
         }
 
         [Fact]
+        public virtual void TestGetPropertyWithComparator()
+        {
+            TestDynamicConfigurationSource source = CreateDynamicSource();
+            IConfigurationManager manager = CreateManager(new Dictionary<int, IConfigurationSource>() { { 1, source } });
+            HashSet<string> equalsSet = new HashSet<string>() { "e.1", "e.2" };
+            Func<string, string, int> customComparator = (o1, o2) =>
+            {
+                if (equalsSet.Contains(o1) && equalsSet.Contains(o2))
+                    return 0;
+                return o1 == o2 ? 0 : -1;
+            };
+            PropertyConfig<string, string> propertyConfig = ConfigurationProperties.NewConfigBuilder<string, string>()
+                    .SetKey("exist").SetValueComparator(customComparator).Build();
+            IProperty<string, string> property = manager.GetProperty(propertyConfig);
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("ok.2", property.Value);
+
+            source.SetPropertyValue("exist", "okx");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("okx", property.Value);
+
+            source.SetPropertyValue("exist", "ok.2");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("ok.2", property.Value);
+
+            ObjectReference<bool> touched = new ObjectReference<bool>();
+            property.OnChange += (o, e) => touched.Value = true;
+            property.OnChange += (o, e) => Console.WriteLine("property: {0}, changeTime: {1}, from: {2}, to: {3}\n",
+                    e.Property, e.ChangeTime, e.OldValue, e.NewValue);
+            source.SetPropertyValue("exist", "okx");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("okx", property.Value);
+            Assert.True(touched.Value);
+
+            source.SetPropertyValue("exist", "e.1");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("e.1", property.Value);
+
+            source.SetPropertyValue("exist", "e.2");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("e.1", property.Value);
+
+            source.SetPropertyValue("exist", "n.1");
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal("n.1", property.Value);
+        }
+
+        [Fact]
         public virtual void TestGetPropertiesMultipleSource()
         {
             TestConfigurationSource source1 = CreateSource();

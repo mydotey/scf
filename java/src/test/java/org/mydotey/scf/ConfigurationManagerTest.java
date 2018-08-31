@@ -1,8 +1,10 @@
 package org.mydotey.scf;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,6 +18,7 @@ import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author koqizhao
@@ -196,6 +199,53 @@ public class ConfigurationManagerTest {
         System.out.println("property: " + property + "\n");
         Assert.assertEquals("okx", property.getValue());
         Assert.assertTrue(touched.get());
+    }
+
+    @Test
+    public void testGetPropertyWithComparator() {
+        TestDynamicConfigurationSource source = createDynamicSource();
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, source));
+        Set<String> equalsSet = ImmutableSet.of("e.1", "e.2");
+        Comparator<String> customComparator = (o1, o2) -> {
+            if (equalsSet.contains(o1) && equalsSet.contains(o2))
+                return 0;
+            return o1 == o2 ? 0 : -1;
+        };
+        PropertyConfig<String, String> propertyConfig = ConfigurationProperties.<String, String> newConfigBuilder()
+                .setKey("exist").setValueType(String.class).setValueComparator(customComparator).build();
+        Property<String, String> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok.2", property.getValue());
+
+        source.setPropertyValue("exist", "okx");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("okx", property.getValue());
+
+        source.setPropertyValue("exist", "ok.2");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("ok.2", property.getValue());
+
+        AtomicBoolean touched = new AtomicBoolean();
+        property.addChangeListener(p -> touched.set(true));
+        property.addChangeListener(e -> System.out.printf("property: %s, changeTime: %s, from: %s, to: %s\n",
+                e.getProperty(), e.getChangeTime(), e.getOldValue(), e.getNewValue()));
+
+        source.setPropertyValue("exist", "okx");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("okx", property.getValue());
+        Assert.assertTrue(touched.get());
+
+        source.setPropertyValue("exist", "e.1");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("e.1", property.getValue());
+
+        source.setPropertyValue("exist", "e.2");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("e.1", property.getValue());
+
+        source.setPropertyValue("exist", "n.1");
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals("n.1", property.getValue());
     }
 
     @Test

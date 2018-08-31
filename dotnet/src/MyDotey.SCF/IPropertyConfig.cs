@@ -19,6 +19,7 @@ namespace MyDotey.SCF
         object DefaultValue { get; }
         ICollection<ITypeConverter> ValueConverters { get; }
         IValueFilter ValueFilter { get; }
+        IComparer<object> ValueComparator { get; }
     }
 
     /**
@@ -71,6 +72,16 @@ namespace MyDotey.SCF
          */
         public abstract IValueFilter<V> ValueFilter { get; }
 
+        IComparer<object> IPropertyConfig.ValueComparator =>
+            new DelegateComparator<object>((o1, o2) => ValueComparator.Compare((V)o1, (V)o2));
+
+        /**
+         * if a value type is not comparable by the equals method, can give a comparator instead
+         * <p>
+         * default to null
+         */
+        public abstract IComparer<V> ValueComparator { get; }
+
         public interface IBuilder : IAbstractBuilder<IBuilder, PropertyConfig<K, V>>
         {
 
@@ -118,6 +129,15 @@ namespace MyDotey.SCF
             B SetValueFilter(IValueFilter<V> valueFilter);
 
             B SetValueFilter(Func<V, V> valueFilter);
+
+            /**
+             * optional
+             * <p>
+             * @see PropertyConfig#getValueComparator()
+             */
+            B SetValueComparator(IComparer<V> valueComparator);
+
+            B SetValueComparator(Func<V, V, int> valueComparator);
 
             C Build();
         }

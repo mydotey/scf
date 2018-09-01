@@ -26,14 +26,14 @@
 ## NuGet Package
 
 ```sh
-dotnet add package MyDotey.SCF -v 1.4.3
-dotnet add package MyDotey.SCF.Simple -v 1.4.4
+dotnet add package MyDotey.SCF -v 1.5.0
+dotnet add package MyDotey.SCF.Simple -v 1.5.0
 ```
 
 Or use a single meta package
 
 ```sh
-dotnet add package MyDotey.SCF.Bom -v 1.4.0
+dotnet add package MyDotey.SCF.Bom -v 1.5.0
 ```
 
 ## Usage

@@ -90,6 +90,8 @@ Config for a *Property* with the following parts:
 
 - **Value Filter**: give a chance to check the value got from the *Configuration Source*, mostly used to **validate** the value
 
+- **Value Comparator**: give a chance to compare the value so as to know whether property value changes. use value's `Equals` method to compare by default
+
 ### Configuration Source
 
 A property can be configured in various ways. For example, a HashMap in memory, or a properties file, or env variable, or Java system property, or yaml file, ... etc.

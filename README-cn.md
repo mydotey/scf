@@ -90,6 +90,8 @@ Manager/Property的方法都是线程安全的，可以多线程并发使用。�
 
 - **Value Filter**: 值过滤器。主要用于*检查*配置源里取到的值的有效性。
 
+- **Value Comparator**: 值比较器。用于*比较*配置项的值是否有变化。默认使用值的`Equals`方法进行比较。
+
 ### 配置源（Configuration Source）
 
 1个配置项可以以多种形式来进行配置。例如内存字典、properties文件、环境变量、命令行参数、yaml文件等等。

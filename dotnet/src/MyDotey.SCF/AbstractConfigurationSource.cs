@@ -17,6 +17,8 @@ namespace MyDotey.SCF
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger(typeof(AbstractConfigurationSource<>));
 
+        private static readonly ICollection<ITypeConverter> EmptyValueConverters = new List<ITypeConverter>();
+
         private C _config;
 
         private volatile List<EventHandler<IConfigurationSourceChangeEvent>> _changeListeners;
@@ -89,20 +91,19 @@ namespace MyDotey.SCF
             if (IsDefault<V>(value))
                 return default(V);
 
-            if (value is V)
-                return (V)value;
-
-            if (propertyConfig.ValueConverters == null)
-                return default(V);
-
-            foreach (ITypeConverter typeConverter in propertyConfig.ValueConverters)
+            ICollection<ITypeConverter> valueConverters = propertyConfig.ValueConverters ?? EmptyValueConverters;
+            foreach (ITypeConverter typeConverter in valueConverters)
             {
                 if (typeConverter.SourceType.IsAssignableFrom(value.GetType())
                         && typeof(V).IsAssignableFrom(typeConverter.TargetType))
-                    return (V)typeConverter.Convert(value);
+                {
+                    V v = (V)typeConverter.Convert(value);
+                    if (v != null)
+                        return v;
+                }
             }
 
-            return default(V);
+            return value is V ? (V)value : default(V);
         }
 
         protected virtual bool IsDefault<V>(object value)

@@ -3,6 +3,7 @@ package org.mydotey.scf;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,19 +77,19 @@ public abstract class AbstractConfigurationSource<C extends ConfigurationSourceC
         if (isNull(value))
             return null;
 
-        if (propertyConfig.getValueType().isAssignableFrom(value.getClass()))
-            return (V) value;
-
-        if (propertyConfig.getValueConverters() == null)
-            return null;
-
-        for (TypeConverter<?, ?> typeConverter : propertyConfig.getValueConverters()) {
+        Collection<TypeConverter> valueConverters = propertyConfig.getValueConverters() == null
+                ? Collections.emptyList()
+                : propertyConfig.getValueConverters();
+        for (TypeConverter typeConverter : valueConverters) {
             if (typeConverter.getSourceType().isAssignableFrom(value.getClass())
-                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType()))
-                return (V) ((TypeConverter) typeConverter).convert(value);
+                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType())) {
+                V v = (V) ((TypeConverter) typeConverter).convert(value);
+                if (v != null)
+                    return v;
+            }
         }
 
-        return null;
+        return propertyConfig.getValueType().isAssignableFrom(value.getClass()) ? (V) value : null;
     }
 
     @SuppressWarnings("rawtypes")

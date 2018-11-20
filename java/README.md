@@ -31,7 +31,7 @@
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-bom</artifactId>
-                <version>1.5.2</version>
+                <version>1.5.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

@@ -2,20 +2,19 @@
 
 <!-- TOC -->
 
-- [SCF: Simple Configuration Facade](#scf-simple-configuration-facade)
-    - [Requirements](#requirements)
-    - [Maven Dependency](#maven-dependency)
-    - [Usage](#usage)
-        - [Create ConfigurationSource](#create-configurationsource)
-        - [Create ConfigurationManager](#create-configurationmanager)
-        - [Get Property](#get-property)
-        - [Get Strong-Typed Property](#get-strong-typed-property)
-        - [Add Change Listener](#add-change-listener)
-        - [Add Value Filter](#add-value-filter)
-        - [Use Properties Facade](#use-properties-facade)
-    - [Extension](#extension)
-        - [Custom Value Type](#custom-value-type)
-        - [Custom Source](#custom-source)
+- [Requirements](#requirements)
+- [Maven Dependency](#maven-dependency)
+- [Usage](#usage)
+  - [Create ConfigurationSource](#create-configurationsource)
+  - [Create ConfigurationManager](#create-configurationmanager)
+  - [Get Property](#get-property)
+  - [Get Strong-Typed Property](#get-strong-typed-property)
+  - [Add Change Listener](#add-change-listener)
+  - [Add Value Filter](#add-value-filter)
+  - [Use Properties Facade](#use-properties-facade)
+- [Extension](#extension)
+  - [Custom Value Type](#custom-value-type)
+  - [Custom Source](#custom-source)
 
 <!-- /TOC -->
 
@@ -31,7 +30,7 @@
             <dependency>
                 <groupId>org.mydotey.scf</groupId>
                 <artifactId>scf-bom</artifactId>
-                <version>1.5.3</version>
+                <version>1.5.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

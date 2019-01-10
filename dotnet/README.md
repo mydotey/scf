@@ -2,20 +2,19 @@
 
 <!-- TOC -->
 
-- [SCF: Simple Configuration Facade](#scf-simple-configuration-facade)
-    - [Requirements](#requirements)
-    - [NuGet Package](#nuget-package)
-    - [Usage](#usage)
-        - [Create ConfigurationSource](#create-configurationsource)
-        - [Create ConfigurationManager](#create-configurationmanager)
-        - [Get Property](#get-property)
-        - [Get Strong-Typed Property](#get-strong-typed-property)
-        - [Add Change Listener](#add-change-listener)
-        - [Add Value Filter](#add-value-filter)
-        - [Use Properties Facade](#use-properties-facade)
-    - [Extension](#extension)
-        - [Custom Value Type](#custom-value-type)
-        - [Custom Source](#custom-source)
+- [Requirements](#requirements)
+- [NuGet Package](#nuget-package)
+- [Usage](#usage)
+  - [Create ConfigurationSource](#create-configurationsource)
+  - [Create ConfigurationManager](#create-configurationmanager)
+  - [Get Property](#get-property)
+  - [Get Strong-Typed Property](#get-strong-typed-property)
+  - [Add Change Listener](#add-change-listener)
+  - [Add Value Filter](#add-value-filter)
+  - [Use Properties Facade](#use-properties-facade)
+- [Extension](#extension)
+  - [Custom Value Type](#custom-value-type)
+  - [Custom Source](#custom-source)
 
 <!-- /TOC -->
 
@@ -27,13 +26,13 @@
 
 ```sh
 dotnet add package MyDotey.SCF -v 1.5.1
-dotnet add package MyDotey.SCF.Simple -v 1.5.1
+dotnet add package MyDotey.SCF.Simple -v 1.5.2
 ```
 
 Or use a single meta package
 
 ```sh
-dotnet add package MyDotey.SCF.Bom -v 1.5.1
+dotnet add package MyDotey.SCF.Bom -v 1.5.2
 ```
 
 ## Usage

@@ -1,0 +1,7 @@
+[package]
+name = "scf-core"
+version = "0.1.0"
+authors = ["Qiang Zhao <koqizhao@outlook.com>"]
+edition = "2018"
+
+[dependencies]

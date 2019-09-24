@@ -1,12 +1,12 @@
 
-use crate::value::*;
+use crate::value::immutable::*;
 use std::sync::RwLock;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct DefaultConfigurationManager {
-    properties: Arc<RwLock<HashMap<Object, Object>>>
+    properties: Arc<RwLock<HashMap<Immutable, Immutable>>>
 }
 
 impl DefaultConfigurationManager {
@@ -17,7 +17,7 @@ impl DefaultConfigurationManager {
         }
     }
 
-    pub fn get(&self, key: &Object) -> Option<Object> {
+    pub fn get(&self, key: &Immutable) -> Option<Immutable> {
         let lock = self.properties.read().unwrap();
         match lock.get(key) {
             Some(r) => Some(r.clone()),
@@ -25,7 +25,7 @@ impl DefaultConfigurationManager {
         }
     }
 
-    pub fn put(&self, key: Object, value: Object) -> Option<Object> {
+    pub fn put(&self, key: Immutable, value: Immutable) -> Option<Immutable> {
         let mut map = self.properties.write().unwrap();
         map.insert(key, value)
     }
@@ -40,9 +40,9 @@ mod test {
     #[test]
     fn test() {
         let manager = DefaultConfigurationManager::new();
-        let key = Object::new("key");
-        let value = Object::new("value");
-        let value2 = Object::new("value2");
+        let key = Immutable::new("key");
+        let value = Immutable::new("value");
+        let value2 = Immutable::new("value2");
         manager.put(key.clone(), value.clone());
         let v = manager.get(&key);
         assert_eq!(value, v.unwrap());

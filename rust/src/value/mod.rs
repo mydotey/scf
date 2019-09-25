@@ -1,8 +1,12 @@
 use std::hash::Hash;
 
 pub mod object;
-pub mod immutable;
-pub mod mutable;
+
+mod immutable;
+pub use immutable::Immutable;
+
+mod mutable;
+pub use mutable::Mutable;
 
 pub trait KeyConstraints: 'static + Hash + Eq + Send + Sync { }
 

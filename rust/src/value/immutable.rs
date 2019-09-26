@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::ops::Deref;
 use std::convert::AsRef;
 
-use super::object::*;
+use super::{ Value, any::* };
 
 #[derive(Clone)]
 pub struct Immutable {
@@ -17,7 +17,7 @@ pub struct Immutable {
 }
 
 impl Immutable {
-    pub fn new<T: 'static + Hash + Eq + Display + Clone>(value: T) -> Immutable {
+    pub fn new<T: Value>(value: T) -> Immutable {
         Immutable {
             value: Arc::new(Box::new(value)),
             hash_caculator: Arc::new(Box::new(hash::<T>)),

@@ -4,7 +4,7 @@ use std::fmt::{ Display, Formatter, Result, Debug };
 use std::rc::Rc;
 use std::ops::{ Deref, DerefMut };
 
-use super::object::*;
+use super::{ Value, any::* };
 
 pub struct Mutable {
     value: Box<Any>,
@@ -15,7 +15,7 @@ pub struct Mutable {
 }
 
 impl Mutable {
-    pub fn new<T: 'static + Hash + Eq + Display + Clone>(value: T) -> Mutable {
+    pub fn new<T: Value>(value: T) -> Mutable {
         Mutable {
             value: Box::new(value),
             hash_caculator: Rc::new(Box::new(hash::<T>)),

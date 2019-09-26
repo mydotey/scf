@@ -3,21 +3,13 @@ use crate::value::*;
 
 pub mod default;
 
-pub trait PropertyConfig<K, V>
-    where
-        K: KeyConstraints,
-        V: ValueConstraints
-{
+pub trait PropertyConfig<K: Value, V: Value> {
     fn get_key(&self) -> &K;
 
     fn get_default_value(&self) -> &V;
 }
 
-pub trait Property<K, V>
-    where
-        K: KeyConstraints,
-        V: ValueConstraints
-{
+pub trait Property<K: Value, V: Value> {
     fn get_config(&self) -> &PropertyConfig<K, V>;
 
     fn get_value(&self) -> Option<&V>;
@@ -25,11 +17,7 @@ pub trait Property<K, V>
     fn add_change_listener(&mut self, listener: PropertyChangeListener<K, V>);
 }
 
-pub trait PropertyChangeEvent<K, V>
-    where
-        K: KeyConstraints,
-        V: ValueConstraints
-{
+pub trait PropertyChangeEvent<K: Value, V: Value> {
     fn get_property(&self) -> &Property<K, V>;
 
     fn get_old_value(&self) -> Option<&V>;

@@ -3,12 +3,13 @@ use std::collections::hash_map::DefaultHasher;
 use std::fmt::Display;
 use std::any::Any;
 use std::ops::Deref;
+use super::Value;
 
-pub trait Object: Hash + Eq + Display + Clone + Deref + AsRef<Any> + Into<Box<Any>> {
+pub trait AnyValue: Value + Deref + AsRef<Any> + Into<Box<Any>> {
 
 }
 
-impl<T: Hash + Eq + Display + Clone + Deref + AsRef<Any> + Into<Box<Any>>> Object for T { }
+impl<T: Value + Deref + AsRef<Any> + Into<Box<Any>>> AnyValue for T { }
 
 pub type HashCaculator = Fn(&Any) -> u64;
 pub type EqualityCaculator = Fn(&Any, &Any) -> bool;

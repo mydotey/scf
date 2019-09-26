@@ -1,6 +1,7 @@
 use std::hash::Hash;
+use std::fmt::Display;
 
-pub mod object;
+pub mod any;
 
 mod immutable;
 pub use immutable::Immutable;
@@ -8,10 +9,6 @@ pub use immutable::Immutable;
 mod mutable;
 pub use mutable::Mutable;
 
-pub trait KeyConstraints: 'static + Hash + Eq + Send + Sync { }
+pub trait Value: 'static + Hash + Eq + Display + Clone + Send + Sync { }
 
-pub trait ValueConstraints: 'static + Eq + Send + Sync { }
-
-impl<T: 'static + Hash + Eq + Send + Sync> KeyConstraints for T { }
-
-impl<T: 'static + Eq + Send + Sync> ValueConstraints for T { }
+impl<T: 'static + Hash + Eq + Display + Clone + Send + Sync> Value for T { }

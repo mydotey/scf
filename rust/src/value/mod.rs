@@ -1,14 +1,28 @@
 use std::hash::Hash;
-use std::fmt::Display;
+use std::fmt::{ Display, Debug };
 
 pub mod any;
 
-mod immutable;
-pub use immutable::Immutable;
+pub mod immutable;
 
-mod mutable;
-pub use mutable::Mutable;
+pub mod option;
 
-pub trait Value: 'static + Hash + Eq + Display + Clone + Send + Sync { }
+pub trait Object: 'static + Hash + Eq + Clone + Display + Debug { }
 
-impl<T: 'static + Hash + Eq + Display + Clone + Send + Sync> Value for T { }
+impl<T: 'static + Hash + Eq + Clone + Display + Debug> Object for T { }
+
+pub trait ThreadSafe: Send + Sync { }
+
+impl<T: Send + Sync> ThreadSafe for T { }
+
+pub trait ThreadSafeObject: Object + ThreadSafe { }
+
+impl<T: Object + ThreadSafe> ThreadSafeObject for T { }
+
+pub trait TraitObject: 'static + Display + Debug { }
+
+impl<T: 'static + Display + Debug> TraitObject for T { }
+
+pub trait ThreadSafeTraitObject: TraitObject + ThreadSafe { }
+
+impl<T: TraitObject + ThreadSafe> ThreadSafeTraitObject for T { }

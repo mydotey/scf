@@ -7,19 +7,20 @@ use super::*;
 
 #[derive(Clone)]
 pub struct DefaultConfigurationManager {
+    sources: Arc<RwLock<Vec<Box<dyn ConfigurationSource>>>>,
     properties: Arc<RwLock<HashMap<ImmutableObject, Box<dyn RawProperty>>>>
 }
 
 impl DefaultConfigurationManager {
-    pub fn new() -> DefaultConfigurationManager {
+    pub fn new(sources: Vec<Box<dyn ConfigurationSource>>) -> DefaultConfigurationManager {
         DefaultConfigurationManager {
+            sources: Arc::new(RwLock::new(sources)),
             properties: Arc::new(RwLock::new(HashMap::new()))
         }
     }
 }
 
 impl ConfigurationManager for DefaultConfigurationManager {
-
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty> {
         let key = ImmutableObject::wrap(config.get_key());
         let mut opt_property = self.properties.read().unwrap().get(&key).map(|p|p.as_ref().clone());
@@ -40,7 +41,15 @@ impl ConfigurationManager for DefaultConfigurationManager {
         opt_property.unwrap()
     }
 
-    fn get_property_value(&self, _config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
+    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
+        let lock = self.sources.read().unwrap();
+        for source in lock.iter() {
+            let value = source.get_property_value(config);
+            if value.is_some() {
+                return value;
+            }
+        }
+
         None
     }
 
@@ -59,8 +68,8 @@ impl Hash for DefaultConfigurationManager {
 
 impl PartialEq for DefaultConfigurationManager {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.properties.as_ref() as *const _ as u64;
-        let other_addr = other.properties.as_ref() as *const _ as u64;
+        let addr = self.properties.as_ref() as *const _;
+        let other_addr = other.properties.as_ref() as *const _;
         addr == other_addr
     }
 }
@@ -83,10 +92,19 @@ mod test {
     use super::*;
     use std::thread;
     use lang_extension::option::*;
+    use crate::source::default::*;
 
     #[test]
     fn test() {
-        let manager = DefaultConfigurationManager::new();
+        let source = DefaultConfigurationSource::new(Box::new(move |o| -> Option<Box<dyn Object>> {
+            let key: Box<dyn Object> = Box::new("key");
+            if key.as_ref().equals(o) {
+                Some(Box::new("ok"))
+            } else {
+                None
+            }
+        }));
+        let manager = DefaultConfigurationManager::new(vec!(Box::new(source)));
         let config = DefaultPropertyConfig::new("key", Some("default"));
         let property = manager.get_property(&config);
         println!("config: {:?}", config);

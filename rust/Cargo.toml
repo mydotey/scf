@@ -5,4 +5,4 @@ authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"
 
 [dependencies]
-lang_extension = "0.2.3"
+lang_extension = "0.3.1"

@@ -1,10 +1,11 @@
 
 #![allow(dead_code)]
 
-mod value;
-mod property;
-mod source;
-mod manager;
+pub mod value;
+pub mod property;
+pub mod source;
+pub mod manager;
+pub mod facade;
 
 #[cfg(test)]
 mod tests {

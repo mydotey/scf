@@ -7,15 +7,37 @@ use super::*;
 
 pub type PropertyProvider = FunctionRef<dyn Object, Option<Box<dyn Object>>>;
 
+#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+pub struct DefaultConfiguratonSourceConfig {
+    name: String
+}
+
+impl DefaultConfiguratonSourceConfig {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned()
+        }
+    }
+}
+
+impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
+    fn name(&self) -> &str {
+        self.name.as_str()
+    }
+}
+
 #[derive(Clone)]
 pub struct DefaultConfigurationSource {
+    config: Arc<Box<dyn ConfigurationSourceConfig>>,
     property_provider: Arc<RwLock<PropertyProvider>>,
     listeners: Arc<RwLock<Vec<ConfigurationSourceChangeListener>>>
 }
 
 impl DefaultConfigurationSource {
-    pub fn new(property_provider: PropertyProvider) -> DefaultConfigurationSource {
+    pub fn new(config: Box<dyn ConfigurationSourceConfig>, property_provider: PropertyProvider)
+        -> DefaultConfigurationSource {
         DefaultConfigurationSource {
+            config: Arc::new(config),
             property_provider: Arc::new(RwLock::new(property_provider)),
             listeners: Arc::new(RwLock::new(Vec::new()))
         }
@@ -53,7 +75,7 @@ impl Eq for DefaultConfigurationSource {
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ name: {:?} }}", "default")
+        write!(f, "{{ config: {} }}", self.config.to_debug_string())
     }
 }
 
@@ -61,6 +83,10 @@ unsafe impl Sync for DefaultConfigurationSource { }
 unsafe impl Send for DefaultConfigurationSource { }
 
 impl ConfigurationSource for DefaultConfigurationSource {
+    fn get_config(&self) -> &dyn ConfigurationSourceConfig {
+        self.config.as_ref().as_ref()
+    }
+
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
         let lock = self.property_provider.read().unwrap();
         lock(config.get_key().as_ref())

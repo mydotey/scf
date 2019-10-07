@@ -5,7 +5,13 @@ use crate::property::*;
 
 pub mod default;
 
+pub trait ConfigurationSourceConfig: Object + Send + Sync {
+    fn name(&self) -> &str;
+}
+
 pub trait ConfigurationSource : Object + Send + Sync {
+
+    fn get_config(&self) -> &dyn ConfigurationSourceConfig;
 
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>>;
 

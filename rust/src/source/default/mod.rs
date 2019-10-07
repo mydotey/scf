@@ -12,17 +12,34 @@ pub struct DefaultConfiguratonSourceConfig {
     name: String
 }
 
-impl DefaultConfiguratonSourceConfig {
-    pub fn new(name: &str) -> Self {
+impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
+    fn name(&self) -> &str {
+        self.name.as_str()
+    }
+}
+
+pub struct DefaultConfigurationSourceConfigBuilder {
+    name: Option<String>
+}
+
+impl DefaultConfigurationSourceConfigBuilder {
+    pub fn new() -> Self {
         Self {
-            name: name.to_owned()
+            name: None
         }
     }
 }
 
-impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
-    fn name(&self) -> &str {
-        self.name.as_str()
+impl ConfigurationSourceConfigBuilder for DefaultConfigurationSourceConfigBuilder {
+    fn set_name(&mut self, name: &str) -> &mut dyn ConfigurationSourceConfigBuilder {
+        self.name = Some(name.to_owned());
+        self
+    }
+
+    fn build(&self) -> Box<dyn ConfigurationSourceConfig> {
+        Box::new(DefaultConfiguratonSourceConfig {
+            name: self.name.as_ref().unwrap().to_owned()
+        })
     }
 }
 

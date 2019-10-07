@@ -5,6 +5,7 @@ use std::hash::{ Hash, Hasher };
 
 use lang_extension::any::*;
 
+use crate::property::default::*;
 use super::*;
 
 #[derive(Clone)]
@@ -207,7 +208,7 @@ mod test {
     #[test]
     fn test() {
         let source = DefaultConfigurationSource::new(
-            Box::new(DefaultConfiguratonSourceConfig::new("test")),
+            DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
             Box::new(move |o| -> Option<Box<dyn Object>> {
                 let key: Box<dyn Object> = Box::new("key");
                 if key.as_ref().equals(o.as_any()) {

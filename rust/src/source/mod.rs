@@ -9,6 +9,14 @@ pub trait ConfigurationSourceConfig: Object + Send + Sync {
     fn name(&self) -> &str;
 }
 
+pub trait ConfigurationSourceConfigBuilder {
+
+    fn set_name(&mut self, name: &str) -> &mut dyn ConfigurationSourceConfigBuilder;
+
+    fn build(&self) -> Box<dyn ConfigurationSourceConfig>;
+
+}
+
 pub trait ConfigurationSource : Object + Send + Sync {
 
     fn get_config(&self) -> &dyn ConfigurationSourceConfig;

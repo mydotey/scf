@@ -27,8 +27,9 @@ pub struct ConfigurationProperties {
 }
 
 impl ConfigurationProperties {
-    pub fn new_config_builder() {
-
+    pub fn new_config_builder<K: ObjectConstraits, V: ObjectConstraits>()
+        -> Box<dyn PropertyConfigBuilder<K, V>> {
+        Box::new(DefaultPropertyConfigBuilder::new())
     }
 
     pub fn new(manager: Box<dyn ConfigurationManager>) -> Self {

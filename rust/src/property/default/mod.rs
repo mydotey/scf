@@ -49,16 +49,6 @@ pub struct DefaultPropertyConfig<K: ObjectConstraits, V: ObjectConstraits> {
 }
 
 impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfig<K, V> {
-    pub fn new(key: K, default_value: Option<V>) -> Self {
-        let raw = DefaultRawPropertyConfig::new(key, default_value);
-        DefaultPropertyConfig {
-            raw: Arc::new(RawPropertyConfig::clone(&raw)),
-            raw_object: Arc::new(ImmutableObject::new(raw)),
-            k: PhantomData::<K>,
-            v: PhantomData::<V>
-        }
-    }
-
     pub fn from_raw(config: &dyn RawPropertyConfig) -> Self {
         DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone(config)),
@@ -121,6 +111,44 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfig<K, V> for DefaultP
 
     fn clone(&self) -> Box<dyn PropertyConfig<K, V>> {
         Box::new(Clone::clone(self))
+    }
+}
+
+pub struct DefaultPropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
+    key: Option<K>,
+    default_value: Option<V>
+}
+
+impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfigBuilder<K, V> {
+    pub fn new() -> Self {
+        Self {
+            key: None,
+            default_value: None
+        }
+    }
+}
+
+impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfigBuilder<K, V>
+    for DefaultPropertyConfigBuilder<K, V> {
+    fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.key = Some(key);
+        self
+    }
+
+    fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.default_value = Some(default_value);
+        self
+    }
+
+    fn build(&self) -> Box<dyn PropertyConfig<K, V>> {
+        let raw = DefaultRawPropertyConfig::new(self.key.as_ref().unwrap().clone(),
+            self.default_value.as_ref().map(|v|v.clone()));
+        Box::new(DefaultPropertyConfig {
+            raw: Arc::new(RawPropertyConfig::clone(&raw)),
+            raw_object: Arc::new(ImmutableObject::new(raw)),
+            k: PhantomData::<K>,
+            v: PhantomData::<V>
+        })
     }
 }
 
@@ -480,8 +508,8 @@ mod test {
 
     #[test]
     fn test() {
-        let config = DefaultPropertyConfig::new(1, Some(2));
-        println!("{:?}", config);
+        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        println!("{:?}", config.to_debug_string());
     }
 
 }

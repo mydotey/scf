@@ -220,14 +220,14 @@ mod test {
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source)).build();
         let manager = DefaultConfigurationManager::new(config);
-        let config = DefaultPropertyConfig::new("key", Some("default"));
-        let property = manager.get_property(&config);
-        println!("config: {:?}", config);
+        let config = DefaultPropertyConfigBuilder::new().set_key("key").set_default_value("default").build();
+        let property = manager.get_property(config.as_ref().as_raw());
+        println!("config: {:?}", config.to_debug_string());
         println!("property: {:?}", property.to_debug_string());
         println!("value: {:?}", to_debug_string(&property.get_value()));
         let handle = thread::spawn(move || {
-            let property = manager.get_property(&config);
-            println!("config: {:?}", config);
+            let property = manager.get_property(config.as_ref().as_raw());
+            println!("config: {:?}", config.to_debug_string());
             println!("property: {:?}", property.to_debug_string());
             println!("value: {:?}", to_debug_string(&property.get_value()));
         });

@@ -44,6 +44,14 @@ pub trait PropertyConfig<K: ObjectConstraits, V: ObjectConstraits> : RawProperty
     fn as_raw(&self) -> & dyn RawPropertyConfig;
 }
 
+pub trait PropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
+    fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
+}
+
 pub trait Property<K: ObjectConstraits, V: ObjectConstraits> : RawProperty {
     fn get_config(&self) -> &dyn PropertyConfig<K, V>;
 

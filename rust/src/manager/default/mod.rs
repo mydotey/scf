@@ -4,6 +4,7 @@ use std::fmt;
 use std::hash::{ Hash, Hasher };
 
 use lang_extension::any::*;
+use lang_extension::object::*;
 
 use crate::property::default::*;
 use super::*;
@@ -120,9 +121,32 @@ pub struct DefaultConfigurationManager {
 
 impl DefaultConfigurationManager {
     pub fn new(config: Box<dyn ConfigurationManagerConfig>) -> DefaultConfigurationManager {
-        DefaultConfigurationManager {
+        let manager = DefaultConfigurationManager {
             config: Arc::new(config),
             properties: Arc::new(RwLock::new(HashMap::new()))
+        };
+        for s in manager.config.get_sources() {
+            let clone = Clone::clone(&manager);
+            s.add_change_listener(Box::new(move |e|clone.on_source_change(e)));
+        }
+        manager
+    }
+
+    fn on_source_change(&self, event: &dyn ConfigurationSourceChangeEvent) {
+        let properties = self.properties.read().unwrap();
+        for property in properties.values() {
+            let new_value = self.get_property_value(property.get_config());
+            let old_value = property.get_value();
+            if new_value != old_value {
+                let pe = DefaultRawPropertyChangeEvent::new(
+                    Arc::new(property.as_ref().clone()), old_value.map(|v|ImmutableObject::wrap(v.clone_boxed())),
+                    new_value.as_ref().map(|v|ImmutableObject::wrap(v.clone_boxed())), event.get_change_time());
+                let raw_property = property.as_ref().clone();
+                let default_raw_property = Clone::clone(raw_property.as_any().downcast_ref::<DefaultRawProperty>().unwrap());
+                default_raw_property.set_value(new_value);
+                let action: Action = Box::new(move || default_raw_property.raise_change_event(&pe));
+                self.config.get_task_executor()(&action);
+            }
         }
     }
 }

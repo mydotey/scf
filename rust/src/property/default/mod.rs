@@ -1,5 +1,5 @@
 use std::fmt;
-use std::sync::{ Arc, RwLock, RwLockReadGuard };
+use std::sync::{ Arc, RwLock };
 use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::hash::{ Hash, Hasher };
@@ -172,8 +172,11 @@ impl DefaultRawProperty {
         self.value.write().unwrap().replace(value.map(|v|ImmutableObject::wrap(v)));
     }
 
-    pub fn get_change_listeners(&self) -> RwLockReadGuard<Vec<RawPropertyChangeListener>> {
-        self.change_listeners.read().unwrap()
+    pub fn raise_change_event(&self, event: &dyn RawPropertyChangeEvent) {
+        let listeners = self.change_listeners.read().unwrap();
+        for listener in listeners.iter() {
+            listener(event);
+        }
     }
 }
 

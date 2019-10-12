@@ -4,6 +4,7 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::hash::{ Hash, Hasher };
 use std::fmt::{ Debug, Formatter, Result };
+use std::any::TypeId;
 
 use lang_extension::option::*;
 use super::*;
@@ -11,16 +12,9 @@ use super::*;
 #[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct DefaultRawPropertyConfig {
     key: ImmutableObject,
-    default_value: Option<ImmutableObject>
-}
-
-impl DefaultRawPropertyConfig {
-    pub fn new<K: ObjectConstraits, V: ObjectConstraits>(key: K, default_value: Option<V>) -> Self {
-        DefaultRawPropertyConfig {
-            key: ImmutableObject::new(key),
-            default_value: default_value.map(|v|ImmutableObject::new(v))
-        }
-    }
+    value_type: TypeId,
+    default_value: Option<ImmutableObject>,
+    value_converters: Arc<Vec<Box<dyn RawTypeConverter>>>
 }
 
 impl RawPropertyConfig for DefaultRawPropertyConfig {
@@ -28,11 +22,19 @@ impl RawPropertyConfig for DefaultRawPropertyConfig {
         self.key.raw_object()
     }
 
+    fn get_value_type(&self) -> TypeId {
+        self.value_type
+    }
+
     fn get_default_value(&self) -> Option<Box<dyn Object>> {
         self.default_value.as_ref().map(|v|v.raw_object())
     }
 
-    fn clone(&self) -> Box<dyn RawPropertyConfig> {
+    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>] {
+        self.value_converters.as_ref().as_slice()
+    }
+
+    fn clone_boxed(&self) -> Box<dyn RawPropertyConfig> {
         Box::new(Clone::clone(self))
     }
 }
@@ -51,8 +53,8 @@ pub struct DefaultPropertyConfig<K: ObjectConstraits, V: ObjectConstraits> {
 impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfig<K, V> {
     pub fn from_raw(config: &dyn RawPropertyConfig) -> Self {
         DefaultPropertyConfig {
-            raw: Arc::new(RawPropertyConfig::clone(config)),
-            raw_object: Arc::new(ImmutableObject::wrap(config.clone_boxed())),
+            raw: Arc::new(RawPropertyConfig::clone_boxed(config)),
+            raw_object: Arc::new(ImmutableObject::wrap(Object::clone_boxed(config))),
             k: PhantomData::<K>,
             v: PhantomData::<V>
         }
@@ -87,12 +89,20 @@ impl<K: ObjectConstraits, V: ObjectConstraits> RawPropertyConfig for DefaultProp
         self.raw.get_key()
     }
 
+    fn get_value_type(&self) -> TypeId {
+        self.raw.get_value_type()
+    }
+
     fn get_default_value(&self) -> Option<Box<dyn Object>> {
         self.raw.get_default_value()
     }
 
-    fn clone(&self) -> Box<dyn RawPropertyConfig> {
-        self.raw.as_ref().as_ref().clone()
+    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>] {
+        self.raw.get_value_converters()
+    }
+
+    fn clone_boxed(&self) -> Box<dyn RawPropertyConfig> {
+        RawPropertyConfig::clone_boxed(self.raw.as_ref().as_ref())
     }
 }
 
@@ -101,8 +111,16 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfig<K, V> for DefaultP
         downcast_raw::<K>(self.raw.get_key()).unwrap()
     }
 
+    fn get_value_type(&self) -> TypeId {
+        self.raw.get_value_type()
+    }
+
     fn get_default_value(&self) -> Option<V> {
         self.raw.as_ref().get_default_value().map(|v|downcast_raw::<V>(v).unwrap())
+    }
+
+    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>] {
+        self.raw.get_value_converters()
     }
 
     fn as_raw(&self) -> &dyn RawPropertyConfig {
@@ -116,14 +134,18 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfig<K, V> for DefaultP
 
 pub struct DefaultPropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
     key: Option<K>,
-    default_value: Option<V>
+    value_type: TypeId,
+    default_value: Option<V>,
+    value_converters: Vec<Box<dyn RawTypeConverter>>
 }
 
 impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfigBuilder<K, V> {
     pub fn new() -> Self {
         Self {
             key: None,
-            default_value: None
+            value_type: TypeId::of::<V>(),
+            default_value: None,
+            value_converters: Vec::new()
         }
     }
 }
@@ -140,11 +162,28 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfigBuilder<K, V>
         self
     }
 
+    fn add_value_converter(&mut self, value_converter: Box<dyn RawTypeConverter>)
+        -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.value_converters.push(value_converter);
+        self
+    }
+
+    fn add_value_converters(&mut self, value_converters: Vec<Box<dyn RawTypeConverter>>)
+        -> &mut dyn PropertyConfigBuilder<K, V> {
+        let mut value_converters = value_converters;
+        self.value_converters.append(&mut value_converters);
+        self
+    }
+
     fn build(&self) -> Box<dyn PropertyConfig<K, V>> {
-        let raw = DefaultRawPropertyConfig::new(self.key.as_ref().unwrap().clone(),
-            self.default_value.as_ref().map(|v|v.clone()));
+        let raw = DefaultRawPropertyConfig {
+            key: ImmutableObject::new(self.key.clone().unwrap()),
+            value_type: self.value_type,
+            default_value: self.default_value.as_ref().map(|v|v.clone()).map(|v|ImmutableObject::new(v)),
+            value_converters: Arc::new(self.value_converters.clone())
+        };
         Box::new(DefaultPropertyConfig {
-            raw: Arc::new(RawPropertyConfig::clone(&raw)),
+            raw: Arc::new(RawPropertyConfig::clone_boxed(&raw)),
             raw_object: Arc::new(ImmutableObject::new(raw)),
             k: PhantomData::<K>,
             v: PhantomData::<V>
@@ -162,7 +201,7 @@ pub struct DefaultRawProperty {
 impl DefaultRawProperty {
     pub fn new(config: &dyn RawPropertyConfig) -> Self {
         DefaultRawProperty {
-            config: Arc::new(config.clone()),
+            config: Arc::new(RawPropertyConfig::clone_boxed(config)),
             value: Arc::new(RwLock::new(RefCell::new(None))),
             change_listeners: Arc::new(RwLock::new(Vec::new()))
         }
@@ -199,7 +238,7 @@ impl RawProperty for DefaultRawProperty {
         listeners.push(listener);
     }
 
-    fn clone(&self) -> Box<dyn RawProperty> {
+    fn clone_boxed(&self) -> Box<dyn RawProperty> {
         Box::new(Clone::clone(self))
     }
 }
@@ -244,7 +283,7 @@ impl<K: ObjectConstraits, V: ObjectConstraits> DefaultProperty<K, V> {
         let raw = DefaultRawProperty::new(config.as_raw());
         DefaultProperty {
             config: Arc::new(PropertyConfig::clone(config)),
-            raw: Arc::new(RawProperty::clone(&raw)),
+            raw: Arc::new(RawProperty::clone_boxed(&raw)),
             raw_object: Arc::new(ImmutableObject::new(raw))
         }
     }
@@ -252,8 +291,8 @@ impl<K: ObjectConstraits, V: ObjectConstraits> DefaultProperty<K, V> {
     pub fn from_raw(property: &dyn RawProperty) -> Self {
         DefaultProperty {
             config: Arc::new(Box::new(DefaultPropertyConfig::from_raw(property.get_config()))),
-            raw: Arc::new(property.clone()),
-            raw_object: Arc::new(ImmutableObject::wrap(property.clone_boxed()))
+            raw: Arc::new(RawProperty::clone_boxed(property)),
+            raw_object: Arc::new(ImmutableObject::wrap(Object::clone_boxed(property)))
         }
     }
 }
@@ -294,8 +333,8 @@ impl<K: ObjectConstraits, V: ObjectConstraits> RawProperty for DefaultProperty<K
         self.raw.add_change_listener(listener);
     }
 
-    fn clone(&self) -> Box<dyn RawProperty> {
-        self.raw.as_ref().as_ref().clone()
+    fn clone_boxed(&self) -> Box<dyn RawProperty> {
+        RawProperty::clone_boxed(self.raw.as_ref().as_ref())
     }
 }
 
@@ -399,7 +438,7 @@ impl RawPropertyChangeEvent for DefaultRawPropertyChangeEvent {
         self.change_time
     }
 
-    fn clone(&self) -> Box<dyn RawPropertyChangeEvent> {
+    fn clone_boxed(&self) -> Box<dyn RawPropertyChangeEvent> {
         Box::new(Clone::clone(self))
     }
 }
@@ -422,8 +461,8 @@ impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyChangeEvent<K, V> 
         let property = DefaultProperty::<K, V>::from_raw(event.get_property());
         DefaultPropertyChangeEvent {
             property: Arc::new(Box::new(property)),
-            raw: Arc::new(event.clone()),
-            raw_object: Arc::new(ImmutableObject::wrap(event.clone_boxed()))
+            raw: Arc::new(RawPropertyChangeEvent::clone_boxed(event)),
+            raw_object: Arc::new(ImmutableObject::wrap(Object::clone_boxed(event)))
         }
     }
 }
@@ -472,8 +511,8 @@ impl<K: ObjectConstraits, V: ObjectConstraits> RawPropertyChangeEvent for Defaul
         self.raw.get_change_time()
     }
 
-    fn clone(&self) -> Box<dyn RawPropertyChangeEvent> {
-        self.raw.as_ref().as_ref().clone()
+    fn clone_boxed(&self) -> Box<dyn RawPropertyChangeEvent> {
+        RawPropertyChangeEvent::clone_boxed(self.raw.as_ref().as_ref())
     }
 }
 

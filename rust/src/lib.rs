@@ -1,6 +1,9 @@
 
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate lang_extension;
+
 pub mod value;
 pub mod property;
 pub mod source;

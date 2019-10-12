@@ -1,14 +1,23 @@
+use std::any::TypeId;
+
 use lang_extension::object::*;
+use lang_extension::convert::*;
 
 pub mod default;
 
 pub trait RawPropertyConfig: Object + Send + Sync {
     fn get_key(&self) -> Box<dyn Object>;
 
+    fn get_value_type(&self) -> TypeId;
+
     fn get_default_value(&self) -> Option<Box<dyn Object>>;
 
-    fn clone(&self) -> Box<dyn RawPropertyConfig>;
+    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
+
+    fn clone_boxed(&self) -> Box<dyn RawPropertyConfig>;
 }
+
+boxed_trait_object!(RawPropertyConfig);
 
 pub trait RawProperty: Object + Send + Sync {
     fn get_config(&self) -> &dyn RawPropertyConfig;
@@ -17,8 +26,10 @@ pub trait RawProperty: Object + Send + Sync {
 
     fn add_change_listener(&self, listener: RawPropertyChangeListener);
 
-    fn clone(&self) -> Box<dyn RawProperty>;
+    fn clone_boxed(&self) -> Box<dyn RawProperty>;
 }
+
+boxed_trait_object!(RawProperty);
 
 pub trait RawPropertyChangeEvent: Object + Send + Sync {
     fn get_property(&self) -> &dyn RawProperty;
@@ -29,15 +40,21 @@ pub trait RawPropertyChangeEvent: Object + Send + Sync {
 
     fn get_change_time(&self) -> u64;
 
-    fn clone(&self) -> Box<dyn RawPropertyChangeEvent>;
+    fn clone_boxed(&self) -> Box<dyn RawPropertyChangeEvent>;
 }
+
+boxed_trait_object!(RawPropertyChangeEvent);
 
 pub type RawPropertyChangeListener = Box<dyn Fn(&dyn RawPropertyChangeEvent)>;
 
 pub trait PropertyConfig<K: ObjectConstraits, V: ObjectConstraits> : RawPropertyConfig {
     fn get_key(&self) -> K;
 
+    fn get_value_type(&self) -> TypeId;
+
     fn get_default_value(&self) -> Option<V>;
+
+    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
     fn clone(&self) -> Box<dyn PropertyConfig<K, V>>;
 
@@ -48,6 +65,12 @@ pub trait PropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn add_value_converter(&mut self, value_converter: Box<dyn RawTypeConverter>)
+        -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn add_value_converters(&mut self, value_converters: Vec<Box<dyn RawTypeConverter>>)
+        -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }

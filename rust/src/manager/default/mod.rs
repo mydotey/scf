@@ -139,7 +139,8 @@ impl DefaultConfigurationManager {
             let old_value = property.get_value();
             if new_value != old_value {
                 let pe = DefaultRawPropertyChangeEvent::new(
-                    Arc::new(property.as_ref().clone()), old_value.map(|v|ImmutableObject::wrap(v.clone_boxed())),
+                    Arc::new(RawProperty::clone_boxed(property.as_ref())),
+                    old_value.map(|v|ImmutableObject::wrap(v.clone_boxed())),
                     new_value.as_ref().map(|v|ImmutableObject::wrap(v.clone_boxed())), event.get_change_time());
                 let raw_property = property.as_ref().clone();
                 let default_raw_property = Clone::clone(raw_property.as_any().downcast_ref::<DefaultRawProperty>().unwrap());
@@ -158,16 +159,17 @@ impl ConfigurationManager for DefaultConfigurationManager {
 
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty> {
         let key = ImmutableObject::wrap(config.get_key());
-        let mut opt_property = self.properties.read().unwrap().get(&key).map(|p|p.as_ref().clone());
+        let mut opt_property = self.properties.read().unwrap().get(&key)
+            .map(|p|RawProperty::clone_boxed(p.as_ref()));
         if opt_property.is_none() {
             let mut map = self.properties.write().unwrap();
             opt_property = match map.get(&key) {
-                Some(p) => Some(p.as_ref().clone()),
+                Some(p) => Some(RawProperty::clone_boxed(p.as_ref())),
                 None => {
                     let property = DefaultRawProperty::new(config);
                     let value = self.get_property_value(config);
                     property.set_value(value);
-                    map.insert(key.clone(), RawProperty::clone(&property));
+                    map.insert(key.clone(), RawProperty::clone_boxed(&property));
                     Some(Box::new(property))
                 }
             };
@@ -227,28 +229,54 @@ mod test {
     use super::*;
     use std::thread;
     use lang_extension::option::*;
+    use lang_extension::convert::*;
+    use lang_extension::convert::default::*;
     use crate::source::default::*;
 
     #[test]
-    fn test() {
+    fn manager_test() {
         let source = DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
             Box::new(move |o| -> Option<Box<dyn Object>> {
-                let key: Box<dyn Object> = Box::new("key");
-                if key.as_ref().equals(o.as_any()) {
-                    Some(Box::new("ok"))
+                let x = if "key_ok".as_object().equals(o.as_any()) {
+                    Some("10".as_object().clone_boxed())
+                } else if "key_error".as_object().equals(o.as_any()) {
+                    Some("error".as_object().clone_boxed())
                 } else {
                     None
-                }
+                };
+                println!("raw_value: {:?}", x);
+                x
             }));
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source)).build();
         let manager = DefaultConfigurationManager::new(config);
-        let config = DefaultPropertyConfigBuilder::new().set_key("key").set_default_value("default").build();
+        let value_converter = DefaultTypeConverter::<&str, i32>::new(Box::new(|s|{
+            match s.parse::<i32>() {
+                Ok(v) => {
+                    println!("parse value: {}", v);
+                    Ok(v)
+                },
+                Err(e) => {
+                    println!("parse error: {}", e);
+                    Err(Box::new(e.to_string()))
+                }
+            }
+        }));
+        let config = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_ok")
+            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
         let property = manager.get_property(config.as_ref().as_raw());
         println!("config: {:?}", config.to_debug_string());
         println!("property: {:?}", property.to_debug_string());
         println!("value: {:?}", to_debug_string(&property.get_value()));
+
+        let config2 = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_error")
+            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
+        let property2 = manager.get_property(config2.as_ref().as_raw());
+        println!("config: {:?}", config2.to_debug_string());
+        println!("property: {:?}", property2.to_debug_string());
+        println!("value: {:?}", to_debug_string(&property2.get_value()));
+
         let handle = thread::spawn(move || {
             let property = manager.get_property(config.as_ref().as_raw());
             println!("config: {:?}", config.to_debug_string());

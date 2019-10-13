@@ -241,6 +241,7 @@ mod test {
     use lang_extension::convert::*;
     use lang_extension::convert::default::*;
     use crate::source::default::*;
+    use crate::facade::*;
 
     #[test]
     fn manager_test() {
@@ -295,6 +296,61 @@ mod test {
             println!("value: {:?}", to_debug_string(&property.get_value()));
         });
         handle.join().unwrap();
+    }
+
+    #[test]
+    fn dynamic_test() {
+        let memory_map = Arc::new(RwLock::new(HashMap::<&str, &str>::new()));
+        memory_map.write().unwrap().insert("key_ok", "10");
+        memory_map.write().unwrap().insert("key_error", "error");
+        let memory_map2 = memory_map.clone();
+        let source = DefaultConfigurationSource::new(
+            DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
+            Box::new(move |o| -> Option<Box<dyn Object>> {
+                memory_map2.read().unwrap().get(downcast_ref::<&str>(o).unwrap()).map(|v|{
+                    v.clone_boxed()
+                })
+            }));
+        let config = DefaultConfigurationManagerConfigBuilder::new()
+            .set_name("test").add_source(1, Box::new(Clone::clone(&source))).build();
+        let manager = DefaultConfigurationManager::new(config);
+        let value_converter = DefaultTypeConverter::<&str, i32>::new(Box::new(|s|{
+            match s.parse::<i32>() {
+                Ok(v) => {
+                    Ok(v)
+                },
+                Err(e) => {
+                    Err(Box::new(e.to_string()))
+                }
+            }
+        }));
+        let config = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_ok")
+            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
+            .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
+            .build();
+        let property = manager.get_property(config.as_ref().as_raw());
+        println!("config: {:?}", config.to_debug_string());
+        println!("property: {:?}", property.to_debug_string());
+        println!("value: {:?}", to_debug_string(&property.get_value()));
+
+        println!();
+
+        memory_map.write().unwrap().insert("key_ok", "11");
+        source.raise_change_event();
+        println!("property: {:?}, value: {:?}", property.to_debug_string(), property.get_value());
+        println!();
+
+        let properties = ConfigurationProperties::new(Box::new(manager));
+        let property = properties.get_property(config.as_ref());
+        Property::<&str, i32>::add_change_listener(property.as_ref(), Box::new(|e| {
+            println!("changed: {:?}", e.as_object().to_debug_string());
+            println!();
+        }));
+        memory_map.write().unwrap().insert("key_ok", "12");
+        source.raise_change_event();
+        println!("property: {:?}, value: {:?}", property.to_debug_string(),
+            Property::<&str, i32>::get_value(property.as_ref()));
+        println!();
     }
 
 }

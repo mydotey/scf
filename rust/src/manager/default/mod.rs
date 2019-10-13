@@ -181,6 +181,15 @@ impl ConfigurationManager for DefaultConfigurationManager {
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
         for source in self.config.get_sources().iter() {
             let value = source.get_property_value(config);
+            if value.is_none() {
+                continue;
+            }
+
+            if config.get_value_filter().is_none() {
+                return value;
+            }
+
+            let value = config.get_value_filter().unwrap()(value.unwrap());
             if value.is_some() {
                 return value;
             }
@@ -264,7 +273,9 @@ mod test {
             }
         }));
         let config = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_ok")
-            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
+            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
+            .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
+            .build();
         let property = manager.get_property(config.as_ref().as_raw());
         println!("config: {:?}", config.to_debug_string());
         println!("property: {:?}", property.to_debug_string());

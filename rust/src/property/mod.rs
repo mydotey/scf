@@ -14,6 +14,8 @@ pub trait RawPropertyConfig: Object + Send + Sync {
 
     fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>>;
+
     fn clone_boxed(&self) -> Box<dyn RawPropertyConfig>;
 }
 
@@ -56,6 +58,8 @@ pub trait PropertyConfig<K: ObjectConstraits, V: ObjectConstraits> : RawProperty
 
     fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>>;
+
     fn clone(&self) -> Box<dyn PropertyConfig<K, V>>;
 
     fn as_raw(&self) -> & dyn RawPropertyConfig;
@@ -71,6 +75,8 @@ pub trait PropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
 
     fn add_value_converters(&mut self, value_converters: Vec<Box<dyn RawTypeConverter>>)
         -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn set_value_filter(&mut self, value_filter: Box<dyn Fn(V) -> Option<V>>) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }

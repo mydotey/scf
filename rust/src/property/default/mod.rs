@@ -6,15 +6,18 @@ use std::hash::{ Hash, Hasher };
 use std::fmt::{ Debug, Formatter, Result };
 use std::any::TypeId;
 
+use lang_extension::any::*;
 use lang_extension::option::*;
+use lang_extension::ops::function::*;
 use super::*;
 
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+#[derive(Clone)]
 pub struct DefaultRawPropertyConfig {
     key: ImmutableObject,
     value_type: TypeId,
     default_value: Option<ImmutableObject>,
-    value_converters: Arc<Vec<Box<dyn RawTypeConverter>>>
+    value_converters: Arc<Vec<Box<dyn RawTypeConverter>>>,
+    value_filter: Option<Arc<Function<Box<dyn Object>, Option<Box<dyn Object>>>>>
 }
 
 impl RawPropertyConfig for DefaultRawPropertyConfig {
@@ -34,8 +37,37 @@ impl RawPropertyConfig for DefaultRawPropertyConfig {
         self.value_converters.as_ref().as_slice()
     }
 
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>> {
+        self.value_filter.as_ref().map(|v|v.as_ref().as_ref())
+    }
+
     fn clone_boxed(&self) -> Box<dyn RawPropertyConfig> {
         Box::new(Clone::clone(self))
+    }
+}
+
+impl Hash for DefaultRawPropertyConfig {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.key.hash(state);
+    }
+}
+
+impl PartialEq for DefaultRawPropertyConfig {
+    fn eq(&self, other: &Self) -> bool {
+        self.key == other.key && self.value_type == other.value_type
+            && self.default_value == other.default_value
+            && *self.value_converters.as_ref() == *other.value_converters.as_ref()
+            && self.value_filter.as_ref().memory_address() == other.value_filter.as_ref().memory_address()
+    }
+}
+
+impl Eq for DefaultRawPropertyConfig { }
+
+impl Debug for DefaultRawPropertyConfig {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{{ key: {:?}, value_type: {:?}, default_value: {:?}, value_converters: {:?} \
+            , value_filter: {:?} }}", self.key, self.value_type, self.default_value, self.value_converters,
+            self.value_filter.type_name())
     }
 }
 
@@ -101,6 +133,10 @@ impl<K: ObjectConstraits, V: ObjectConstraits> RawPropertyConfig for DefaultProp
         self.raw.get_value_converters()
     }
 
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>> {
+        self.raw.get_value_filter()
+    }
+
     fn clone_boxed(&self) -> Box<dyn RawPropertyConfig> {
         RawPropertyConfig::clone_boxed(self.raw.as_ref().as_ref())
     }
@@ -123,6 +159,10 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfig<K, V> for DefaultP
         self.raw.get_value_converters()
     }
 
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>> {
+        self.raw.get_value_filter()
+    }
+
     fn as_raw(&self) -> &dyn RawPropertyConfig {
         self.raw.as_ref().as_ref()
     }
@@ -136,7 +176,8 @@ pub struct DefaultPropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits
     key: Option<K>,
     value_type: TypeId,
     default_value: Option<V>,
-    value_converters: Vec<Box<dyn RawTypeConverter>>
+    value_converters: Vec<Box<dyn RawTypeConverter>>,
+    value_filter: Option<Arc<Box<dyn Fn(V) -> Option<V>>>>
 }
 
 impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfigBuilder<K, V> {
@@ -145,7 +186,8 @@ impl<K: ObjectConstraits, V: ObjectConstraits> DefaultPropertyConfigBuilder<K, V
             key: None,
             value_type: TypeId::of::<V>(),
             default_value: None,
-            value_converters: Vec::new()
+            value_converters: Vec::new(),
+            value_filter: None
         }
     }
 }
@@ -175,12 +217,29 @@ impl<K: ObjectConstraits, V: ObjectConstraits> PropertyConfigBuilder<K, V>
         self
     }
 
+    fn set_value_filter(&mut self, value_filter: Box<dyn Fn(V) -> Option<V>>) -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.value_filter = Some(Arc::new(value_filter));
+        self
+    }
+
     fn build(&self) -> Box<dyn PropertyConfig<K, V>> {
         let raw = DefaultRawPropertyConfig {
             key: ImmutableObject::new(self.key.clone().unwrap()),
             value_type: self.value_type,
             default_value: self.default_value.as_ref().map(|v|v.clone()).map(|v|ImmutableObject::new(v)),
-            value_converters: Arc::new(self.value_converters.clone())
+            value_converters: Arc::new(self.value_converters.clone()),
+            value_filter: match self.value_filter.as_ref() {
+                Some(f) => {
+                    let filter = f.clone();
+                    Some(Arc::new(Box::new(move |v|{
+                        match downcast_raw::<V>(v) {
+                            Some(v) => filter(v).map(|v|v.clone_boxed()),
+                            None => None
+                        }
+                    })))
+                },
+                None => None
+            }
         };
         Box::new(DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(&raw)),

@@ -1,11 +1,11 @@
-use lang_extension::object::*;
+use lang_extension::any::*;
 use lang_extension::ops::function::*;
 
 use crate::property::*;
 
 pub mod default;
 
-pub trait ConfigurationSourceConfig: Object + Send + Sync {
+pub trait ConfigurationSourceConfig: Value + Send + Sync {
     fn name(&self) -> &str;
 }
 
@@ -17,19 +17,19 @@ pub trait ConfigurationSourceConfigBuilder {
 
 }
 
-pub trait ConfigurationSource : Object + Send + Sync {
+pub trait ConfigurationSource: Value + Send + Sync {
 
     fn get_config(&self) -> &dyn ConfigurationSourceConfig;
 
-    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>>;
+    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>>;
 
     fn add_change_listener(&self, listener: ConfigurationSourceChangeListener);
 
-    fn clone(&self) -> Box<dyn ConfigurationSource>;
+as_boxed!(ConfigurationSource);
 
 }
 
-pub trait ConfigurationSourceChangeEvent : Object + Send + Sync {
+pub trait ConfigurationSourceChangeEvent: Value + Send + Sync {
 
     fn get_source(&self) -> &dyn ConfigurationSource;
 

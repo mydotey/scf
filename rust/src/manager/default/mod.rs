@@ -1,10 +1,9 @@
 use std::sync::{ Arc, RwLock };
 use std::collections::HashMap;
 use std::fmt;
-use std::hash::{ Hash, Hasher };
 
 use lang_extension::any::*;
-use lang_extension::object::*;
+use lang_extension::fmt::*;
 
 use crate::property::default::*;
 use super::*;
@@ -14,12 +13,6 @@ pub struct DefaultConfigurationManagerConfig {
     name: String,
     sources: Arc<Vec<Box<dyn ConfigurationSource>>>,
     task_executor: Arc<ConsumerRef<Action>>
-}
-
-impl Hash for DefaultConfigurationManagerConfig {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_usize(self.sources.as_ref().memory_address())
-    }
 }
 
 impl PartialEq for DefaultConfigurationManagerConfig {
@@ -34,8 +27,8 @@ impl Eq for DefaultConfigurationManagerConfig {
 
 impl fmt::Debug for DefaultConfigurationManagerConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ name: {}, sources: {}, task_executor: {} }}", self.name,
-            self.sources.as_ref().to_instance_string(), self.task_executor.as_ref().to_instance_string())
+        write!(f, "{{ name: {}, sources: {:?}, task_executor: {} }}", self.name,
+            self.sources.as_ref(), self.task_executor.as_ref().to_instance_string())
     }
 }
 
@@ -104,7 +97,7 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
                 keys.sort();
                 let mut sources = Vec::new();
                 for k in keys {
-                    sources.push(self.sources.get(&k).unwrap().as_ref().clone());
+                    sources.push(ConfigurationSource::clone_boxed(self.sources.get(&k).unwrap().as_ref()));
                 }
                 sources
             }),
@@ -113,10 +106,10 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DefaultConfigurationManager {
     config: Arc<Box<dyn ConfigurationManagerConfig>>,
-    properties: Arc<RwLock<HashMap<ImmutableObject, Box<dyn RawProperty>>>>
+    properties: Arc<RwLock<HashMap<ImmutableKey, Box<dyn RawProperty>>>>
 }
 
 impl DefaultConfigurationManager {
@@ -140,10 +133,10 @@ impl DefaultConfigurationManager {
             if new_value != old_value {
                 let pe = DefaultRawPropertyChangeEvent::new(
                     Arc::new(RawProperty::clone_boxed(property.as_ref())),
-                    old_value.map(|v|ImmutableObject::wrap(v.clone_boxed())),
-                    new_value.as_ref().map(|v|ImmutableObject::wrap(v.clone_boxed())), event.get_change_time());
+                    old_value.map(|v|ImmutableValue::wrap(v.clone_boxed())),
+                    new_value.as_ref().map(|v|ImmutableValue::wrap(v.clone_boxed())), event.get_change_time());
                 let raw_property = property.as_ref().clone();
-                let default_raw_property = Clone::clone(raw_property.as_any().downcast_ref::<DefaultRawProperty>().unwrap());
+                let default_raw_property = Clone::clone(raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>().unwrap());
                 default_raw_property.set_value(new_value);
                 let action: Action = Box::new(move || default_raw_property.raise_change_event(&pe));
                 self.config.get_task_executor()(&action);
@@ -158,7 +151,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
     }
 
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty> {
-        let key = ImmutableObject::wrap(config.get_key());
+        let key = ImmutableKey::wrap(config.get_key());
         let mut opt_property = self.properties.read().unwrap().get(&key)
             .map(|p|RawProperty::clone_boxed(p.as_ref()));
         if opt_property.is_none() {
@@ -178,7 +171,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
         opt_property.unwrap()
     }
 
-    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
+    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>> {
         for source in self.config.get_sources().iter() {
             let value = source.get_property_value(config);
             if value.is_none() {
@@ -198,17 +191,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
         None
     }
 
-    fn clone(&self) -> Box<dyn ConfigurationManager> {
-        Box::new(Clone::clone(self))
-    }
-
-}
-
-impl Hash for DefaultConfigurationManager {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let x = self.properties.as_ref() as *const _ as u64;
-        state.write_u64(x);
-    }
+as_boxed!(impl ConfigurationManager);
 }
 
 impl PartialEq for DefaultConfigurationManager {
@@ -223,13 +206,6 @@ impl Eq for DefaultConfigurationManager {
 
 }
 
-impl fmt::Debug for DefaultConfigurationManager {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ config: {:?}, properties: {:?} }}", self.config.as_ref().as_ref().to_debug_string(),
-            self.properties.read().unwrap().to_instance_string())
-    }
-}
-
 unsafe impl Sync for DefaultConfigurationManager { }
 unsafe impl Send for DefaultConfigurationManager { }
 
@@ -237,7 +213,6 @@ unsafe impl Send for DefaultConfigurationManager { }
 mod test {
     use super::*;
     use std::thread;
-    use lang_extension::option::*;
     use lang_extension::convert::*;
     use lang_extension::convert::default::*;
     use crate::source::default::*;
@@ -247,11 +222,11 @@ mod test {
     fn manager_test() {
         let source = DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
-            Box::new(move |o| -> Option<Box<dyn Object>> {
-                let x = if "key_ok".as_object().equals(o.as_any()) {
-                    Some("10".as_object().clone_boxed())
-                } else if "key_error".as_object().equals(o.as_any()) {
-                    Some("error".as_object().clone_boxed())
+            Box::new(move |o| -> Option<Box<dyn Value>> {
+                let x = if Key::as_trait_ref(&"key_ok".to_string()).equals(o.as_any_ref()) {
+                    Some(Value::to_boxed("10".to_string()))
+                } else if Key::as_trait_ref(&"key_error".to_string()).equals(o.as_any_ref()) {
+                    Some(Value::to_boxed("error".to_string()))
                 } else {
                     None
                 };
@@ -265,7 +240,7 @@ mod test {
             match s.parse::<i32>() {
                 Ok(v) => {
                     println!("parse value: {}", v);
-                    Ok(v)
+                    Ok(Box::new(v))
                 },
                 Err(e) => {
                     println!("parse error: {}", e);
@@ -273,83 +248,83 @@ mod test {
                 }
             }
         }));
-        let config = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_ok")
+        let config = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
             .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
             .build();
-        let property = manager.get_property(config.as_ref().as_raw());
-        println!("config: {:?}", config.to_debug_string());
-        println!("property: {:?}", property.to_debug_string());
-        println!("value: {:?}", to_debug_string(&property.get_value()));
+        let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        println!("config: {:?}", config);
+        println!("property: {:?}", property);
+        println!("value: {}", property.get_value().to_debug_string());
 
-        let config2 = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_error")
+        let config2 = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
-        let property2 = manager.get_property(config2.as_ref().as_raw());
-        println!("config: {:?}", config2.to_debug_string());
-        println!("property: {:?}", property2.to_debug_string());
-        println!("value: {:?}", to_debug_string(&property2.get_value()));
+        let property2 = manager.get_property(RawPropertyConfig::as_trait_ref(config2.as_ref()));
+        println!("config: {:?}", config2);
+        println!("property: {:?}", property2);
+        println!("value: {}", property2.get_value().to_debug_string());
 
         let handle = thread::spawn(move || {
-            let property = manager.get_property(config.as_ref().as_raw());
-            println!("config: {:?}", config.to_debug_string());
-            println!("property: {:?}", property.to_debug_string());
-            println!("value: {:?}", to_debug_string(&property.get_value()));
+            let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
+            println!("config: {:?}", config);
+            println!("property: {:?}", property);
+            println!("value: {}", property.get_value().to_debug_string());
         });
         handle.join().unwrap();
     }
 
     #[test]
     fn dynamic_test() {
-        let memory_map = Arc::new(RwLock::new(HashMap::<&str, &str>::new()));
-        memory_map.write().unwrap().insert("key_ok", "10");
-        memory_map.write().unwrap().insert("key_error", "error");
+        let memory_map = Arc::new(RwLock::new(HashMap::<String, String>::new()));
+        memory_map.write().unwrap().insert("key_ok".to_string(), "10".to_string());
+        memory_map.write().unwrap().insert("key_error".to_string(), "error".to_string());
         let memory_map2 = memory_map.clone();
         let source = DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
-            Box::new(move |o| -> Option<Box<dyn Object>> {
-                memory_map2.read().unwrap().get(downcast_ref::<&str>(o).unwrap()).map(|v|{
-                    v.clone_boxed()
+            Box::new(move |o| -> Option<Box<dyn Value>> {
+                memory_map2.read().unwrap().get(o.as_any_ref().downcast_ref::<String>().unwrap()).map(|v|{
+                    Value::clone_boxed(v)
                 })
             }));
         let config = DefaultConfigurationManagerConfigBuilder::new()
-            .set_name("test").add_source(1, Box::new(Clone::clone(&source))).build();
+            .set_name("test").add_source(1, Box::new(source.clone())).build();
         let manager = DefaultConfigurationManager::new(config);
-        let value_converter = DefaultTypeConverter::<&str, i32>::new(Box::new(|s|{
+        let value_converter = DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
             match s.parse::<i32>() {
                 Ok(v) => {
-                    Ok(v)
+                    Ok(Box::new(v))
                 },
                 Err(e) => {
                     Err(Box::new(e.to_string()))
                 }
             }
         }));
-        let config = DefaultPropertyConfigBuilder::<&str, i32>::new().set_key("key_ok")
+        let config = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
             .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
             .build();
-        let property = manager.get_property(config.as_ref().as_raw());
-        println!("config: {:?}", config.to_debug_string());
-        println!("property: {:?}", property.to_debug_string());
-        println!("value: {:?}", to_debug_string(&property.get_value()));
+        let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        println!("config: {:?}", config);
+        println!("property: {:?}", property);
+        println!("value: {}", property.get_value().to_debug_string());
 
         println!();
 
-        memory_map.write().unwrap().insert("key_ok", "11");
+        memory_map.write().unwrap().insert("key_ok".to_string(), "11".to_string());
         source.raise_change_event();
-        println!("property: {:?}, value: {:?}", property.to_debug_string(), property.get_value());
+        println!("property: {:?}, value: {:?}", property, property.get_value());
         println!();
 
         let properties = ConfigurationProperties::new(Box::new(manager));
         let property = properties.get_property(config.as_ref());
-        Property::<&str, i32>::add_change_listener(property.as_ref(), Box::new(|e| {
-            println!("changed: {:?}", e.as_object().to_debug_string());
+        Property::<String, i32>::add_change_listener(property.as_ref(), Box::new(|e| {
+            println!("changed: {:?}", e);
             println!();
         }));
-        memory_map.write().unwrap().insert("key_ok", "12");
+        memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
         source.raise_change_event();
-        println!("property: {:?}, value: {:?}", property.to_debug_string(),
-            Property::<&str, i32>::get_value(property.as_ref()));
+        println!("property: {:?}, value: {:?}", property,
+            Property::<String, i32>::get_value(property.as_ref()));
         println!();
     }
 

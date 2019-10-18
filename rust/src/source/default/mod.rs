@@ -1,13 +1,12 @@
 use std::sync::{ Arc, RwLock };
 use std::fmt;
-use std::hash::{ Hash, Hasher };
 use std::time::*;
 
 use super::*;
 
-pub type PropertyProvider = FunctionRef<dyn Object, Option<Box<dyn Object>>>;
+pub type PropertyProvider = FunctionRef<dyn Key, Option<Box<dyn Value>>>;
 
-#[derive(Hash, PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct DefaultConfiguratonSourceConfig {
     name: String
 }
@@ -71,13 +70,6 @@ impl DefaultConfigurationSource {
     }
 }
 
-impl Hash for DefaultConfigurationSource {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let x = self.property_provider.as_ref() as *const _ as u64;
-        state.write_u64(x);
-    }
-}
-
 impl PartialEq for DefaultConfigurationSource {
     fn eq(&self, other: &Self) -> bool {
         let addr = self.property_provider.as_ref() as *const _;
@@ -92,7 +84,7 @@ impl Eq for DefaultConfigurationSource {
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ config: {} }}", self.config.to_debug_string())
+        write!(f, "{{ config: {:?} }}", self.config)
     }
 }
 
@@ -104,11 +96,11 @@ impl ConfigurationSource for DefaultConfigurationSource {
         self.config.as_ref().as_ref()
     }
 
-    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>> {
+    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>> {
         let lock = self.property_provider.read().unwrap();
         match lock(config.get_key().as_ref()) {
             Some(v) => {
-                let type_id = v.as_ref().as_any().type_id();
+                let type_id = v.as_ref().type_id();
                 if type_id == config.get_value_type() {
                     return Some(v);
                 } else {
@@ -129,9 +121,7 @@ impl ConfigurationSource for DefaultConfigurationSource {
         lock.push(listener);
     }
 
-    fn clone(&self) -> Box<dyn ConfigurationSource> {
-        Box::new(Clone::clone(self))
-    }
+as_boxed!(impl ConfigurationSource);
 }
 
 pub struct DefaultConfigurationSourceChangeEvent {
@@ -142,16 +132,9 @@ pub struct DefaultConfigurationSourceChangeEvent {
 impl DefaultConfigurationSourceChangeEvent {
     pub fn new(source: &dyn ConfigurationSource, change_time: u64) -> Self {
         DefaultConfigurationSourceChangeEvent {
-            source: source.clone(),
+            source: ConfigurationSource::clone_boxed(source),
             change_time
         }
-    }
-}
-
-impl Hash for DefaultConfigurationSourceChangeEvent {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_u64(self.source.as_ref().hashcode());
-        state.write_u64(self.change_time);
     }
 }
 
@@ -169,7 +152,7 @@ impl Eq for DefaultConfigurationSourceChangeEvent {
 
 impl fmt::Debug for DefaultConfigurationSourceChangeEvent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ source: {:?}, change_time: {} }}", self.source.to_debug_string(), self.change_time)
+        write!(f, "{{ source: {:?}, change_time: {} }}", self.source, self.change_time)
     }
 }
 

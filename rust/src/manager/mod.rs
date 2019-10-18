@@ -1,4 +1,4 @@
-use lang_extension::object::*;
+use lang_extension::any::*;
 use lang_extension::ops::function::*;
 
 use crate::property::*;
@@ -6,7 +6,7 @@ use crate::source::*;
 
 pub mod default;
 
-pub trait ConfigurationManagerConfig: Object + Send + Sync {
+pub trait ConfigurationManagerConfig: Value + Send + Sync {
 
     fn get_name(&self) -> &str;
 
@@ -30,16 +30,15 @@ pub trait ConfigurationManagerConfigBuilder {
 
 }
 
-pub trait ConfigurationManager : Object + Send + Sync {
+pub trait ConfigurationManager: Value + Send + Sync {
 
     fn get_config(&self) -> &dyn ConfigurationManagerConfig;
 
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty>;
 
-    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Object>>;
+    fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>>;
 
-    fn clone(&self) -> Box<dyn ConfigurationManager>;
-
+as_boxed!(ConfigurationManager);
 }
 
 #[cfg(test)]

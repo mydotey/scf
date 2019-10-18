@@ -1,55 +1,58 @@
 use std::any::TypeId;
 
-use lang_extension::object::*;
+use lang_extension::any::*;
 use lang_extension::convert::*;
 
 pub mod default;
 
-pub trait RawPropertyConfig: Object + Send + Sync {
-    fn get_key(&self) -> Box<dyn Object>;
+pub trait RawPropertyConfig: Key + Send + Sync {
+    fn get_key(&self) -> Box<dyn Key>;
 
     fn get_value_type(&self) -> TypeId;
 
-    fn get_default_value(&self) -> Option<Box<dyn Object>>;
+    fn get_default_value(&self) -> Option<Box<dyn Value>>;
 
     fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>>;
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>>;
 
-    fn clone_boxed(&self) -> Box<dyn RawPropertyConfig>;
+as_boxed!(RawPropertyConfig);
+as_trait!(RawPropertyConfig);
 }
 
-boxed_trait_object!(RawPropertyConfig);
+boxed_key_trait!(RawPropertyConfig);
 
-pub trait RawProperty: Object + Send + Sync {
+pub trait RawProperty: Value + Send + Sync {
     fn get_config(&self) -> &dyn RawPropertyConfig;
 
-    fn get_value(&self) -> Option<Box<dyn Object>>;
+    fn get_value(&self) -> Option<Box<dyn Value>>;
 
     fn add_change_listener(&self, listener: RawPropertyChangeListener);
 
-    fn clone_boxed(&self) -> Box<dyn RawProperty>;
+as_boxed!(RawProperty);
+as_trait!(RawProperty);
 }
 
-boxed_trait_object!(RawProperty);
+boxed_value_trait!(RawProperty);
 
-pub trait RawPropertyChangeEvent: Object + Send + Sync {
+pub trait RawPropertyChangeEvent: Value + Send + Sync {
     fn get_property(&self) -> &dyn RawProperty;
 
-    fn get_old_value(&self) -> Option<Box<dyn Object>>;
+    fn get_old_value(&self) -> Option<Box<dyn Value>>;
 
-    fn get_new_value(&self) -> Option<Box<dyn Object>>;
+    fn get_new_value(&self) -> Option<Box<dyn Value>>;
 
     fn get_change_time(&self) -> u64;
 
-    fn clone_boxed(&self) -> Box<dyn RawPropertyChangeEvent>;
+as_boxed!(RawPropertyChangeEvent);
+as_trait!(RawPropertyChangeEvent);
 }
 
-boxed_trait_object!(RawPropertyChangeEvent);
+boxed_value_trait!(RawPropertyChangeEvent);
 
 pub type RawPropertyChangeListener = Box<dyn Fn(&dyn RawPropertyChangeEvent)>;
 
-pub trait PropertyConfig<K: ObjectConstraits, V: ObjectConstraits> : RawPropertyConfig {
+pub trait PropertyConfig<K: KeyConstraint, V: KeyConstraint> : RawPropertyConfig {
     fn get_key(&self) -> K;
 
     fn get_value_type(&self) -> TypeId;
@@ -58,14 +61,10 @@ pub trait PropertyConfig<K: ObjectConstraits, V: ObjectConstraits> : RawProperty
 
     fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Object>) -> Option<Box<dyn Object>>>;
-
-    fn clone(&self) -> Box<dyn PropertyConfig<K, V>>;
-
-    fn as_raw(&self) -> & dyn RawPropertyConfig;
+    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>>;
 }
 
-pub trait PropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
+pub trait PropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V>;
@@ -81,19 +80,15 @@ pub trait PropertyConfigBuilder<K: ObjectConstraits, V: ObjectConstraits> {
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }
 
-pub trait Property<K: ObjectConstraits, V: ObjectConstraits> : RawProperty {
+pub trait Property<K: KeyConstraint, V: KeyConstraint> : RawProperty {
     fn get_config(&self) -> &dyn PropertyConfig<K, V>;
 
     fn get_value(&self) -> Option<V>;
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>);
-
-    fn clone(&self) -> Box<dyn Property<K, V>>;
-
-    fn as_raw(&self) -> & dyn RawProperty;
 }
 
-pub trait PropertyChangeEvent<K: ObjectConstraits, V: ObjectConstraits> : RawPropertyChangeEvent {
+pub trait PropertyChangeEvent<K: KeyConstraint, V: KeyConstraint> : RawPropertyChangeEvent {
     fn get_property(&self) -> &dyn Property<K, V>;
 
     fn get_old_value(&self) -> Option<V>;
@@ -101,10 +96,6 @@ pub trait PropertyChangeEvent<K: ObjectConstraits, V: ObjectConstraits> : RawPro
     fn get_new_value(&self) -> Option<V>;
 
     fn get_change_time(&self) -> u64;
-
-    fn clone(&self) -> Box<dyn PropertyChangeEvent<K, V>>;
-
-    fn as_raw(&self) -> & dyn RawPropertyChangeEvent;
 }
 
 pub type PropertyChangeListener<K, V> = Box<dyn Fn(&dyn PropertyChangeEvent<K, V>)>;

@@ -4,7 +4,6 @@
 #[macro_use]
 extern crate lang_extension;
 
-pub mod value;
 pub mod property;
 pub mod source;
 pub mod manager;

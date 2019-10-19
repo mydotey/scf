@@ -156,4 +156,5 @@ impl ConfigurationSourceChangeEvent for DefaultConfigurationSourceChangeEvent {
         self.change_time
     }
 
+as_boxed!(impl ConfigurationSourceChangeEvent);
 }

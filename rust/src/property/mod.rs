@@ -52,13 +52,13 @@ boxed_value_trait!(RawPropertyChangeEvent);
 
 pub type RawPropertyChangeListener = Box<dyn Fn(&dyn RawPropertyChangeEvent)>;
 
-pub trait PropertyConfig<K: KeyConstraint, V: KeyConstraint> : RawPropertyConfig {
+pub trait PropertyConfig<K: KeyConstraint, V: ValueConstraint> : RawPropertyConfig {
     fn get_key(&self) -> K;
 
     fn get_default_value(&self) -> Option<V>;
 }
 
-pub trait PropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
+pub trait PropertyConfigBuilder<K: KeyConstraint, V: ValueConstraint> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V>;
@@ -74,7 +74,7 @@ pub trait PropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }
 
-pub trait Property<K: KeyConstraint, V: KeyConstraint> : RawProperty {
+pub trait Property<K: KeyConstraint, V: ValueConstraint> : RawProperty {
     fn get_config(&self) -> &dyn PropertyConfig<K, V>;
 
     fn get_value(&self) -> Option<V>;
@@ -82,7 +82,7 @@ pub trait Property<K: KeyConstraint, V: KeyConstraint> : RawProperty {
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>);
 }
 
-pub trait PropertyChangeEvent<K: KeyConstraint, V: KeyConstraint> : RawPropertyChangeEvent {
+pub trait PropertyChangeEvent<K: KeyConstraint, V: ValueConstraint> : RawPropertyChangeEvent {
     fn get_property(&self) -> &dyn Property<K, V>;
 
     fn get_old_value(&self) -> Option<V>;

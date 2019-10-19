@@ -85,13 +85,13 @@ unsafe impl Sync for DefaultRawPropertyConfig { }
 unsafe impl Send for DefaultRawPropertyConfig { }
 
 #[derive(Clone, Debug)]
-pub struct DefaultPropertyConfig<K: KeyConstraint, V: KeyConstraint> {
+pub struct DefaultPropertyConfig<K: KeyConstraint, V: ValueConstraint> {
     raw: Arc<Box<dyn RawPropertyConfig>>,
     k: PhantomData<K>,
     v: PhantomData<V>
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfig<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfig<K, V> {
     pub fn from_raw(config: &dyn RawPropertyConfig) -> Self {
         DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(config)),
@@ -101,24 +101,24 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfig<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> Hash for DefaultPropertyConfig<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> Hash for DefaultPropertyConfig<K, V> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.raw.as_ref().hash(state);
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultPropertyConfig<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultPropertyConfig<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref().eq(other.raw.as_ref())
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> Eq for DefaultPropertyConfig<K, V> { }
+impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultPropertyConfig<K, V> { }
 
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Sync for DefaultPropertyConfig<K, V> { }
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Send for DefaultPropertyConfig<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultPropertyConfig<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultPropertyConfig<K, V> { }
 
-impl<K: KeyConstraint, V: KeyConstraint> RawPropertyConfig for DefaultPropertyConfig<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> RawPropertyConfig for DefaultPropertyConfig<K, V> {
     fn get_key(&self) -> Box<dyn Key> {
         self.raw.get_key()
     }
@@ -143,7 +143,7 @@ as_boxed!(impl RawPropertyConfig);
 as_trait!(impl RawPropertyConfig);
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
     fn get_key(&self) -> K {
         self.raw.get_key().as_ref().as_any_ref().downcast_ref::<K>().unwrap().clone()
     }
@@ -154,7 +154,7 @@ impl<K: KeyConstraint, V: KeyConstraint> PropertyConfig<K, V> for DefaultPropert
     }
 }
 
-pub struct DefaultPropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
+pub struct DefaultPropertyConfigBuilder<K: KeyConstraint, V: ValueConstraint> {
     key: Option<K>,
     value_type: TypeId,
     default_value: Option<V>,
@@ -162,7 +162,7 @@ pub struct DefaultPropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
     value_filter: Option<Arc<Box<dyn Fn(V) -> Option<V>>>>
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfigBuilder<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfigBuilder<K, V> {
     pub fn new() -> Self {
         Self {
             key: None,
@@ -174,7 +174,7 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfigBuilder<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PropertyConfigBuilder<K, V>
+impl<K: KeyConstraint, V: ValueConstraint> PropertyConfigBuilder<K, V>
     for DefaultPropertyConfigBuilder<K, V> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V> {
         self.key = Some(key);
@@ -302,12 +302,12 @@ unsafe impl Sync for DefaultRawProperty { }
 unsafe impl Send for DefaultRawProperty { }
 
 #[derive(Clone, Debug)]
-pub struct DefaultProperty<K: KeyConstraint, V: KeyConstraint> {
+pub struct DefaultProperty<K: KeyConstraint, V: ValueConstraint> {
     config: Arc<Box<dyn PropertyConfig<K, V>>>,
     raw: Arc<Box<dyn RawProperty>>
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> DefaultProperty<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> DefaultProperty<K, V> {
     pub fn new(config: &dyn PropertyConfig<K, V>) -> Self {
         let raw = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config));
         DefaultProperty {
@@ -325,18 +325,18 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultProperty<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultProperty<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultProperty<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> Eq for DefaultProperty<K, V> { }
+impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultProperty<K, V> { }
 
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Sync for DefaultProperty<K, V> { }
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Send for DefaultProperty<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultProperty<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultProperty<K, V> { }
 
-impl<K: KeyConstraint, V: KeyConstraint> RawProperty for DefaultProperty<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> RawProperty for DefaultProperty<K, V> {
     fn get_config(&self) -> &dyn RawPropertyConfig {
         self.raw.get_config()
     }
@@ -353,7 +353,7 @@ as_boxed!(impl RawProperty);
 as_trait!(impl RawProperty);
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> Property<K, V> for DefaultProperty<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> Property<K, V> for DefaultProperty<K, V> {
     fn get_config(&self) -> &dyn PropertyConfig<K, V> {
         self.config.as_ref().as_ref()
     }
@@ -425,12 +425,12 @@ as_trait!(impl RawPropertyChangeEvent);
 }
 
 #[derive(Clone, Debug)]
-pub struct DefaultPropertyChangeEvent<K: KeyConstraint, V: KeyConstraint> {
+pub struct DefaultPropertyChangeEvent<K: KeyConstraint, V: ValueConstraint> {
     property: Arc<Box<dyn Property<K, V>>>,
     raw: Arc<Box<dyn RawPropertyChangeEvent>>
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyChangeEvent<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyChangeEvent<K, V> {
     pub fn new(property: Arc<Box<dyn RawProperty>>, old_value: Option<ImmutableValue>,
         new_value: Option<ImmutableValue>, change_time: u64) -> Self {
         let event = DefaultRawPropertyChangeEvent::new(property, old_value, new_value, change_time);
@@ -446,20 +446,20 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyChangeEvent<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultPropertyChangeEvent<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultPropertyChangeEvent<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> Eq for DefaultPropertyChangeEvent<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultPropertyChangeEvent<K, V> {
 
 }
 
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Sync for DefaultPropertyChangeEvent<K, V> { }
-unsafe impl<K: KeyConstraint, V: KeyConstraint> Send for DefaultPropertyChangeEvent<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultPropertyChangeEvent<K, V> { }
+unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultPropertyChangeEvent<K, V> { }
 
-impl<K: KeyConstraint, V: KeyConstraint> RawPropertyChangeEvent for DefaultPropertyChangeEvent<K, V> {
+impl<K: KeyConstraint, V: ValueConstraint> RawPropertyChangeEvent for DefaultPropertyChangeEvent<K, V> {
     fn get_property(&self) -> &dyn RawProperty {
         self.raw.get_property()
     }
@@ -480,7 +480,7 @@ as_boxed!(impl RawPropertyChangeEvent);
 as_trait!(impl RawPropertyChangeEvent);
 }
 
-impl<K: KeyConstraint, V: KeyConstraint> PropertyChangeEvent<K, V>
+impl<K: KeyConstraint, V: ValueConstraint> PropertyChangeEvent<K, V>
     for DefaultPropertyChangeEvent<K, V> {
     fn get_property(&self) -> &dyn Property<K, V> {
         self.property.as_ref().as_ref()
@@ -504,6 +504,15 @@ mod test {
     fn property_config_test() {
         let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
         println!("{:?}", config);
+        assert_eq!(1, PropertyConfig::<i32, i32>::get_key(config.as_ref()));
+
+        let config2 = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        assert!(!config.reference_equals(&config2));
+        assert!(!config.as_ref().reference_equals(config2.as_ref().as_any_ref()));
+        assert!(config.as_ref().equals(config2.as_ref().as_any_ref()));
+
+        assert!(RawPropertyConfig::as_trait_ref(config.as_ref())
+            .equals(RawPropertyConfig::as_trait_ref(config2.as_ref()).as_any_ref()));
     }
 
 }

@@ -26,8 +26,9 @@ pub trait ConfigurationSource: Value + Send + Sync {
     fn add_change_listener(&self, listener: ConfigurationSourceChangeListener);
 
 as_boxed!(ConfigurationSource);
-
 }
+
+boxed_value_trait!(ConfigurationSource);
 
 pub trait ConfigurationSourceChangeEvent: Value + Send + Sync {
 
@@ -36,5 +37,7 @@ pub trait ConfigurationSourceChangeEvent: Value + Send + Sync {
     fn get_change_time(&self) -> u64;
 
 }
+
+//boxed_value_trait!(ConfigurationSourceChangeEvent);
 
 pub type ConfigurationSourceChangeListener = ConsumerRef<dyn ConfigurationSourceChangeEvent>;

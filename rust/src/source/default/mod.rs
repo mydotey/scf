@@ -72,9 +72,7 @@ impl DefaultConfigurationSource {
 
 impl PartialEq for DefaultConfigurationSource {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.property_provider.as_ref() as *const _;
-        let other_addr = other.property_provider.as_ref() as *const _;
-        addr == other_addr
+        self.property_provider.as_ref().reference_equals(other.property_provider.as_ref())
     }
 }
 
@@ -124,6 +122,7 @@ impl ConfigurationSource for DefaultConfigurationSource {
 as_boxed!(impl ConfigurationSource);
 }
 
+#[derive(Eq, Debug, Clone)]
 pub struct DefaultConfigurationSourceChangeEvent {
     source: Box<dyn ConfigurationSource>,
     change_time: u64
@@ -140,25 +139,7 @@ impl DefaultConfigurationSourceChangeEvent {
 
 impl PartialEq for DefaultConfigurationSourceChangeEvent {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.source.as_ref() as *const _;
-        let other_addr = other.source.as_ref() as *const _;
-        addr == other_addr && self.change_time == other.change_time
-    }
-}
-
-impl Eq for DefaultConfigurationSourceChangeEvent {
-
-}
-
-impl fmt::Debug for DefaultConfigurationSourceChangeEvent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ source: {:?}, change_time: {} }}", self.source, self.change_time)
-    }
-}
-
-impl Clone for DefaultConfigurationSourceChangeEvent {
-    fn clone(&self) -> Self {
-        Self::new(self.source.as_ref(), self.change_time)
+        self.source.eq(&other.source) && self.change_time == other.change_time
     }
 }
 

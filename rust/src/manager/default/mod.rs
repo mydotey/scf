@@ -28,7 +28,7 @@ impl Eq for DefaultConfigurationManagerConfig {
 impl fmt::Debug for DefaultConfigurationManagerConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{ name: {}, sources: {:?}, task_executor: {} }}", self.name,
-            self.sources.as_ref(), self.task_executor.as_ref().to_instance_string())
+            self.sources, self.task_executor.as_ref().to_instance_string())
     }
 }
 
@@ -119,7 +119,7 @@ impl DefaultConfigurationManager {
             properties: Arc::new(RwLock::new(HashMap::new()))
         };
         for s in manager.config.get_sources() {
-            let clone = Clone::clone(&manager);
+            let clone = manager.clone();
             s.add_change_listener(Box::new(move |e|clone.on_source_change(e)));
         }
         manager
@@ -133,10 +133,10 @@ impl DefaultConfigurationManager {
             if new_value != old_value {
                 let pe = DefaultRawPropertyChangeEvent::new(
                     Arc::new(RawProperty::clone_boxed(property.as_ref())),
-                    old_value.map(|v|ImmutableValue::wrap(v.clone_boxed())),
-                    new_value.as_ref().map(|v|ImmutableValue::wrap(v.clone_boxed())), event.get_change_time());
+                    old_value.map(|v|ImmutableValue::wrap(v)),
+                    new_value.as_ref().map(|v|ImmutableValue::wrap(v.clone())), event.get_change_time());
                 let raw_property = property.as_ref().clone();
-                let default_raw_property = Clone::clone(raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>().unwrap());
+                let default_raw_property = raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>().unwrap().clone();
                 default_raw_property.set_value(new_value);
                 let action: Action = Box::new(move || default_raw_property.raise_change_event(&pe));
                 self.config.get_task_executor()(&action);
@@ -196,9 +196,7 @@ as_boxed!(impl ConfigurationManager);
 
 impl PartialEq for DefaultConfigurationManager {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.properties.as_ref() as *const _;
-        let other_addr = other.properties.as_ref() as *const _;
-        addr == other_addr
+        self.properties.as_ref().reference_equals(other.properties.as_ref())
     }
 }
 
@@ -236,7 +234,7 @@ mod test {
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source)).build();
         let manager = DefaultConfigurationManager::new(config);
-        let value_converter = DefaultTypeConverter::<&str, i32>::new(Box::new(|s|{
+        let value_converter = DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
             match s.parse::<i32>() {
                 Ok(v) => {
                     println!("parse value: {}", v);
@@ -255,20 +253,20 @@ mod test {
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
         println!("property: {:?}", property);
-        println!("value: {}", property.get_value().to_debug_string());
+        println!("value: {:?}", property.get_value());
 
         let config2 = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
         let property2 = manager.get_property(RawPropertyConfig::as_trait_ref(config2.as_ref()));
         println!("config: {:?}", config2);
         println!("property: {:?}", property2);
-        println!("value: {}", property2.get_value().to_debug_string());
+        println!("value: {:?}", property2.get_value());
 
         let handle = thread::spawn(move || {
             let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
             println!("config: {:?}", config);
             println!("property: {:?}", property);
-            println!("value: {}", property.get_value().to_debug_string());
+            println!("value: {:?}", property.get_value());
         });
         handle.join().unwrap();
     }
@@ -306,7 +304,7 @@ mod test {
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
         println!("property: {:?}", property);
-        println!("value: {}", property.get_value().to_debug_string());
+        println!("value: {:?}", property.get_value());
 
         println!();
 

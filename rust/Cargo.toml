@@ -1,8 +1,8 @@
 [package]
 name = "scf-core"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"
 
 [dependencies]
-lang_extension = "0.4.6"
+lang_extension = "0.4.8"

@@ -7,7 +7,6 @@ use std::fmt::{ Debug, Formatter, Result };
 use std::any::TypeId;
 
 use lang_extension::any::*;
-use lang_extension::fmt::*;
 use lang_extension::ops::function::*;
 use super::*;
 
@@ -55,8 +54,20 @@ impl PartialEq for DefaultRawPropertyConfig {
     fn eq(&self, other: &Self) -> bool {
         self.key == other.key && self.value_type == other.value_type
             && self.default_value == other.default_value
-            && *self.value_converters.as_ref() == *other.value_converters.as_ref()
-            && self.value_filter.as_ref().memory_address() == other.value_filter.as_ref().memory_address()
+            && self.value_converters.as_ref() == other.value_converters.as_ref()
+            && {
+                if self.value_filter.is_none() && other.value_filter.is_none() {
+                    return true
+                }
+
+                if self.value_filter.is_none() || other.value_filter.is_none() {
+                    return false;
+                }
+
+                let m = self.value_filter.as_ref().unwrap().as_ref();
+                let o = other.value_filter.as_ref().unwrap().as_ref();
+                m.reference_equals(o.as_any_ref())
+            }
     }
 }
 
@@ -76,7 +87,6 @@ unsafe impl Send for DefaultRawPropertyConfig { }
 #[derive(Clone, Debug)]
 pub struct DefaultPropertyConfig<K: KeyConstraint, V: KeyConstraint> {
     raw: Arc<Box<dyn RawPropertyConfig>>,
-    raw_value: Arc<ImmutableKey>,
     k: PhantomData<K>,
     v: PhantomData<V>
 }
@@ -85,7 +95,6 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfig<K, V> {
     pub fn from_raw(config: &dyn RawPropertyConfig) -> Self {
         DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(config)),
-            raw_value: Arc::new(ImmutableKey::wrap(Key::clone_boxed(config))),
             k: PhantomData::<K>,
             v: PhantomData::<V>
         }
@@ -94,13 +103,13 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyConfig<K, V> {
 
 impl<K: KeyConstraint, V: KeyConstraint> Hash for DefaultPropertyConfig<K, V> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.raw_value.hash(state);
+        self.raw.as_ref().hash(state);
     }
 }
 
 impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultPropertyConfig<K, V> {
     fn eq(&self, other: &Self) -> bool {
-        *self.raw_value.as_ref() == *other.raw_value.as_ref()
+        self.raw.as_ref().eq(other.raw.as_ref())
     }
 }
 
@@ -136,24 +145,12 @@ as_trait!(impl RawPropertyConfig);
 
 impl<K: KeyConstraint, V: KeyConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
     fn get_key(&self) -> K {
-        self.raw.get_key().as_any_ref().downcast_ref::<K>().unwrap().clone()
-    }
-
-    fn get_value_type(&self) -> TypeId {
-        self.raw.get_value_type()
+        self.raw.get_key().as_ref().as_any_ref().downcast_ref::<K>().unwrap().clone()
     }
 
     fn get_default_value(&self) -> Option<V> {
         self.raw.as_ref().get_default_value().map(
-            |v|v.as_any_ref().downcast_ref::<V>().unwrap().clone())
-    }
-
-    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>] {
-        self.raw.get_value_converters()
-    }
-
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>> {
-        self.raw.get_value_filter()
+            |v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
 }
 
@@ -217,7 +214,7 @@ impl<K: KeyConstraint, V: KeyConstraint> PropertyConfigBuilder<K, V>
                 Some(f) => {
                     let filter = f.clone();
                     Some(Arc::new(Box::new(move |v|{
-                        match v.as_any_ref().downcast_ref::<V>() {
+                        match v.as_ref().as_any_ref().downcast_ref::<V>() {
                             Some(v) => filter(v.clone()).map(|v|Value::to_boxed(v)),
                             None => None
                         }
@@ -228,7 +225,6 @@ impl<K: KeyConstraint, V: KeyConstraint> PropertyConfigBuilder<K, V>
         };
         Box::new(DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(&raw)),
-            raw_value: Arc::new(ImmutableKey::new(raw)),
             k: PhantomData::<K>,
             v: PhantomData::<V>
         })
@@ -273,13 +269,12 @@ impl RawProperty for DefaultRawProperty {
         let r = cell.borrow();
         match r.as_ref() {
             Some(value) => Some(value.raw_boxed()),
-            None => RawPropertyConfig::get_default_value(self.get_config())
+            None => None
         }
     }
 
     fn add_change_listener(&self, listener: RawPropertyChangeListener) {
-        let mut listeners = self.change_listeners.write().unwrap();
-        listeners.push(listener);
+        self.change_listeners.write().unwrap().push(listener);
     }
 
 as_boxed!(impl RawProperty);
@@ -288,9 +283,7 @@ as_trait!(impl RawProperty);
 
 impl PartialEq for DefaultRawProperty {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.config.as_ref().as_ref() as *const _;
-        let other_addr = other.config.as_ref().as_ref() as *const _;
-        addr == other_addr
+        self.value.as_ref().reference_equals(other.value.as_ref())
     }
 }
 
@@ -300,8 +293,8 @@ impl Eq for DefaultRawProperty {
 
 impl fmt::Debug for DefaultRawProperty {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ config: {:?}, value: {} }}", RawProperty::get_config(self),
-            RawProperty::get_value(self).to_debug_string())
+        write!(f, "{{ config: {:?}, value: {:?} }}", RawProperty::get_config(self),
+            RawProperty::get_value(self))
     }
 }
 
@@ -311,8 +304,7 @@ unsafe impl Send for DefaultRawProperty { }
 #[derive(Clone, Debug)]
 pub struct DefaultProperty<K: KeyConstraint, V: KeyConstraint> {
     config: Arc<Box<dyn PropertyConfig<K, V>>>,
-    raw: Arc<Box<dyn RawProperty>>,
-    raw_value: Arc<ImmutableValue>
+    raw: Arc<Box<dyn RawProperty>>
 }
 
 impl<K: KeyConstraint, V: KeyConstraint> DefaultProperty<K, V> {
@@ -321,8 +313,7 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultProperty<K, V> {
         DefaultProperty {
             config: Arc::new(Box::new(DefaultPropertyConfig::<K, V>::from_raw(
                 RawPropertyConfig::as_trait_ref(config)))),
-            raw: Arc::new(RawProperty::clone_boxed(&raw)),
-            raw_value: Arc::new(ImmutableValue::new(raw))
+            raw: Arc::new(RawProperty::clone_boxed(&raw))
         }
     }
 
@@ -330,14 +321,13 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultProperty<K, V> {
         DefaultProperty {
             config: Arc::new(Box::new(DefaultPropertyConfig::from_raw(property.get_config()))),
             raw: Arc::new(RawProperty::clone_boxed(property)),
-            raw_value: Arc::new(ImmutableValue::wrap(Value::clone_boxed(property)))
         }
     }
 }
 
 impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultProperty<K, V> {
     fn eq(&self, other: &Self) -> bool {
-        *self.raw_value.as_ref() == *other.raw_value.as_ref()
+        self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
@@ -369,7 +359,7 @@ impl<K: KeyConstraint, V: KeyConstraint> Property<K, V> for DefaultProperty<K, V
     }
 
     fn get_value(&self) -> Option<V> {
-        self.raw.get_value().map(|v|v.as_any_ref().downcast_ref::<V>().unwrap().clone())
+        self.raw.get_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>) {
@@ -401,10 +391,8 @@ impl DefaultRawPropertyChangeEvent {
 
 impl PartialEq for DefaultRawPropertyChangeEvent {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.property.as_ref().as_ref() as *const _;
-        let other_addr = other.property.as_ref().as_ref() as *const _;
-        addr == other_addr && self.old_value == other.old_value && self.new_value == other.new_value
-            && self.change_time == other.change_time
+        self.property.as_ref() == other.property.as_ref() && self.old_value == other.old_value
+            && self.new_value == other.new_value && self.change_time == other.change_time
     }
 }
 
@@ -439,8 +427,7 @@ as_trait!(impl RawPropertyChangeEvent);
 #[derive(Clone, Debug)]
 pub struct DefaultPropertyChangeEvent<K: KeyConstraint, V: KeyConstraint> {
     property: Arc<Box<dyn Property<K, V>>>,
-    raw: Arc<Box<dyn RawPropertyChangeEvent>>,
-    raw_value: Arc<ImmutableValue>,
+    raw: Arc<Box<dyn RawPropertyChangeEvent>>
 }
 
 impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyChangeEvent<K, V> {
@@ -454,17 +441,14 @@ impl<K: KeyConstraint, V: KeyConstraint> DefaultPropertyChangeEvent<K, V> {
         let property = DefaultProperty::<K, V>::from_raw(event.get_property());
         DefaultPropertyChangeEvent {
             property: Arc::new(Box::new(property)),
-            raw: Arc::new(RawPropertyChangeEvent::clone_boxed(event)),
-            raw_value: Arc::new(ImmutableValue::wrap(Value::clone_boxed(event)))
+            raw: Arc::new(RawPropertyChangeEvent::clone_boxed(event))
         }
     }
 }
 
 impl<K: KeyConstraint, V: KeyConstraint> PartialEq for DefaultPropertyChangeEvent<K, V> {
     fn eq(&self, other: &Self) -> bool {
-        let addr = self.raw.as_ref().as_ref() as *const _;
-        let other_addr = other.raw.as_ref().as_ref() as *const _;
-        addr == other_addr
+        self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
@@ -503,15 +487,11 @@ impl<K: KeyConstraint, V: KeyConstraint> PropertyChangeEvent<K, V>
     }
 
     fn get_old_value(&self) -> Option<V> {
-        self.raw.get_old_value().map(|v|v.as_any_ref().downcast_ref::<V>().unwrap().clone())
+        self.raw.get_old_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
 
     fn get_new_value(&self) -> Option<V> {
-        self.raw.get_new_value().map(|v|v.as_any_ref().downcast_ref::<V>().unwrap().clone())
-    }
-
-    fn get_change_time(&self) -> u64 {
-        self.raw.get_change_time()
+        self.raw.get_new_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
 }
 
@@ -521,7 +501,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test() {
+    fn property_config_test() {
         let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
         println!("{:?}", config);
     }

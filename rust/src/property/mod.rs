@@ -55,13 +55,7 @@ pub type RawPropertyChangeListener = Box<dyn Fn(&dyn RawPropertyChangeEvent)>;
 pub trait PropertyConfig<K: KeyConstraint, V: KeyConstraint> : RawPropertyConfig {
     fn get_key(&self) -> K;
 
-    fn get_value_type(&self) -> TypeId;
-
     fn get_default_value(&self) -> Option<V>;
-
-    fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
-
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>>;
 }
 
 pub trait PropertyConfigBuilder<K: KeyConstraint, V: KeyConstraint> {
@@ -94,8 +88,6 @@ pub trait PropertyChangeEvent<K: KeyConstraint, V: KeyConstraint> : RawPropertyC
     fn get_old_value(&self) -> Option<V>;
 
     fn get_new_value(&self) -> Option<V>;
-
-    fn get_change_time(&self) -> u64;
 }
 
 pub type PropertyChangeListener<K, V> = Box<dyn Fn(&dyn PropertyChangeEvent<K, V>)>;

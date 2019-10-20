@@ -497,15 +497,28 @@ mod test {
         assert_eq!(2.type_id(), config.get_value_type());
         assert_eq!(Some(2), PropertyConfig::<i32, i32>::get_default_value(config.as_ref()));
 
+        let s = "1".to_string();
+        let s2 = "xx1".to_string();
+        let rc = config.get_value_converters().get(0).unwrap().as_ref();
+        assert_eq!(Ok(Value::to_boxed(1)), rc.convert(Value::as_trait_ref(&s)));
+        assert_ne!(Ok(Value::to_boxed(2)), rc.convert(Value::as_trait_ref(&s)));
+        assert!(rc.convert(Value::as_trait_ref(&s2)).is_err());
+        assert!(rc.convert(Value::as_trait_ref(&true)).is_err());
+        let rf = config.get_value_filter().unwrap();
+        assert_eq!(Some(Value::to_boxed(1)), rf.filter(Value::to_boxed(1)));
+        assert_eq!(Some(Value::to_boxed(12)), rf.filter(Value::to_boxed(11)));
+        assert_eq!(None, rf.filter(Value::to_boxed(0)));
+        assert_eq!(None, rf.filter(Value::to_boxed(s2)));
+
         let config2 = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
             .add_value_converter(RawTypeConverter::clone_boxed(&c))
             .set_value_filter(Box::new(f.clone())).build();
         assert!(!config.reference_equals(&config2));
         assert!(!config.as_ref().reference_equals(config2.as_ref().as_any_ref()));
         assert!(config.as_ref().equals(config2.as_ref().as_any_ref()));
-
         assert!(RawPropertyConfig::as_trait_ref(config.as_ref())
             .equals(RawPropertyConfig::as_trait_ref(config2.as_ref()).as_any_ref()));
+        assert_eq!(&RawPropertyConfig::clone_boxed(config.as_ref()), &RawPropertyConfig::clone_boxed(config2.as_ref()));
     }
 
 }

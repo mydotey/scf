@@ -12,7 +12,7 @@ use super::*;
 pub struct DefaultConfigurationManagerConfig {
     name: String,
     sources: Arc<Vec<Box<dyn ConfigurationSource>>>,
-    task_executor: Arc<ConsumerRef<Action>>
+    task_executor: ConsumerRef<Box<dyn Fn()>>
 }
 
 impl PartialEq for DefaultConfigurationManagerConfig {
@@ -44,15 +44,15 @@ impl ConfigurationManagerConfig for DefaultConfigurationManagerConfig {
         self.sources.as_ref()
     }
 
-    fn get_task_executor(&self) -> &ConsumerRef<Action> {
-        &self.task_executor.as_ref()
+    fn get_task_executor(&self) -> &dyn Fn(&Box<dyn Fn()>) {
+        self.task_executor.as_ref().as_ref()
     }
 }
 
 pub struct DefaultConfigurationManagerConfigBuilder {
     name: Option<String>,
     sources: HashMap<i32, Box<dyn ConfigurationSource>>,
-    task_executor: Option<Arc<ConsumerRef<Action>>>
+    task_executor: Option<ConsumerRef<Box<dyn Fn()>>>
 }
 
 impl DefaultConfigurationManagerConfigBuilder {
@@ -60,11 +60,11 @@ impl DefaultConfigurationManagerConfigBuilder {
         Self {
             name: None,
             sources: HashMap::new(),
-            task_executor: Some(Arc::new(Box::new(Self::execute)))
+            task_executor: Some(arc_boxed!(Self::execute))
         }
     }
 
-    fn execute(action: &Action) {
+    fn execute(action: &Box<dyn Fn()>) {
         action()
     }
 }
@@ -82,9 +82,9 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
         self
     }
 
-    fn set_task_executor(&mut self, task_executor: ConsumerRef<Action>)
+    fn set_task_executor(&mut self, task_executor: ConsumerRef<Box<dyn Fn()>>)
         -> &mut dyn ConfigurationManagerConfigBuilder {
-        self.task_executor = Some(Arc::new(task_executor));
+        self.task_executor = Some(task_executor);
         self
     }
 
@@ -118,9 +118,11 @@ impl DefaultConfigurationManager {
             config: Arc::new(config),
             properties: Arc::new(RwLock::new(HashMap::new()))
         };
+        let clone = manager.clone();
+        let source_change_listener: ConfigurationSourceChangeListener
+            = Arc::new(Box::new(move |e|clone.on_source_change(e)));
         for s in manager.config.get_sources() {
-            let clone = manager.clone();
-            s.add_change_listener(Box::new(move |e|clone.on_source_change(e)));
+            s.add_change_listener(source_change_listener.clone());
         }
         manager
     }
@@ -138,7 +140,7 @@ impl DefaultConfigurationManager {
                 let raw_property = property.as_ref().clone();
                 let default_raw_property = raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>().unwrap().clone();
                 default_raw_property.set_value(new_value);
-                let action: Action = Box::new(move || default_raw_property.raise_change_event(&pe));
+                let action: Box<dyn Fn()> = Box::new(move || default_raw_property.raise_change_event(&pe));
                 self.config.get_task_executor()(&action);
             }
         }
@@ -182,7 +184,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
                 return value;
             }
 
-            let value = config.get_value_filter().unwrap()(value.unwrap());
+            let value = config.get_value_filter().unwrap().filter(value.unwrap());
             if value.is_some() {
                 return value;
             }
@@ -212,7 +214,6 @@ mod test {
     use super::*;
     use std::thread;
     use lang_extension::convert::*;
-    use lang_extension::convert::default::*;
     use crate::source::default::*;
     use crate::facade::*;
 
@@ -220,7 +221,7 @@ mod test {
     fn manager_test() {
         let source = DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
-            Box::new(move |o| -> Option<Box<dyn Value>> {
+            Arc::new(Box::new(move |o| -> Option<Box<dyn Value>> {
                 let x = if Key::as_trait_ref(&"key_ok".to_string()).equals(o.as_any_ref()) {
                     Some(Value::to_boxed("10".to_string()))
                 } else if Key::as_trait_ref(&"key_error".to_string()).equals(o.as_any_ref()) {
@@ -230,7 +231,7 @@ mod test {
                 };
                 println!("raw_value: {:?}", x);
                 x
-            }));
+            })));
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source)).build();
         let manager = DefaultConfigurationManager::new(config);
@@ -248,7 +249,8 @@ mod test {
         }));
         let config = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
-            .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
+            .set_value_filter(Box::new(DefaultValueFilter::<i32>::new(
+                Box::new(|v|if *v == 10 { Some(Box::new(5)) } else { Some(v) }))))
             .build();
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
@@ -279,11 +281,11 @@ mod test {
         let memory_map2 = memory_map.clone();
         let source = DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
-            Box::new(move |o| -> Option<Box<dyn Value>> {
+            Arc::new(Box::new(move |o| -> Option<Box<dyn Value>> {
                 memory_map2.read().unwrap().get(o.as_any_ref().downcast_ref::<String>().unwrap()).map(|v|{
                     Value::clone_boxed(v)
                 })
-            }));
+            })));
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source.clone())).build();
         let manager = DefaultConfigurationManager::new(config);
@@ -299,7 +301,8 @@ mod test {
         }));
         let config = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
-            .set_value_filter(Box::new(|v|if v == 10 { Some(5) } else { Some(v) }))
+            .set_value_filter(Box::new(DefaultValueFilter::<i32>::new(
+                Box::new(|v|if *v == 10 { Some(Box::new(5)) } else { Some(v) }))))
             .build();
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
@@ -315,10 +318,10 @@ mod test {
 
         let properties = ConfigurationProperties::new(Box::new(manager));
         let property = properties.get_property(config.as_ref());
-        Property::<String, i32>::add_change_listener(property.as_ref(), Box::new(|e| {
+        Property::<String, i32>::add_change_listener(property.as_ref(), Arc::new(Box::new(|e| {
             println!("changed: {:?}", e);
             println!();
-        }));
+        })));
         memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
         source.raise_change_event();
         println!("property: {:?}, value: {:?}", property,

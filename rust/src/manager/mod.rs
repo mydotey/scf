@@ -12,7 +12,7 @@ pub trait ConfigurationManagerConfig: Value + Send + Sync {
 
     fn get_sources(&self) -> &Vec<Box<dyn ConfigurationSource>>;
 
-    fn get_task_executor(&self) -> &ConsumerRef<Action>;
+    fn get_task_executor(&self) -> &dyn Fn(&Box<dyn Fn()>);
 
 }
 
@@ -23,7 +23,7 @@ pub trait ConfigurationManagerConfigBuilder {
     fn add_source(&mut self, priority: i32, source: Box<dyn ConfigurationSource>)
         -> &mut dyn ConfigurationManagerConfigBuilder;
 
-    fn set_task_executor(&mut self, task_executor: ConsumerRef<Action>)
+    fn set_task_executor(&mut self, task_executor: ConsumerRef<Box<dyn Fn()>>)
         -> &mut dyn ConfigurationManagerConfigBuilder;
 
     fn build(&self) -> Box<dyn ConfigurationManagerConfig>;

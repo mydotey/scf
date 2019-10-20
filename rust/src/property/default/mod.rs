@@ -7,7 +7,6 @@ use std::fmt::{ Debug, Formatter, Result };
 use std::any::TypeId;
 
 use lang_extension::any::*;
-use lang_extension::ops::function::*;
 use super::*;
 
 #[derive(Clone)]
@@ -16,7 +15,7 @@ pub struct DefaultRawPropertyConfig {
     value_type: TypeId,
     default_value: Option<ImmutableValue>,
     value_converters: Arc<Vec<Box<dyn RawTypeConverter>>>,
-    value_filter: Option<Arc<Function<Box<dyn Value>, Option<Box<dyn Value>>>>>
+    value_filter: Option<Box<dyn RawValueFilter>>
 }
 
 impl RawPropertyConfig for DefaultRawPropertyConfig {
@@ -36,8 +35,8 @@ impl RawPropertyConfig for DefaultRawPropertyConfig {
         self.value_converters.as_ref().as_slice()
     }
 
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>> {
-        self.value_filter.as_ref().map(|v|v.as_ref().as_ref())
+    fn get_value_filter(&self) -> Option<&dyn RawValueFilter> {
+        self.value_filter.as_ref().map(|f|f.as_ref())
     }
 
 as_boxed!(impl RawPropertyConfig);
@@ -55,19 +54,7 @@ impl PartialEq for DefaultRawPropertyConfig {
         self.key == other.key && self.value_type == other.value_type
             && self.default_value == other.default_value
             && self.value_converters.as_ref() == other.value_converters.as_ref()
-            && {
-                if self.value_filter.is_none() && other.value_filter.is_none() {
-                    return true
-                }
-
-                if self.value_filter.is_none() || other.value_filter.is_none() {
-                    return false;
-                }
-
-                let m = self.value_filter.as_ref().unwrap().as_ref();
-                let o = other.value_filter.as_ref().unwrap().as_ref();
-                m.reference_equals(o.as_any_ref())
-            }
+            && self.value_filter == other.value_filter
     }
 }
 
@@ -85,13 +72,13 @@ unsafe impl Sync for DefaultRawPropertyConfig { }
 unsafe impl Send for DefaultRawPropertyConfig { }
 
 #[derive(Clone, Debug)]
-pub struct DefaultPropertyConfig<K: KeyConstraint, V: ValueConstraint> {
+pub struct DefaultPropertyConfig<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
     raw: Arc<Box<dyn RawPropertyConfig>>,
     k: PhantomData<K>,
     v: PhantomData<V>
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyConfig<K, V> {
     pub fn from_raw(config: &dyn RawPropertyConfig) -> Self {
         DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(config)),
@@ -101,24 +88,24 @@ impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfig<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> Hash for DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Hash for DefaultPropertyConfig<K, V> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.raw.as_ref().hash(state);
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PartialEq for DefaultPropertyConfig<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref().eq(other.raw.as_ref())
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultPropertyConfig<K, V> { }
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPropertyConfig<K, V> { }
 
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultPropertyConfig<K, V> { }
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultPropertyConfig<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Sync for DefaultPropertyConfig<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Send for DefaultPropertyConfig<K, V> { }
 
-impl<K: KeyConstraint, V: ValueConstraint> RawPropertyConfig for DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawPropertyConfig for DefaultPropertyConfig<K, V> {
     fn get_key(&self) -> Box<dyn Key> {
         self.raw.get_key()
     }
@@ -135,7 +122,7 @@ impl<K: KeyConstraint, V: ValueConstraint> RawPropertyConfig for DefaultProperty
         self.raw.get_value_converters()
     }
 
-    fn get_value_filter(&self) -> Option<&dyn Fn(Box<dyn Value>) -> Option<Box<dyn Value>>> {
+    fn get_value_filter(&self) -> Option<&dyn RawValueFilter> {
         self.raw.get_value_filter()
     }
 
@@ -143,7 +130,7 @@ as_boxed!(impl RawPropertyConfig);
 as_trait!(impl RawPropertyConfig);
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
     fn get_key(&self) -> K {
         self.raw.get_key().as_ref().as_any_ref().downcast_ref::<K>().unwrap().clone()
     }
@@ -154,15 +141,15 @@ impl<K: KeyConstraint, V: ValueConstraint> PropertyConfig<K, V> for DefaultPrope
     }
 }
 
-pub struct DefaultPropertyConfigBuilder<K: KeyConstraint, V: ValueConstraint> {
+pub struct DefaultPropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
     key: Option<K>,
     value_type: TypeId,
     default_value: Option<V>,
     value_converters: Vec<Box<dyn RawTypeConverter>>,
-    value_filter: Option<Arc<Box<dyn Fn(V) -> Option<V>>>>
+    value_filter: Option<Box<dyn ValueFilter<V>>>
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfigBuilder<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyConfigBuilder<K, V> {
     pub fn new() -> Self {
         Self {
             key: None,
@@ -174,7 +161,7 @@ impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyConfigBuilder<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PropertyConfigBuilder<K, V>
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfigBuilder<K, V>
     for DefaultPropertyConfigBuilder<K, V> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V> {
         self.key = Some(key);
@@ -199,8 +186,9 @@ impl<K: KeyConstraint, V: ValueConstraint> PropertyConfigBuilder<K, V>
         self
     }
 
-    fn set_value_filter(&mut self, value_filter: Box<dyn Fn(V) -> Option<V>>) -> &mut dyn PropertyConfigBuilder<K, V> {
-        self.value_filter = Some(Arc::new(value_filter));
+    fn set_value_filter(&mut self, value_filter: Box<dyn ValueFilter<V>>)
+        -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.value_filter = Some(value_filter);
         self
     }
 
@@ -210,18 +198,7 @@ impl<K: KeyConstraint, V: ValueConstraint> PropertyConfigBuilder<K, V>
             value_type: self.value_type,
             default_value: self.default_value.as_ref().map(|v|v.clone()).map(|v|ImmutableValue::new(v)),
             value_converters: Arc::new(self.value_converters.clone()),
-            value_filter: match self.value_filter.as_ref() {
-                Some(f) => {
-                    let filter = f.clone();
-                    Some(Arc::new(Box::new(move |v|{
-                        match v.as_ref().as_any_ref().downcast_ref::<V>() {
-                            Some(v) => filter(v.clone()).map(|v|Value::to_boxed(v)),
-                            None => None
-                        }
-                    })))
-                },
-                None => None
-            }
+            value_filter: self.value_filter.as_ref().map(|f|RawValueFilter::clone_boxed(f.as_ref()))
         };
         Box::new(DefaultPropertyConfig {
             raw: Arc::new(RawPropertyConfig::clone_boxed(&raw)),
@@ -302,12 +279,12 @@ unsafe impl Sync for DefaultRawProperty { }
 unsafe impl Send for DefaultRawProperty { }
 
 #[derive(Clone, Debug)]
-pub struct DefaultProperty<K: KeyConstraint, V: ValueConstraint> {
+pub struct DefaultProperty<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
     config: Arc<Box<dyn PropertyConfig<K, V>>>,
     raw: Arc<Box<dyn RawProperty>>
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> DefaultProperty<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultProperty<K, V> {
     pub fn new(config: &dyn PropertyConfig<K, V>) -> Self {
         let raw = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config));
         DefaultProperty {
@@ -325,18 +302,18 @@ impl<K: KeyConstraint, V: ValueConstraint> DefaultProperty<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultProperty<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PartialEq for DefaultProperty<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultProperty<K, V> { }
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultProperty<K, V> { }
 
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultProperty<K, V> { }
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultProperty<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Sync for DefaultProperty<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Send for DefaultProperty<K, V> { }
 
-impl<K: KeyConstraint, V: ValueConstraint> RawProperty for DefaultProperty<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawProperty for DefaultProperty<K, V> {
     fn get_config(&self) -> &dyn RawPropertyConfig {
         self.raw.get_config()
     }
@@ -353,7 +330,7 @@ as_boxed!(impl RawProperty);
 as_trait!(impl RawProperty);
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> Property<K, V> for DefaultProperty<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Property<K, V> for DefaultProperty<K, V> {
     fn get_config(&self) -> &dyn PropertyConfig<K, V> {
         self.config.as_ref().as_ref()
     }
@@ -363,9 +340,9 @@ impl<K: KeyConstraint, V: ValueConstraint> Property<K, V> for DefaultProperty<K,
     }
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>) {
-        self.raw.add_change_listener(Box::new(move |e|{
+        self.raw.add_change_listener(Arc::new(Box::new(move |e|{
             listener(&DefaultPropertyChangeEvent::from_raw(e));
-        }));
+        })));
     }
 }
 
@@ -425,12 +402,12 @@ as_trait!(impl RawPropertyChangeEvent);
 }
 
 #[derive(Clone, Debug)]
-pub struct DefaultPropertyChangeEvent<K: KeyConstraint, V: ValueConstraint> {
+pub struct DefaultPropertyChangeEvent<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
     property: Arc<Box<dyn Property<K, V>>>,
     raw: Arc<Box<dyn RawPropertyChangeEvent>>
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyChangeEvent<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyChangeEvent<K, V> {
     pub fn new(property: Arc<Box<dyn RawProperty>>, old_value: Option<ImmutableValue>,
         new_value: Option<ImmutableValue>, change_time: u64) -> Self {
         let event = DefaultRawPropertyChangeEvent::new(property, old_value, new_value, change_time);
@@ -446,20 +423,20 @@ impl<K: KeyConstraint, V: ValueConstraint> DefaultPropertyChangeEvent<K, V> {
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PartialEq for DefaultPropertyChangeEvent<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PartialEq for DefaultPropertyChangeEvent<K, V> {
     fn eq(&self, other: &Self) -> bool {
         self.raw.as_ref() == other.raw.as_ref()
     }
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> Eq for DefaultPropertyChangeEvent<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPropertyChangeEvent<K, V> {
 
 }
 
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Sync for DefaultPropertyChangeEvent<K, V> { }
-unsafe impl<K: KeyConstraint, V: ValueConstraint> Send for DefaultPropertyChangeEvent<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Sync for DefaultPropertyChangeEvent<K, V> { }
+unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Send for DefaultPropertyChangeEvent<K, V> { }
 
-impl<K: KeyConstraint, V: ValueConstraint> RawPropertyChangeEvent for DefaultPropertyChangeEvent<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawPropertyChangeEvent for DefaultPropertyChangeEvent<K, V> {
     fn get_property(&self) -> &dyn RawProperty {
         self.raw.get_property()
     }
@@ -480,7 +457,7 @@ as_boxed!(impl RawPropertyChangeEvent);
 as_trait!(impl RawPropertyChangeEvent);
 }
 
-impl<K: KeyConstraint, V: ValueConstraint> PropertyChangeEvent<K, V>
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyChangeEvent<K, V>
     for DefaultPropertyChangeEvent<K, V> {
     fn get_property(&self) -> &dyn Property<K, V> {
         self.property.as_ref().as_ref()
@@ -499,14 +476,30 @@ impl<K: KeyConstraint, V: ValueConstraint> PropertyChangeEvent<K, V>
 mod test {
 
     use super::*;
+    use std::any::Any;
 
     #[test]
     fn property_config_test() {
-        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        let c = DefaultTypeConverter::<String, i32>::new(
+            Box::new(move |v| match v.parse::<i32>() {
+                Ok(v) => Ok(Box::new(v)),
+                Err(err) => Err(Box::new(err))
+            }));
+        let f = DefaultValueFilter::new(Box::new(move |v| {
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+        }));
+
+        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+            .add_value_converter(RawTypeConverter::clone_boxed(&c))
+            .set_value_filter(Box::new(f.clone())).build();
         println!("{:?}", config);
         assert_eq!(1, PropertyConfig::<i32, i32>::get_key(config.as_ref()));
+        assert_eq!(2.type_id(), config.get_value_type());
+        assert_eq!(Some(2), PropertyConfig::<i32, i32>::get_default_value(config.as_ref()));
 
-        let config2 = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        let config2 = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+            .add_value_converter(RawTypeConverter::clone_boxed(&c))
+            .set_value_filter(Box::new(f.clone())).build();
         assert!(!config.reference_equals(&config2));
         assert!(!config.as_ref().reference_equals(config2.as_ref().as_any_ref()));
         assert!(config.as_ref().equals(config2.as_ref().as_any_ref()));

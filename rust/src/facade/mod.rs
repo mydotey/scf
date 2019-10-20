@@ -27,7 +27,7 @@ pub struct ConfigurationProperties {
 }
 
 impl ConfigurationProperties {
-    pub fn new_config_builder<K: KeyConstraint, V: ValueConstraint>()
+    pub fn new_config_builder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>()
         -> Box<dyn PropertyConfigBuilder<K, V>> {
         Box::new(DefaultPropertyConfigBuilder::new())
     }
@@ -38,13 +38,13 @@ impl ConfigurationProperties {
         }
     }
 
-    pub fn get_property<K: KeyConstraint, V: ValueConstraint>(&self,
+    pub fn get_property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
         config: &dyn PropertyConfig<K, V>) -> Box<dyn Property<K, V>> {
         let p = self.manager.get_property(RawPropertyConfig::as_trait_ref(config));
         Box::new(DefaultProperty::from_raw(p.as_ref()))
     }
 
-    pub fn get_property_value<K: KeyConstraint, V: ValueConstraint>(&self,
+    pub fn get_property_value<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
         config: &dyn PropertyConfig<K, V>) -> Option<V> {
         match self.manager.get_property_value(RawPropertyConfig::as_trait_ref(config)) {
             Some(v) => match v.as_ref().as_any_ref().downcast_ref::<V>() {

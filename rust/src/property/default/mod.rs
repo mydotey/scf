@@ -285,15 +285,6 @@ pub struct DefaultProperty<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstrain
 }
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultProperty<K, V> {
-    pub fn new(config: &dyn PropertyConfig<K, V>) -> Self {
-        let raw = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config));
-        DefaultProperty {
-            config: Arc::new(Box::new(DefaultPropertyConfig::<K, V>::from_raw(
-                RawPropertyConfig::as_trait_ref(config)))),
-            raw: Arc::new(RawProperty::clone_boxed(&raw))
-        }
-    }
-
     pub fn from_raw(property: &dyn RawProperty) -> Self {
         DefaultProperty {
             config: Arc::new(Box::new(DefaultPropertyConfig::from_raw(property.get_config()))),
@@ -408,12 +399,6 @@ pub struct DefaultPropertyChangeEvent<K: ?Sized + KeyConstraint, V: ?Sized + Val
 }
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyChangeEvent<K, V> {
-    pub fn new(property: Arc<Box<dyn RawProperty>>, old_value: Option<ImmutableValue>,
-        new_value: Option<ImmutableValue>, change_time: u64) -> Self {
-        let event = DefaultRawPropertyChangeEvent::new(property, old_value, new_value, change_time);
-        Self::from_raw(&event)
-    }
-
     pub fn from_raw(event: &dyn RawPropertyChangeEvent) -> Self {
         let property = DefaultProperty::<K, V>::from_raw(event.get_property());
         DefaultPropertyChangeEvent {

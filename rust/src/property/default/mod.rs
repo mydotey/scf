@@ -477,6 +477,8 @@ mod test {
 
     use super::*;
     use std::any::Any;
+    use std::thread::*;
+    use std::time::*;
 
     #[test]
     fn property_config_test() {
@@ -519,6 +521,70 @@ mod test {
         assert!(RawPropertyConfig::as_trait_ref(config.as_ref())
             .equals(RawPropertyConfig::as_trait_ref(config2.as_ref()).as_any_ref()));
         assert_eq!(&RawPropertyConfig::clone_boxed(config.as_ref()), &RawPropertyConfig::clone_boxed(config2.as_ref()));
+    }
+
+    #[test]
+    fn property_test() {
+        let c = DefaultTypeConverter::<String, i32>::new(
+            Box::new(move |v| match v.parse::<i32>() {
+                Ok(v) => Ok(Box::new(v)),
+                Err(err) => Err(Box::new(err))
+            }));
+        let f = DefaultValueFilter::new(Box::new(move |v| {
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+        }));
+        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+            .add_value_converter(RawTypeConverter::clone_boxed(&c))
+            .set_value_filter(Box::new(f.clone())).build();
+
+        let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        assert!(property.get_config().equals(config.as_ref().as_any_ref()));
+        assert_eq!(None, property.get_value());
+        property.set_value(Some(Box::new(0)));
+        assert_eq!(Some(Value::to_boxed(0)), property.get_value());
+
+        let changed = Arc::new(RwLock::new(Box::new(false)));
+        let changed_clone = changed.clone();
+        property.add_change_listener(Arc::new(Box::new(move |e|{
+            println!("property: {:?}, old_value: {:?}, new_value: {:?}, change_time: {:?}",
+                e.get_property(), e.get_old_value(), e.get_new_value(), e.get_change_time());
+            let mut v = changed_clone.write().unwrap();
+            **v = true;
+        })));
+        property.set_value(Some(Box::new(1)));
+        let arc_property = Arc::new(RawProperty::to_boxed(property.clone()));
+        let start = SystemTime::now();
+        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+        let event = DefaultRawPropertyChangeEvent::new(arc_property, Some(ImmutableValue::new(0)),
+            Some(ImmutableValue::new(0)), since_the_epoch.as_millis() as u64);
+        assert_eq!(false, **changed.read().unwrap());
+        property.raise_change_event(&event);
+        sleep(Duration::from_millis(100));
+        assert_eq!(true, **changed.read().unwrap());
+
+        let property2 = DefaultProperty::<i32, i32>::from_raw(&property);
+        assert_eq!(Some(1), Property::<i32, i32>::get_value(&property2));
+        property.set_value(Some(Box::new(2)));
+        assert_eq!(Some(2), Property::<i32, i32>::get_value(&property2));
+        let changed2 = Arc::new(RwLock::new(Box::new(false)));
+        let changed2_clone = changed2.clone();
+        Property::<i32, i32>::add_change_listener(&property2, Arc::new(Box::new(move |e|{
+            println!("property: {:?}, old_value: {:?}, new_value: {:?}, change_time: {:?}",
+                PropertyChangeEvent::<i32, i32>::get_property(e),
+                PropertyChangeEvent::<i32, i32>::get_old_value(e),
+                PropertyChangeEvent::<i32, i32>::get_new_value(e), e.get_change_time());
+            let mut v = changed2_clone.write().unwrap();
+            **v = true;
+        })));
+        let arc_property = Arc::new(RawProperty::to_boxed(property.clone()));
+        let start = SystemTime::now();
+        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+        let event = DefaultRawPropertyChangeEvent::new(arc_property, Some(ImmutableValue::new(0)),
+            Some(ImmutableValue::new(0)), since_the_epoch.as_millis() as u64);
+        assert_eq!(false, **changed2.read().unwrap());
+        property.raise_change_event(&event);
+        sleep(Duration::from_millis(100));
+        assert_eq!(true, **changed2.read().unwrap());
     }
 
 }

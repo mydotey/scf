@@ -7,11 +7,11 @@ use lang_extension::ops::function::*;
 pub mod default;
 
 pub trait RawPropertyConfig: Key + Send + Sync {
-    fn get_key(&self) -> Box<dyn Key>;
+    fn get_raw_key(&self) -> Box<dyn Key>;
 
     fn get_value_type(&self) -> TypeId;
 
-    fn get_default_value(&self) -> Option<Box<dyn Value>>;
+    fn get_raw_default_value(&self) -> Option<Box<dyn Value>>;
 
     fn get_value_converters(&self) -> &[Box<dyn RawTypeConverter>];
 
@@ -24,11 +24,11 @@ as_trait!(RawPropertyConfig);
 boxed_key_trait!(RawPropertyConfig);
 
 pub trait RawProperty: Value + Send + Sync {
-    fn get_config(&self) -> &dyn RawPropertyConfig;
+    fn get_raw_config(&self) -> &dyn RawPropertyConfig;
 
-    fn get_value(&self) -> Option<Box<dyn Value>>;
+    fn get_raw_value(&self) -> Option<Box<dyn Value>>;
 
-    fn add_change_listener(&self, listener: RawPropertyChangeListener);
+    fn add_raw_change_listener(&self, listener: RawPropertyChangeListener);
 
 as_boxed!(RawProperty);
 as_trait!(RawProperty);
@@ -37,11 +37,11 @@ as_trait!(RawProperty);
 boxed_value_trait!(RawProperty);
 
 pub trait RawPropertyChangeEvent: Value + Send + Sync {
-    fn get_property(&self) -> &dyn RawProperty;
+    fn get_raw_property(&self) -> &dyn RawProperty;
 
-    fn get_old_value(&self) -> Option<Box<dyn Value>>;
+    fn get_raw_old_value(&self) -> Option<Box<dyn Value>>;
 
-    fn get_new_value(&self) -> Option<Box<dyn Value>>;
+    fn get_raw_new_value(&self) -> Option<Box<dyn Value>>;
 
     fn get_change_time(&self) -> u64;
 

@@ -96,14 +96,14 @@ impl ConfigurationSource for DefaultConfigurationSource {
 
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>> {
         let lock = self.property_provider.read().unwrap();
-        match lock(config.get_key().as_ref()) {
+        match lock(config.get_raw_key().as_ref()) {
             Some(v) => {
                 let type_id = v.as_ref().type_id();
                 if type_id == config.get_value_type() {
                     return Some(v);
                 } else {
                     for value_converter in config.get_value_converters() {
-                        if let Ok(v) = value_converter.convert(v.as_ref()) {
+                        if let Ok(v) = value_converter.convert_raw(v.as_ref()) {
                             return Some(v);
                         }
                     }

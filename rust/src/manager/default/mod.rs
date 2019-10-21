@@ -130,8 +130,8 @@ impl DefaultConfigurationManager {
     fn on_source_change(&self, event: &dyn ConfigurationSourceChangeEvent) {
         let properties = self.properties.read().unwrap();
         for property in properties.values() {
-            let new_value = self.get_property_value(property.get_config());
-            let old_value = property.get_value();
+            let new_value = self.get_property_value(property.get_raw_config());
+            let old_value = property.get_raw_value();
             if new_value != old_value {
                 let pe = DefaultRawPropertyChangeEvent::new(
                     Arc::new(RawProperty::clone_boxed(property.as_ref())),
@@ -153,7 +153,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
     }
 
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty> {
-        let key = ImmutableKey::wrap(config.get_key());
+        let key = ImmutableKey::wrap(config.get_raw_key());
         let mut opt_property = self.properties.read().unwrap().get(&key)
             .map(|p|RawProperty::clone_boxed(p.as_ref()));
         if opt_property.is_none() {
@@ -184,7 +184,7 @@ impl ConfigurationManager for DefaultConfigurationManager {
                 return value;
             }
 
-            let value = config.get_value_filter().unwrap().filter(value.unwrap());
+            let value = config.get_value_filter().unwrap().filter_raw(value.unwrap());
             if value.is_some() {
                 return value;
             }
@@ -255,20 +255,20 @@ mod test {
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
         println!("property: {:?}", property);
-        println!("value: {:?}", property.get_value());
+        println!("value: {:?}", property.get_raw_value());
 
         let config2 = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
             .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
         let property2 = manager.get_property(RawPropertyConfig::as_trait_ref(config2.as_ref()));
         println!("config: {:?}", config2);
         println!("property: {:?}", property2);
-        println!("value: {:?}", property2.get_value());
+        println!("value: {:?}", property2.get_raw_value());
 
         let handle = thread::spawn(move || {
             let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
             println!("config: {:?}", config);
             println!("property: {:?}", property);
-            println!("value: {:?}", property.get_value());
+            println!("value: {:?}", property.get_raw_value());
         });
         handle.join().unwrap();
     }
@@ -307,25 +307,24 @@ mod test {
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("config: {:?}", config);
         println!("property: {:?}", property);
-        println!("value: {:?}", property.get_value());
+        println!("value: {:?}", property.get_raw_value());
 
         println!();
 
         memory_map.write().unwrap().insert("key_ok".to_string(), "11".to_string());
         source.raise_change_event();
-        println!("property: {:?}, value: {:?}", property, property.get_value());
+        println!("property: {:?}, value: {:?}", property, property.get_raw_value());
         println!();
 
         let properties = ConfigurationProperties::new(Box::new(manager));
         let property = properties.get_property(config.as_ref());
-        Property::<String, i32>::add_change_listener(property.as_ref(), Arc::new(Box::new(|e| {
+        property.add_change_listener(Arc::new(Box::new(|e| {
             println!("changed: {:?}", e);
             println!();
         })));
         memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
         source.raise_change_event();
-        println!("property: {:?}, value: {:?}", property,
-            Property::<String, i32>::get_value(property.as_ref()));
+        println!("property: {:?}, value: {:?}", property, property.get_value());
         println!();
     }
 

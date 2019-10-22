@@ -6,8 +6,12 @@ use crate::property::*;
 pub mod default;
 
 pub trait ConfigurationSourceConfig: Value + Send + Sync {
-    fn name(&self) -> &str;
+    fn get_name(&self) -> &str;
+
+as_boxed!(ConfigurationSourceConfig);
 }
+
+boxed_value_trait!(ConfigurationSourceConfig);
 
 pub trait ConfigurationSourceConfigBuilder {
 
@@ -34,7 +38,7 @@ pub trait ConfigurationSourceChangeEvent: Value + Send + Sync {
 
     fn get_source(&self) -> &dyn ConfigurationSource;
 
-    fn get_change_time(&self) -> u64;
+    fn get_change_time(&self) -> u128;
 
 as_boxed!(ConfigurationSourceChangeEvent);
 }

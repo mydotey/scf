@@ -12,9 +12,11 @@ pub struct DefaultConfiguratonSourceConfig {
 }
 
 impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
-    fn name(&self) -> &str {
+    fn get_name(&self) -> &str {
         self.name.as_str()
     }
+
+as_boxed!(impl ConfigurationSourceConfig);
 }
 
 pub struct DefaultConfigurationSourceConfigBuilder {
@@ -60,9 +62,8 @@ impl DefaultConfigurationSource {
     }
 
     pub fn raise_change_event(&self) {
-        let start = SystemTime::now();
-        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
-        let event = DefaultConfigurationSourceChangeEvent::new(self, since_the_epoch.as_millis() as u64);
+        let event = DefaultConfigurationSourceChangeEvent::new(self,
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis());
         let lock = self.listeners.read().unwrap();
         for listener in lock.iter() {
             listener(&event);
@@ -125,11 +126,11 @@ as_boxed!(impl ConfigurationSource);
 #[derive(Eq, Debug, Clone)]
 pub struct DefaultConfigurationSourceChangeEvent {
     source: Box<dyn ConfigurationSource>,
-    change_time: u64
+    change_time: u128
 }
 
 impl DefaultConfigurationSourceChangeEvent {
-    pub fn new(source: &dyn ConfigurationSource, change_time: u64) -> Self {
+    pub fn new(source: &dyn ConfigurationSource, change_time: u128) -> Self {
         DefaultConfigurationSourceChangeEvent {
             source: ConfigurationSource::clone_boxed(source),
             change_time
@@ -152,9 +153,86 @@ impl ConfigurationSourceChangeEvent for DefaultConfigurationSourceChangeEvent {
         self.source.as_ref()
     }
 
-    fn get_change_time(&self) -> u64 {
+    fn get_change_time(&self) -> u128 {
         self.change_time
     }
 
 as_boxed!(impl ConfigurationSourceChangeEvent);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::property::default::*;
+    use std::sync::atomic::*;
+
+    #[test]
+    fn source_config_test() {
+        let mut builder = DefaultConfigurationSourceConfigBuilder::new();
+        let config = builder.set_name("test").build();
+        println!("config: {:?}", config);
+        assert_eq!("test", config.get_name());
+        assert_eq!(&config, &config.clone());
+    }
+
+    #[test]
+    fn source_test() {
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+            if k.equals("10".to_string().as_any_ref()) {
+                Some(Value::to_boxed(10))
+            } else {
+                None
+            }
+        }));
+        let mut builder = DefaultConfigurationSourceConfigBuilder::new();
+        let config = builder.set_name("test").build();
+        let source = DefaultConfigurationSource::new(config.clone(), property_provider);
+        println!("config source: {:?}", source);
+        assert_eq!(&config, &ConfigurationSourceConfig::clone_boxed(source.get_config()));
+
+        let property_config = DefaultPropertyConfigBuilder::<String, i32>::new()
+            .set_key("10".to_string()).build();
+        assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
+            RawPropertyConfig::as_trait_ref(property_config.as_ref())));
+        let property_config2 = DefaultPropertyConfigBuilder::<String, i32>::new()
+            .set_key("1".to_string()).build();
+        assert_eq!(None, source.get_property_value(
+            RawPropertyConfig::as_trait_ref(property_config2.as_ref())));
+        let property_config3 = DefaultPropertyConfigBuilder::<i32, i32>::new()
+            .set_key(1).build();
+        assert_eq!(None, source.get_property_value(
+            RawPropertyConfig::as_trait_ref(property_config3.as_ref())));
+
+        let changed = Arc::new(AtomicBool::default());
+        let changed_clone = changed.clone();
+        source.add_change_listener(Arc::new(Box::new(move |e|{
+            println!("event: {:?}", e);
+            changed_clone.swap(true, Ordering::Relaxed);
+        })));
+
+        source.raise_change_event();
+        assert_eq!(true, changed.as_ref().fetch_and(true, Ordering::Relaxed));
+    }
+
+    #[test]
+    fn source_event_test() {
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+            if k.equals("10".to_string().as_any_ref()) {
+                Some(Value::to_boxed(10))
+            } else {
+                None
+            }
+        }));
+        let mut builder = DefaultConfigurationSourceConfigBuilder::new();
+        let config = builder.set_name("test").build();
+        let source = DefaultConfigurationSource::new(config.clone(), property_provider);
+ 
+        let start = SystemTime::now();
+        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+        let event = DefaultConfigurationSourceChangeEvent::new(&source, since_the_epoch.as_millis());
+        println!("source event: {:?}", event);
+
+        assert!(source.equals(event.get_source().as_any_ref()));
+        assert_eq!(since_the_epoch.as_millis(), event.get_change_time());
+    }
 }

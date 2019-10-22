@@ -1,6 +1,7 @@
 use std::sync::{ Arc, RwLock };
 use std::collections::HashMap;
 use std::fmt;
+use std::time::*;
 
 use lang_extension::any::*;
 use lang_extension::fmt::*;
@@ -127,7 +128,7 @@ impl DefaultConfigurationManager {
         manager
     }
 
-    fn on_source_change(&self, event: &dyn ConfigurationSourceChangeEvent) {
+    fn on_source_change(&self, _event: &dyn ConfigurationSourceChangeEvent) {
         let properties = self.properties.read().unwrap();
         for property in properties.values() {
             let new_value = self.get_property_value(property.get_raw_config());
@@ -136,7 +137,8 @@ impl DefaultConfigurationManager {
                 let pe = DefaultRawPropertyChangeEvent::new(
                     Arc::new(RawProperty::clone_boxed(property.as_ref())),
                     old_value.map(|v|ImmutableValue::wrap(v)),
-                    new_value.as_ref().map(|v|ImmutableValue::wrap(v.clone())), event.get_change_time());
+                    new_value.as_ref().map(|v|ImmutableValue::wrap(v.clone())),
+                    SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis());
                 let raw_property = property.as_ref().clone();
                 let default_raw_property = raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>().unwrap().clone();
                 default_raw_property.set_value(new_value);

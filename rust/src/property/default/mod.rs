@@ -342,12 +342,12 @@ pub struct DefaultRawPropertyChangeEvent {
     property: Arc<Box<dyn RawProperty>>,
     old_value: Option<ImmutableValue>,
     new_value: Option<ImmutableValue>,
-    change_time: u64
+    change_time: u128
 }
 
 impl DefaultRawPropertyChangeEvent {
     pub fn new(property: Arc<Box<dyn RawProperty>>, old_value: Option<ImmutableValue>,
-        new_value: Option<ImmutableValue>, change_time: u64) -> Self {
+        new_value: Option<ImmutableValue>, change_time: u128) -> Self {
         DefaultRawPropertyChangeEvent {
             property,
             old_value,
@@ -384,7 +384,7 @@ impl RawPropertyChangeEvent for DefaultRawPropertyChangeEvent {
         self.new_value.as_ref().map(|v|v.raw_boxed())
     }
 
-    fn get_change_time(&self) -> u64 {
+    fn get_change_time(&self) -> u128 {
         self.change_time
     }
 
@@ -434,7 +434,7 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawPropertyChangeEv
         self.raw.get_raw_new_value()
     }
 
-    fn get_change_time(&self) -> u64 {
+    fn get_change_time(&self) -> u128 {
         self.raw.get_change_time()
     }
 
@@ -524,6 +524,7 @@ mod test {
             .set_value_filter(Box::new(f.clone())).build();
 
         let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        println!("{:?}", property);
         assert!(property.get_raw_config().equals(config.as_ref().as_any_ref()));
         assert_eq!(None, property.get_raw_value());
         property.set_value(Some(Box::new(0)));
@@ -542,13 +543,14 @@ mod test {
         let start = SystemTime::now();
         let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
         let event = DefaultRawPropertyChangeEvent::new(arc_property, Some(ImmutableValue::new(0)),
-            Some(ImmutableValue::new(0)), since_the_epoch.as_millis() as u64);
+            Some(ImmutableValue::new(0)), since_the_epoch.as_millis());
         assert_eq!(false, **changed.read().unwrap());
         property.raise_change_event(&event);
         sleep(Duration::from_millis(100));
         assert_eq!(true, **changed.read().unwrap());
 
         let property2 = DefaultProperty::<i32, i32>::from_raw(&property);
+        println!("{:?}", property2);
         assert_eq!(Some(1), property2.get_value());
         property.set_value(Some(Box::new(2)));
         assert_eq!(Some(2), property2.get_value());
@@ -564,11 +566,39 @@ mod test {
         let start = SystemTime::now();
         let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
         let event = DefaultRawPropertyChangeEvent::new(arc_property, Some(ImmutableValue::new(0)),
-            Some(ImmutableValue::new(0)), since_the_epoch.as_millis() as u64);
+            Some(ImmutableValue::new(0)), since_the_epoch.as_millis());
         assert_eq!(false, **changed2.read().unwrap());
         property.raise_change_event(&event);
         sleep(Duration::from_millis(100));
         assert_eq!(true, **changed2.read().unwrap());
+    }
+
+    #[test]
+    fn property_change_event_test() {
+        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        let arc_property = Arc::new(RawProperty::to_boxed(property.clone()));
+        let start = SystemTime::now();
+        let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
+        let event = DefaultRawPropertyChangeEvent::new(arc_property, Some(ImmutableValue::new(0)),
+            Some(ImmutableValue::new(1)), since_the_epoch.as_millis());
+
+        println!("property event: {:?}", event);
+        assert!(property.equals(event.get_raw_property().as_any_ref()));
+        assert_eq!(Some(Value::to_boxed(0)), event.get_raw_old_value());
+        assert_eq!(Some(Value::to_boxed(1)), event.get_raw_new_value());
+        assert_eq!(since_the_epoch.as_millis(), event.get_change_time());
+        assert_eq!(event, event.clone());
+
+        let event2 = DefaultPropertyChangeEvent::<i32, i32>::from_raw(&event);
+        println!("property event: {:?}", event2);
+        assert_eq!(1, event2.get_property().get_config().get_key());
+        assert_eq!(Some(Value::to_boxed(0)), event2.get_raw_old_value());
+        assert_eq!(Some(Value::to_boxed(1)), event2.get_raw_new_value());
+        assert_eq!(Some(0), event2.get_old_value());
+        assert_eq!(Some(1), event2.get_new_value());
+        assert_eq!(since_the_epoch.as_millis(), event2.get_change_time());
+        assert_eq!(event2, event2.clone());
     }
 
 }

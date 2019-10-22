@@ -43,7 +43,7 @@ pub trait RawPropertyChangeEvent: Value + Send + Sync {
 
     fn get_raw_new_value(&self) -> Option<Box<dyn Value>>;
 
-    fn get_change_time(&self) -> u64;
+    fn get_change_time(&self) -> u128;
 
 as_boxed!(RawPropertyChangeEvent);
 as_trait!(RawPropertyChangeEvent);

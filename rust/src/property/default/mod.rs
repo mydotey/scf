@@ -139,6 +139,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfig<K, V
         self.raw.get_raw_default_value().map(
             |v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
+
+as_boxed!(impl PropertyConfig<K, V>);
 }
 
 pub struct DefaultPropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
@@ -335,6 +337,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Property<K, V> for 
             listener(&DefaultPropertyChangeEvent::from_raw(e));
         })));
     }
+
+as_boxed!(impl Property<K, V>);
 }
 
 #[derive(Clone, Debug)]
@@ -455,6 +459,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyChangeEvent
     fn get_new_value(&self) -> Option<V> {
         self.raw.get_raw_new_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
     }
+
+as_boxed!(impl PropertyChangeEvent<K, V>);
 }
 
 #[cfg(test)]

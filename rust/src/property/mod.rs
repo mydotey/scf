@@ -57,7 +57,11 @@ pub trait PropertyConfig<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>
     fn get_key(&self) -> K;
 
     fn get_default_value(&self) -> Option<V>;
+
+as_boxed!(PropertyConfig<K, V>);
 }
+
+boxed_key_trait!(PropertyConfig<K: KeyConstraint, V: ValueConstraint>);
 
 pub trait PropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
     fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
@@ -82,7 +86,11 @@ pub trait Property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> : Raw
     fn get_value(&self) -> Option<V>;
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>);
+
+as_boxed!(Property<K, V>);
 }
+
+boxed_value_trait!(Property<K: KeyConstraint, V: ValueConstraint>);
 
 pub trait PropertyChangeEvent<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> : RawPropertyChangeEvent {
     fn get_property(&self) -> &dyn Property<K, V>;
@@ -90,6 +98,10 @@ pub trait PropertyChangeEvent<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstr
     fn get_old_value(&self) -> Option<V>;
 
     fn get_new_value(&self) -> Option<V>;
+
+as_boxed!(PropertyChangeEvent<K, V>);
 }
+
+boxed_value_trait!(PropertyChangeEvent<K: KeyConstraint, V: ValueConstraint>);
 
 pub type PropertyChangeListener<K, V> = ConsumerRef<dyn PropertyChangeEvent<K, V>>;

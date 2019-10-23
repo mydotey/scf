@@ -14,7 +14,10 @@ pub trait ConfigurationManagerConfig: Value + Send + Sync {
 
     fn get_task_executor(&self) -> &dyn Fn(&Box<dyn Fn()>);
 
+as_boxed!(ConfigurationManagerConfig);
 }
+
+boxed_value_trait!(ConfigurationManagerConfig);
 
 pub trait ConfigurationManagerConfigBuilder {
 
@@ -40,6 +43,8 @@ pub trait ConfigurationManager: Value + Send + Sync {
 
 as_boxed!(ConfigurationManager);
 }
+
+boxed_value_trait!(ConfigurationManager);
 
 #[cfg(test)]
 mod test {

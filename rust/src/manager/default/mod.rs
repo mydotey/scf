@@ -48,6 +48,8 @@ impl ConfigurationManagerConfig for DefaultConfigurationManagerConfig {
     fn get_task_executor(&self) -> &dyn Fn(&Box<dyn Fn()>) {
         self.task_executor.as_ref().as_ref()
     }
+
+as_boxed!(impl ConfigurationManagerConfig);
 }
 
 pub struct DefaultConfigurationManagerConfigBuilder {
@@ -219,9 +221,8 @@ mod test {
     use crate::source::default::*;
     use crate::facade::*;
 
-    #[test]
-    fn manager_test() {
-        let source = DefaultConfigurationSource::new(
+    fn new_source() -> DefaultConfigurationSource {
+        DefaultConfigurationSource::new(
             DefaultConfigurationSourceConfigBuilder::new().set_name("test").build(),
             Arc::new(Box::new(move |o| -> Option<Box<dyn Value>> {
                 let x = if Key::as_trait_ref(&"key_ok".to_string()).equals(o.as_any_ref()) {
@@ -233,11 +234,11 @@ mod test {
                 };
                 println!("raw_value: {:?}", x);
                 x
-            })));
-        let config = DefaultConfigurationManagerConfigBuilder::new()
-            .set_name("test").add_source(1, Box::new(source)).build();
-        let manager = DefaultConfigurationManager::new(config);
-        let value_converter = DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
+            })))
+    }
+
+    fn new_value_converter() -> DefaultTypeConverter<String, i32> {
+        DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
             match s.parse::<i32>() {
                 Ok(v) => {
                     println!("parse value: {}", v);
@@ -248,29 +249,72 @@ mod test {
                     Err(Box::new(e.to_string()))
                 }
             }
-        }));
-        let config = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
-            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter))
+        }))
+    }
+
+    fn new_property_config(value_converter: &dyn TypeConverter<String, i32>)
+        -> Box<dyn PropertyConfig<String, i32>>
+    {
+        DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
+            .add_value_converter(RawTypeConverter::clone_boxed(value_converter))
             .set_value_filter(Box::new(DefaultValueFilter::<i32>::new(
                 Box::new(|v|if *v == 10 { Some(Box::new(5)) } else { Some(v) }))))
-            .build();
+            .build()
+    }
+
+    fn new_property_config2(value_converter: &dyn TypeConverter<String, i32>)
+        -> Box<dyn PropertyConfig<String, i32>>
+    {
+        DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
+            .add_value_converter(RawTypeConverter::clone_boxed(value_converter)).build()
+    }
+
+    #[test]
+    fn manager_config_test() {
+        let source = new_source();
+        let config = DefaultConfigurationManagerConfigBuilder::new()
+            .set_name("test").add_source(1, Box::new(source)).build();
+        println!("manager config: {:?}", config);
+
+        assert_eq!("test", config.get_name());
+
+        assert_eq!(1, config.get_sources().len());
+
+        let action: Box<dyn Fn()> = Box::new(||{
+            println!("task executed");
+        });
+        config.get_task_executor()(&action);
+
+        assert_eq!(&config, &config.clone());
+    }
+
+    #[test]
+    fn manager_test() {
+        let source = new_source();
+        let config = DefaultConfigurationManagerConfigBuilder::new()
+            .set_name("test").add_source(1, Box::new(source)).build();
+        let manager = DefaultConfigurationManager::new(config);
+        println!("manager: {:?}", manager);
+        assert_eq!("test", manager.get_config().get_name());
+
+        let value_converter = new_value_converter();
+        let config = new_property_config(&value_converter);
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
-        println!("config: {:?}", config);
-        println!("property: {:?}", property);
-        println!("value: {:?}", property.get_raw_value());
-
-        let config2 = DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
-            .add_value_converter(RawTypeConverter::clone_boxed(&value_converter)).build();
+        assert_eq!(Some(Value::to_boxed(5)), property.get_raw_value());
+        let config2 = new_property_config2(&value_converter);
         let property2 = manager.get_property(RawPropertyConfig::as_trait_ref(config2.as_ref()));
-        println!("config: {:?}", config2);
-        println!("property: {:?}", property2);
-        println!("value: {:?}", property2.get_raw_value());
+        assert_eq!(None, property2.get_raw_value());
 
+        let value = manager.get_property_value(RawPropertyConfig::as_trait_ref(config.as_ref()));
+        assert_eq!(Some(Value::to_boxed(5)), value);
+        let value2 = manager.get_property_value(RawPropertyConfig::as_trait_ref(config2.as_ref()));
+        assert_eq!(None, value2);
+
+        let manager_clone = manager.clone();
+        let config_clone = config.clone();
         let handle = thread::spawn(move || {
-            let property = manager.get_property(RawPropertyConfig::as_trait_ref(config.as_ref()));
-            println!("config: {:?}", config);
-            println!("property: {:?}", property);
-            println!("value: {:?}", property.get_raw_value());
+            let property = manager_clone.get_property(RawPropertyConfig::as_trait_ref(config_clone.as_ref()));
+            assert_eq!(Some(Value::to_boxed(5)), property.get_raw_value());
         });
         handle.join().unwrap();
     }

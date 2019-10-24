@@ -83,7 +83,7 @@ impl Eq for DefaultConfigurationSource {
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ config: {:?} }}", self.config)
+        write!(f, "DefaultConfigurationSource {{ config: {:?} }}", self.config)
     }
 }
 
@@ -211,7 +211,7 @@ mod tests {
         })));
 
         source.raise_change_event();
-        assert_eq!(true, changed.as_ref().fetch_and(true, Ordering::Relaxed));
+        assert!(changed.fetch_and(true, Ordering::Relaxed));
     }
 
     #[test]

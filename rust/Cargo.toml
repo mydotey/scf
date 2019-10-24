@@ -1,8 +1,15 @@
 [package]
 name = "scf-core"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"
+description = "Simple Configuration Facade"
+license = "Apache-2.0"
+homepage = "https://github.com/mydotey/scf/tree/master/rust"
+repository = "https://github.com/mydotey/scf"
+readme = "README.md"
+keywords = ["config", "configuration", "config-manager", "setting", "property"]
+categories = ["config"]
 
 [dependencies]
-lang_extension = "0.4.19"
+lang_extension = "1.0.0"

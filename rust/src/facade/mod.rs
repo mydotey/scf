@@ -50,10 +50,10 @@ impl ConfigurationProperties {
     }
 
     pub fn get_property_value<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
-        config: &dyn PropertyConfig<K, V>) -> Option<V> {
+        config: &dyn PropertyConfig<K, V>) -> Option<Box<V>> {
         match self.manager.get_property_value(RawPropertyConfig::as_trait_ref(config)) {
             Some(v) => match v.as_ref().as_any_ref().downcast_ref::<V>() {
-                    Some(v) => Some(v.clone()),
+                    Some(v) => Some(Box::new(v.clone())),
                     None => None
             },
             None => None
@@ -99,13 +99,13 @@ mod tests {
         }));
 
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let config = builder.set_key("test".to_string()).set_default_value(0)
+        let config = builder.set_key(Box::new("test".to_string())).set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
             .add_value_converter(RawTypeConverter::to_boxed(c)).build();
         println!("property config: {:?}", config);
-        assert_eq!("test".to_string(), config.get_key());
+        assert_eq!("test".to_string(), *config.get_key());
         assert_eq!(0.type_id(), config.get_value_type());
-        assert_eq!(Some(0), config.get_default_value());
+        assert_eq!(Some(Box::new(0)), config.get_default_value());
         assert_eq!(Some(Value::to_boxed(12)),
             config.get_value_filter().unwrap().filter_raw(Value::to_boxed(11)));
         assert_eq!(Ok(Value::to_boxed(10)),
@@ -137,11 +137,11 @@ mod tests {
         println!("configuration source: {:?}", source);
         assert_eq!("test", source.get_config().get_name());
         let property_config = ConfigurationProperties::new_config_builder::<String, i32>()
-            .set_key("10".to_string()).build();
+            .set_key(Box::new("10".to_string())).build();
         assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config.as_ref())));
         let property_config = ConfigurationProperties::new_config_builder::<String, i32>()
-            .set_key("11".to_string()).build();
+            .set_key(Box::new("11".to_string())).build();
         assert_eq!(None, source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config.as_ref())));
     }
@@ -202,7 +202,8 @@ mod tests {
             if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let property_config = builder.set_key("10".to_string()).set_default_value(0)
+        let property_config = builder.set_key(Box::new("10".to_string()))
+            .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
             .add_value_converter(RawTypeConverter::to_boxed(c)).build();
         let property = manager.get_property(RawPropertyConfig::as_trait_ref(property_config.as_ref()));
@@ -257,17 +258,23 @@ mod tests {
             if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let property_config = builder.set_key("key_ok".to_string()).set_default_value(0)
+        let property_config = builder.set_key(Box::new("key_ok".to_string()))
+            .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::clone_boxed(&f))
             .add_value_converter(RawTypeConverter::clone_boxed(&c)).build();
         let property = properties.get_property(property_config.as_ref());
-        assert_eq!(Some(10), property.get_value());
+        let value = properties.get_property_value(property_config.as_ref());
+        assert_eq!(Some(Box::new(10)), property.get_value());
+        assert_eq!(Some(Box::new(10)), value);
 
-        let property_config2 = builder.set_key("key_error".to_string()).set_default_value(0)
+        let property_config2 = builder.set_key(Box::new("key_error".to_string()))
+            .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
             .add_value_converter(RawTypeConverter::to_boxed(c)).build();
         let property2 = properties.get_property(property_config2.as_ref());
+        let value2 = properties.get_property_value(property_config2.as_ref());
         assert_eq!(None, property2.get_value());
+        assert_eq!(None, value2);
 
         let changed = Arc::new(AtomicBool::new(false));
         let changed_clone = changed.clone();
@@ -277,12 +284,12 @@ mod tests {
         })));
         memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
         source2.raise_change_event();
-        assert_eq!(Some(13), property.get_value());
+        assert_eq!(Some(Box::new(13)), property.get_value());
         assert!(changed.fetch_and(true, Ordering::Relaxed));
 
         memory_map.write().unwrap().remove(&"key_ok".to_string());
         source2.raise_change_event();
-        assert_eq!(Some(21), property.get_value());
+        assert_eq!(Some(Box::new(21)), property.get_value());
     }
 
 }

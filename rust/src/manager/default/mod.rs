@@ -268,7 +268,7 @@ mod test {
     fn new_property_config(value_converter: &dyn TypeConverter<String, i32>)
         -> Box<dyn PropertyConfig<String, i32>>
     {
-        DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_ok".to_string())
+        DefaultPropertyConfigBuilder::<String, i32>::new().set_key(Box::new("key_ok".to_string()))
             .add_value_converter(RawTypeConverter::clone_boxed(value_converter))
             .set_value_filter(Box::new(DefaultValueFilter::<i32>::new(
                 Box::new(|v|if *v == 10 { Some(Box::new(5)) } else { Some(v) }))))
@@ -278,7 +278,7 @@ mod test {
     fn new_property_config2(value_converter: &dyn TypeConverter<String, i32>)
         -> Box<dyn PropertyConfig<String, i32>>
     {
-        DefaultPropertyConfigBuilder::<String, i32>::new().set_key("key_error".to_string())
+        DefaultPropertyConfigBuilder::<String, i32>::new().set_key(Box::new("key_error".to_string()))
             .add_value_converter(RawTypeConverter::clone_boxed(value_converter)).build()
     }
 
@@ -398,7 +398,7 @@ mod test {
         })));
         memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
         source.raise_change_event();
-        assert_eq!(Some(12), property.get_value());
+        assert_eq!(Some(Box::new(12)), property.get_value());
         assert_eq!(Some(Value::to_boxed(12)), property.get_raw_value());
         let value = manager.get_property_value(RawPropertyConfig::as_trait_ref(config.as_ref()));
         assert_eq!(Some(Value::to_boxed(12)), value);
@@ -406,7 +406,7 @@ mod test {
 
         memory_map.write().unwrap().remove(&"key_ok".to_string());
         source.raise_change_event();
-        assert_eq!(Some(20), property.get_value());
+        assert_eq!(Some(Box::new(20)), property.get_value());
         memory_map.write().unwrap().insert("key_error".to_string(), "1".to_string());
         source.raise_change_event();
         assert_eq!(Some(Value::to_boxed(1)), property2.get_raw_value());

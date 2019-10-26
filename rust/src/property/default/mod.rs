@@ -62,9 +62,9 @@ impl Eq for DefaultRawPropertyConfig { }
 
 impl Debug for DefaultRawPropertyConfig {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "DefaultRawPropertyConfig {{ key: {:?}, value_type: {:?}, default_value: {:?}, value_converters: {:?} \
-            , value_filter: {:?} }}", self.key, self.value_type, self.default_value, self.value_converters,
-            self.value_filter.type_name())
+        write!(f, "DefaultRawPropertyConfig {{ key: {:?}, value_type: {:?}, default_value: {:?}, 
+            value_converters: {:?} , value_filter: {:?} }}", self.key, self.value_type,
+            self.default_value, self.value_converters, self.value_filter.type_name())
     }
 }
 
@@ -105,7 +105,9 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPrope
 unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Sync for DefaultPropertyConfig<K, V> { }
 unsafe impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Send for DefaultPropertyConfig<K, V> { }
 
-impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawPropertyConfig for DefaultPropertyConfig<K, V> {
+impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> RawPropertyConfig
+    for DefaultPropertyConfig<K, V>
+{
     fn get_raw_key(&self) -> Box<dyn Key> {
         self.raw.get_raw_key()
     }
@@ -131,22 +133,22 @@ as_trait!(impl RawPropertyConfig);
 }
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfig<K, V> for DefaultPropertyConfig<K, V> {
-    fn get_key(&self) -> K {
-        self.raw.get_raw_key().as_ref().as_any_ref().downcast_ref::<K>().unwrap().clone()
+    fn get_key(&self) -> Box<K> {
+        Box::new(self.raw.get_raw_key().as_ref().as_any_ref().downcast_ref::<K>().unwrap().clone())
     }
 
-    fn get_default_value(&self) -> Option<V> {
+    fn get_default_value(&self) -> Option<Box<V>> {
         self.raw.get_raw_default_value().map(
-            |v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
+            |v|Box::new(v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone()))
     }
 
 as_boxed!(impl PropertyConfig<K, V>);
 }
 
 pub struct DefaultPropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
-    key: Option<K>,
+    key: Option<Box<K>>,
     value_type: TypeId,
-    default_value: Option<V>,
+    default_value: Option<Box<V>>,
     value_converters: Vec<Box<dyn RawTypeConverter>>,
     value_filter: Option<Box<dyn ValueFilter<V>>>
 }
@@ -165,12 +167,12 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyConf
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfigBuilder<K, V>
     for DefaultPropertyConfigBuilder<K, V> {
-    fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V> {
+    fn set_key(&mut self, key: Box<K>) -> &mut dyn PropertyConfigBuilder<K, V> {
         self.key = Some(key);
         self
     }
 
-    fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V> {
+    fn set_default_value(&mut self, default_value: Box<V>) -> &mut dyn PropertyConfigBuilder<K, V> {
         self.default_value = Some(default_value);
         self
     }
@@ -196,9 +198,9 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfigBuild
 
     fn build(&self) -> Box<dyn PropertyConfig<K, V>> {
         let raw = DefaultRawPropertyConfig {
-            key: ImmutableKey::new(self.key.clone().unwrap()),
+            key: ImmutableKey::wrap(self.key.clone().unwrap()),
             value_type: self.value_type,
-            default_value: self.default_value.as_ref().map(|v|v.clone()).map(|v|ImmutableValue::new(v)),
+            default_value: self.default_value.as_ref().map(|v|v.clone()).map(|v|ImmutableValue::wrap(v)),
             value_converters: Arc::new(self.value_converters.clone()),
             value_filter: self.value_filter.as_ref().map(|f|RawValueFilter::clone_boxed(f.as_ref()))
         };
@@ -272,8 +274,8 @@ impl Eq for DefaultRawProperty {
 
 impl fmt::Debug for DefaultRawProperty {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "DefaultRawProperty {{ config: {:?}, value: {:?} }}", RawProperty::get_raw_config(self),
-            RawProperty::get_raw_value(self))
+        write!(f, "DefaultRawProperty {{ config: {:?}, value: {:?} }}",
+            RawProperty::get_raw_config(self), RawProperty::get_raw_value(self))
     }
 }
 
@@ -328,8 +330,9 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Property<K, V> for 
         self.config.as_ref().as_ref()
     }
 
-    fn get_value(&self) -> Option<V> {
-        self.raw.get_raw_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
+    fn get_value(&self) -> Option<Box<V>> {
+        self.raw.get_raw_value().map(
+            |v|Box::new(v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone()))
     }
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>) {
@@ -452,12 +455,14 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyChangeEvent
         self.property.as_ref().as_ref()
     }
 
-    fn get_old_value(&self) -> Option<V> {
-        self.raw.get_raw_old_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
+    fn get_old_value(&self) -> Option<Box<V>> {
+        self.raw.get_raw_old_value().map(
+            |v|Box::new(v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone()))
     }
 
-    fn get_new_value(&self) -> Option<V> {
-        self.raw.get_raw_new_value().map(|v|v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone())
+    fn get_new_value(&self) -> Option<Box<V>> {
+        self.raw.get_raw_new_value().map(
+            |v|Box::new(v.as_ref().as_any_ref().downcast_ref::<V>().unwrap().clone()))
     }
 
 as_boxed!(impl PropertyChangeEvent<K, V>);
@@ -482,13 +487,14 @@ mod test {
             if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
         }));
 
-        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+        let config = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
+            .set_default_value(Box::new(2))
             .add_value_converter(RawTypeConverter::clone_boxed(&c))
             .set_value_filter(Box::new(f.clone())).build();
         println!("{:?}", config);
-        assert_eq!(1, config.get_key());
+        assert_eq!(1, *config.get_key());
         assert_eq!(2.type_id(), config.get_value_type());
-        assert_eq!(Some(2), config.get_default_value());
+        assert_eq!(Some(Box::new(2)), config.get_default_value());
 
         assert_eq!(&config, &config.clone());
         let boxed_config = RawPropertyConfig::clone_boxed(config.as_ref());
@@ -507,7 +513,8 @@ mod test {
         assert_eq!(None, rf.filter_raw(Value::to_boxed(0)));
         assert_eq!(None, rf.filter_raw(Value::to_boxed(s2)));
 
-        let config2 = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+        let config2 = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
+            .set_default_value(Box::new(2))
             .add_value_converter(RawTypeConverter::clone_boxed(&c))
             .set_value_filter(Box::new(f.clone())).build();
         assert!(!config.reference_equals(&config2));
@@ -529,12 +536,13 @@ mod test {
         let f = DefaultValueFilter::new(Box::new(move |v| {
             if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
         }));
-        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2)
+        let config = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
+            .set_default_value(Box::new(2))
             .add_value_converter(RawTypeConverter::clone_boxed(&c))
             .set_value_filter(Box::new(f.clone())).build();
 
         let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
-        println!("{:?}", property);
+        println!("property: {:?}", property);
         assert!(property.get_raw_config().equals(config.as_ref().as_any_ref()));
         assert_eq!(None, property.get_raw_value());
         property.set_value(Some(Box::new(0)));
@@ -564,10 +572,10 @@ mod test {
         assert_eq!(true, **changed.read().unwrap());
 
         let property2 = DefaultProperty::<i32, i32>::from_raw(&property);
-        println!("{:?}", property2);
-        assert_eq!(Some(1), property2.get_value());
+        println!("property: {:?}", property2);
+        assert_eq!(Some(Box::new(1)), property2.get_value());
         property.set_value(Some(Box::new(2)));
-        assert_eq!(Some(2), property2.get_value());
+        assert_eq!(Some(Box::new(2)), property2.get_value());
         let changed2 = Arc::new(RwLock::new(Box::new(false)));
         let changed2_clone = changed2.clone();
         property2.add_change_listener(Arc::new(Box::new(move |e|{
@@ -594,7 +602,8 @@ mod test {
 
     #[test]
     fn property_change_event_test() {
-        let config = DefaultPropertyConfigBuilder::new().set_key(1).set_default_value(2).build();
+        let config = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
+            .set_default_value(Box::new(2)).build();
         let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
         let arc_property = Arc::new(RawProperty::to_boxed(property.clone()));
         let start = SystemTime::now();
@@ -618,11 +627,11 @@ mod test {
         assert_eq!(&event2, &event2.clone());
         let boxed_event2 = RawPropertyChangeEvent::clone_boxed(&event2);
         assert_eq!(&boxed_event2, &boxed_event2.clone());
-        assert_eq!(1, event2.get_property().get_config().get_key());
+        assert_eq!(1, *event2.get_property().get_config().get_key());
         assert_eq!(Some(Value::to_boxed(0)), event2.get_raw_old_value());
         assert_eq!(Some(Value::to_boxed(1)), event2.get_raw_new_value());
-        assert_eq!(Some(0), event2.get_old_value());
-        assert_eq!(Some(1), event2.get_new_value());
+        assert_eq!(Some(Box::new(0)), event2.get_old_value());
+        assert_eq!(Some(Box::new(1)), event2.get_new_value());
         assert_eq!(since_the_epoch.as_millis(), event2.get_change_time());
         assert_eq!(event2, event2.clone());
     }

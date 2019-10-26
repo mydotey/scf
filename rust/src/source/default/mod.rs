@@ -221,23 +221,25 @@ mod tests {
             }
         }));
         let property_config = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key("10".to_string()).build();
+            .set_key(Box::new("10".to_string())).build();
         assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config.as_ref())));
         let property_config2 = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key("1".to_string()).build();
+            .set_key(Box::new("1".to_string())).build();
         assert_eq!(None, source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config2.as_ref())));
         let property_config3 = DefaultPropertyConfigBuilder::<i32, i32>::new()
-            .set_key(1).build();
+            .set_key(Box::new(1)).build();
         assert_eq!(None, source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config3.as_ref())));
         let property_config4 = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key("11".to_string()).add_value_converter(Box::new(value_converter.clone())).build();
+            .set_key(Box::new("11".to_string()))
+            .add_value_converter(Box::new(value_converter.clone())).build();
         assert_eq!(Some(Value::to_boxed(11)), source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config4.as_ref())));
         let property_config5 = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key("xx".to_string()).add_value_converter(Box::new(value_converter.clone())).build();
+            .set_key(Box::new("xx".to_string()))
+            .add_value_converter(Box::new(value_converter.clone())).build();
         assert_eq!(None, source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config5.as_ref())));
 

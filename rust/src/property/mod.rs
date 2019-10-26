@@ -54,9 +54,9 @@ boxed_value_trait!(RawPropertyChangeEvent);
 pub type RawPropertyChangeListener = ConsumerRef<dyn RawPropertyChangeEvent>;
 
 pub trait PropertyConfig<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> : RawPropertyConfig {
-    fn get_key(&self) -> K;
+    fn get_key(&self) -> Box<K>;
 
-    fn get_default_value(&self) -> Option<V>;
+    fn get_default_value(&self) -> Option<Box<V>>;
 
 as_boxed!(PropertyConfig<K, V>);
 }
@@ -64,9 +64,9 @@ as_boxed!(PropertyConfig<K, V>);
 boxed_key_trait!(PropertyConfig<K: KeyConstraint, V: ValueConstraint>);
 
 pub trait PropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> {
-    fn set_key(&mut self, key: K) -> &mut dyn PropertyConfigBuilder<K, V>;
+    fn set_key(&mut self, key: Box<K>) -> &mut dyn PropertyConfigBuilder<K, V>;
 
-    fn set_default_value(&mut self, default_value: V) -> &mut dyn PropertyConfigBuilder<K, V>;
+    fn set_default_value(&mut self, default_value: Box<V>) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn add_value_converter(&mut self, value_converter: Box<dyn RawTypeConverter>)
         -> &mut dyn PropertyConfigBuilder<K, V>;
@@ -83,7 +83,7 @@ pub trait PropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueCons
 pub trait Property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> : RawProperty {
     fn get_config(&self) -> &dyn PropertyConfig<K, V>;
 
-    fn get_value(&self) -> Option<V>;
+    fn get_value(&self) -> Option<Box<V>>;
 
     fn add_change_listener(&self, listener: PropertyChangeListener<K, V>);
 
@@ -95,9 +95,9 @@ boxed_value_trait!(Property<K: KeyConstraint, V: ValueConstraint>);
 pub trait PropertyChangeEvent<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> : RawPropertyChangeEvent {
     fn get_property(&self) -> &dyn Property<K, V>;
 
-    fn get_old_value(&self) -> Option<V>;
+    fn get_old_value(&self) -> Option<Box<V>>;
 
-    fn get_new_value(&self) -> Option<V>;
+    fn get_new_value(&self) -> Option<Box<V>>;
 
 as_boxed!(PropertyChangeEvent<K, V>);
 }

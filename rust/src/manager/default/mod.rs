@@ -189,9 +189,20 @@ impl ConfigurationManager for DefaultConfigurationManager {
                 return value;
             }
 
-            let value = config.get_value_filter().unwrap().filter_raw(value.unwrap());
-            if value.is_some() {
-                return value;
+            let new_value = config.get_value_filter().unwrap().filter_raw(value.clone().unwrap());
+            if new_value.is_some() {
+                if new_value != value {
+                    warn!("property value in config source {:?} changed by property filter, \
+                        from: {:?}, to: {:?}, property: {:?}", source.get_config().get_name(),
+                        value.as_ref().unwrap(), new_value.as_ref().unwrap(), config);
+                }
+
+                info!("use property value in config source {:?}, value: {:?}, property: {:?}",
+                    source.get_config().get_name(), new_value.as_ref().unwrap(), config.get_raw_key());
+                return new_value;
+            } else {
+                error!("property value in source {:?} ignored by property filter, probably not valid, \
+                    value: {:?}, property: {:?}", source.get_config().get_name(), value.unwrap(), config);
             }
         }
 
@@ -221,6 +232,7 @@ mod test {
     use lang_extension::convert::*;
     use std::sync::atomic::*;
     use crate::source::default::*;
+    use crate::tests::init_log;
 
     fn new_source() -> DefaultConfigurationSource {
         DefaultConfigurationSource::new(
@@ -291,6 +303,8 @@ mod test {
 
     #[test]
     fn manager_test() {
+        init_log();
+
         let source = new_source();
         let config = DefaultConfigurationManagerConfigBuilder::new()
             .set_name("test").add_source(1, Box::new(source)).build();
@@ -322,6 +336,8 @@ mod test {
 
     #[test]
     fn dynamic_test() {
+        init_log();
+
         let mut builder = DefaultConfigurationSourceConfigBuilder::new();
         let source_config = builder.set_name("test").build();
         let property_provider: PropertyProvider = Arc::new(Box::new(|k|{

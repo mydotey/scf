@@ -104,9 +104,19 @@ impl ConfigurationSource for DefaultConfigurationSource {
                     return Some(v);
                 } else {
                     for value_converter in config.get_value_converters() {
-                        if let Ok(v) = value_converter.convert_raw(v.as_ref()) {
-                            return Some(v);
-                        }
+                        match value_converter.convert_raw(v.as_ref()) {
+                            Ok(v_t) => {
+                                debug!("property value converted by converter, from {:?} to {:?}, \
+                                    property: {:?}, converter: {:?}", v.as_ref(), v_t.as_ref(),
+                                    config, value_converter);
+                                return Some(v_t);
+                            },
+                            Err(error) => {
+                                debug!("property value cannot be converted by converter, value: {:?}, \
+                                    property: {:?}, converter: {:?}, convert error: {:?}",
+                                    v.as_ref(), config, value_converter, error);
+                            }
+                        } 
                     }
                 }
                 None
@@ -165,6 +175,8 @@ mod tests {
     use super::*;
     use crate::property::default::*;
     use std::sync::atomic::*;
+    use crate::tests::init_log;
+    use lang_extension::convert::*;
 
     #[test]
     fn source_config_test() {
@@ -177,9 +189,15 @@ mod tests {
 
     #[test]
     fn source_test() {
+        init_log();
+
         let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
+            } else if k.equals("11".to_string().as_any_ref()) {
+                Some(Value::to_boxed("11".to_string()))
+            } else if k.equals("xx".to_string().as_any_ref()) {
+                Some(Value::to_boxed("xx"))
             } else {
                 None
             }
@@ -190,6 +208,18 @@ mod tests {
         println!("config source: {:?}", source);
         assert_eq!(&config, &ConfigurationSourceConfig::clone_boxed(source.get_config()));
 
+        let value_converter = DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
+            match s.parse::<i32>() {
+                Ok(v) => {
+                    println!("parse value: {}", v);
+                    Ok(Box::new(v))
+                },
+                Err(e) => {
+                    println!("parse error: {}", e);
+                    Err(Box::new(e.to_string()))
+                }
+            }
+        }));
         let property_config = DefaultPropertyConfigBuilder::<String, i32>::new()
             .set_key("10".to_string()).build();
         assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
@@ -202,6 +232,14 @@ mod tests {
             .set_key(1).build();
         assert_eq!(None, source.get_property_value(
             RawPropertyConfig::as_trait_ref(property_config3.as_ref())));
+        let property_config4 = DefaultPropertyConfigBuilder::<String, i32>::new()
+            .set_key("11".to_string()).add_value_converter(Box::new(value_converter.clone())).build();
+        assert_eq!(Some(Value::to_boxed(11)), source.get_property_value(
+            RawPropertyConfig::as_trait_ref(property_config4.as_ref())));
+        let property_config5 = DefaultPropertyConfigBuilder::<String, i32>::new()
+            .set_key("xx".to_string()).add_value_converter(Box::new(value_converter.clone())).build();
+        assert_eq!(None, source.get_property_value(
+            RawPropertyConfig::as_trait_ref(property_config5.as_ref())));
 
         let changed = Arc::new(AtomicBool::default());
         let changed_clone = changed.clone();

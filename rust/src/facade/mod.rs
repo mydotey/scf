@@ -80,6 +80,7 @@ impl ConfigurationSources {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests::init_log;
     use lang_extension::convert::*;
     use std::any::*;
     use std::sync::atomic::*;
@@ -121,6 +122,8 @@ mod tests {
 
     #[test]
     fn new_source() {
+        init_log();
+
         let mut builder = ConfigurationSources::new_config_builder();
         let config = builder.set_name("test").build();
         let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
@@ -172,6 +175,8 @@ mod tests {
 
     #[test]
     fn new_manager() {
+        init_log();
+
         let mut builder = ConfigurationSources::new_config_builder();
         let source_config = builder.set_name("test").build();
         let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
@@ -209,6 +214,8 @@ mod tests {
 
     #[test]
     fn properties() {
+        init_log();
+
         let mut builder = ConfigurationSources::new_config_builder();
         let source_config = builder.set_name("test").build();
         let property_provider: PropertyProvider = Arc::new(Box::new(|k|{

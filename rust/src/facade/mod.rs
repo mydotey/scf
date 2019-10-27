@@ -95,7 +95,7 @@ mod tests {
                 Err(err) => Err(Box::new(err))
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
         }));
 
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
@@ -199,7 +199,7 @@ mod tests {
                 Err(err) => Err(Box::new(err))
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
         let property_config = builder.set_key(Box::new("10".to_string()))
@@ -255,20 +255,21 @@ mod tests {
                 Err(err) => Err(Box::new(err))
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
         let property_config = builder.set_key(Box::new("key_ok".to_string()))
             .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::clone_boxed(&f))
-            .add_value_converter(RawTypeConverter::clone_boxed(&c)).build();
+            .add_value_converter(RawTypeConverter::clone_boxed(&c))
+            .set_doc("for test").build();
         let property = properties.get_property(property_config.as_ref());
         let value = properties.get_property_value(property_config.as_ref());
         assert_eq!(Some(Box::new(10)), property.get_value());
         assert_eq!(Some(Box::new(10)), value);
 
+        let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
         let property_config2 = builder.set_key(Box::new("key_error".to_string()))
-            .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
             .add_value_converter(RawTypeConverter::to_boxed(c)).build();
         let property2 = properties.get_property(property_config2.as_ref());

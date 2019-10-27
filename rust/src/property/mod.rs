@@ -4,6 +4,8 @@ use lang_extension::any::*;
 use lang_extension::convert::*;
 use lang_extension::ops::function::*;
 
+use crate::source::*;
+
 pub mod default;
 
 pub trait RawPropertyConfig: Key + Send + Sync {
@@ -17,6 +19,12 @@ pub trait RawPropertyConfig: Key + Send + Sync {
 
     fn get_value_filter(&self) -> Option<&dyn RawValueFilter>;
 
+    fn get_doc(&self) -> Option<&str>;
+
+    fn is_static(&self) -> bool;
+
+    fn is_required(&self) -> bool;
+
 as_boxed!(RawPropertyConfig);
 as_trait!(RawPropertyConfig);
 }
@@ -27,6 +35,8 @@ pub trait RawProperty: Value + Send + Sync {
     fn get_raw_config(&self) -> &dyn RawPropertyConfig;
 
     fn get_raw_value(&self) -> Option<Box<dyn Value>>;
+
+    fn get_source(&self) -> Option<Box<dyn ConfigurationSource>>;
 
     fn add_raw_change_listener(&self, listener: RawPropertyChangeListener);
 
@@ -76,6 +86,12 @@ pub trait PropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueCons
 
     fn set_value_filter(&mut self, value_filter: Box<dyn ValueFilter<V>>)
         -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn set_doc(&mut self, doc: &str) -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn set_static(&mut self, is_static: bool) -> &mut dyn PropertyConfigBuilder<K, V>;
+
+    fn set_required(&mut self, is_required: bool) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }

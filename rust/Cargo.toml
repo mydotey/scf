@@ -1,6 +1,6 @@
 [package]
 name = "scf-core"
-version = "1.1.0"
+version = "1.1.1"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"
 description = "Simple Configuration Facade"
@@ -12,7 +12,7 @@ keywords = ["config", "configuration", "config-manager", "setting", "property"]
 categories = ["config"]
 
 [dependencies]
-lang_extension = "1.0.0"
+lang_extension = "1.0.1"
 log = "0.4.8"
 
 [dev-dependencies]

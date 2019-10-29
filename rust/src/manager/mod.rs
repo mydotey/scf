@@ -45,12 +45,3 @@ as_boxed!(ConfigurationManager);
 }
 
 boxed_value_trait!(ConfigurationManager);
-
-#[cfg(test)]
-mod test {
-
-    #[test]
-    fn test() {
-    }
-
-}

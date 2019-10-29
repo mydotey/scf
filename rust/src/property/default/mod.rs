@@ -585,22 +585,42 @@ mod test {
     use std::thread::*;
     use std::time::*;
 
-    #[test]
-    fn property_config_test() {
-        let c = DefaultTypeConverter::<String, i32>::new(
+    fn new_converter() -> DefaultTypeConverter<String, i32> {
+        DefaultTypeConverter::<String, i32>::new(
             Box::new(move |v| match v.parse::<i32>() {
                 Ok(v) => Ok(Box::new(v)),
                 Err(err) => Err(Box::new(err))
-            }));
-        let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
-        }));
+            }))
+    }
 
-        let config = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
+    fn new_filter() -> DefaultValueFilter<i32> {
+        DefaultValueFilter::new(Box::new(move |v| {
+            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
+        }))
+    }
+
+    fn new_config() -> Box<dyn PropertyConfig<i32, i32>> {
+        let c = new_converter();
+        let f = new_filter();
+
+        new_config_with(&c, &f)
+    }
+
+    fn new_config_with(c: &DefaultTypeConverter<String, i32>, f: &DefaultValueFilter<i32>)
+        -> Box<dyn PropertyConfig<i32, i32>>
+    {
+        DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
             .set_default_value(Box::new(2))
-            .add_value_converter(RawTypeConverter::clone_boxed(&c))
+            .add_value_converter(RawTypeConverter::clone_boxed(c))
             .set_value_filter(Box::new(f.clone()))
-            .set_doc("test property").build();
+            .set_doc("test property").build()
+    }
+
+    #[test]
+    fn property_config_test() {
+        let c = new_converter();
+        let f = new_filter();
+        let config = new_config_with(&c, &f);
         println!("{:?}", config);
         assert_eq!(1, *config.get_key());
         assert_eq!(2.type_id(), config.get_value_type());
@@ -626,11 +646,7 @@ mod test {
         assert_eq!(None, rf.filter_raw(Value::to_boxed(0)));
         assert_eq!(None, rf.filter_raw(Value::to_boxed(s2)));
 
-        let config2 = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
-            .set_default_value(Box::new(2))
-            .add_value_converter(RawTypeConverter::clone_boxed(&c))
-            .set_value_filter(Box::new(f.clone()))
-            .set_doc("test property").build();
+        let config2 = new_config_with(&c, &f);
         assert!(!config.reference_equals(&config2));
         assert!(!config.as_ref().reference_equals(config2.as_ref().as_any_ref()));
         assert!(config.as_ref().equals(config2.as_ref().as_any_ref()));
@@ -643,9 +659,7 @@ mod test {
     #[should_panic]
     #[test]
     fn invalid_property_config_test() {
-        let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
-        }));
+        let f = new_filter();
         DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
             .set_default_value(Box::new(0))
             .set_value_filter(Box::new(f.clone()))
@@ -654,19 +668,7 @@ mod test {
 
     #[test]
     fn property_test() {
-        let c = DefaultTypeConverter::<String, i32>::new(
-            Box::new(move |v| match v.parse::<i32>() {
-                Ok(v) => Ok(Box::new(v)),
-                Err(err) => Err(Box::new(err))
-            }));
-        let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v > 0 { Some(v) } else { None }
-        }));
-        let config = DefaultPropertyConfigBuilder::new().set_key(Box::new(1))
-            .set_default_value(Box::new(2))
-            .add_value_converter(RawTypeConverter::clone_boxed(&c))
-            .set_value_filter(Box::new(f.clone())).build();
-
+        let config = new_config();
         let property = DefaultRawProperty::new(RawPropertyConfig::as_trait_ref(config.as_ref()));
         println!("property: {:?}", property);
         assert!(property.get_raw_config().equals(config.as_ref().as_any_ref()));

@@ -91,7 +91,7 @@ pub trait PropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + ValueCons
 
     fn set_static(&mut self, is_static: bool) -> &mut dyn PropertyConfigBuilder<K, V>;
 
-    fn set_required(&mut self, is_required: bool) -> &mut dyn PropertyConfigBuilder<K, V>;
+    fn set_required(&mut self, required: bool) -> &mut dyn PropertyConfigBuilder<K, V>;
 
     fn build(&self) -> Box<dyn PropertyConfig<K, V>>;
 }

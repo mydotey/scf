@@ -17,8 +17,8 @@ pub struct DefaultRawPropertyConfig {
     value_converters: Arc<Vec<Box<dyn RawTypeConverter>>>,
     value_filter: Option<Box<dyn RawValueFilter>>,
     doc: Option<String>,
-    is_static: bool,
-    is_required: bool
+    _static: bool,
+    required: bool
 }
 
 impl DefaultRawPropertyConfig {
@@ -63,11 +63,11 @@ impl RawPropertyConfig for DefaultRawPropertyConfig {
     }
 
     fn is_static(&self) -> bool {
-        self.is_static
+        self._static
     }
 
     fn is_required(&self) -> bool {
-        self.is_required
+        self.required
     }
 
 as_boxed!(impl RawPropertyConfig);
@@ -86,7 +86,7 @@ impl PartialEq for DefaultRawPropertyConfig {
             && self.default_value == other.default_value
             && self.value_converters.as_ref() == other.value_converters.as_ref()
             && self.value_filter == other.value_filter && self.doc == other.doc
-            && self.is_static == other.is_static && self.is_required == other.is_required
+            && self._static == other._static && self.required == other.required
     }
 }
 
@@ -97,7 +97,7 @@ impl Debug for DefaultRawPropertyConfig {
         write!(f, "{} {{ key: {:?}, value_type: {:?}, default_value: {:?}, 
             value_converters: {:?}, value_filter: {:?}, doc: {:?}, static: {:?}, required: {:?} }}",
             self.type_name(), self.key, self.value_type, self.default_value, self.value_converters,
-            self.value_filter.type_name(), self.doc, self.is_static, self.is_required)
+            self.value_filter.type_name(), self.doc, self._static, self.required)
     }
 }
 
@@ -207,8 +207,8 @@ pub struct DefaultPropertyConfigBuilder<K: ?Sized + KeyConstraint, V: ?Sized + V
     value_converters: Vec<Box<dyn RawTypeConverter>>,
     value_filter: Option<Box<dyn ValueFilter<V>>>,
     doc: Option<String>,
-    is_static: bool,
-    is_required: bool
+    _static: bool,
+    required: bool
 }
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyConfigBuilder<K, V> {
@@ -220,8 +220,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> DefaultPropertyConf
             value_converters: Vec::new(),
             value_filter: None,
             doc: None,
-            is_static: false,
-            is_required: false
+            _static: false,
+            required: false
         }
     }
 }
@@ -263,12 +263,12 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfigBuild
     }
 
     fn set_static(&mut self, is_static: bool) -> &mut dyn PropertyConfigBuilder<K, V> {
-        self.is_static = is_static;
+        self._static = is_static;
         self
     }
 
-    fn set_required(&mut self, is_required: bool) -> &mut dyn PropertyConfigBuilder<K, V> {
-        self.is_required = is_required;
+    fn set_required(&mut self, required: bool) -> &mut dyn PropertyConfigBuilder<K, V> {
+        self.required = required;
         self
     }
 
@@ -280,8 +280,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> PropertyConfigBuild
             value_converters: Arc::new(self.value_converters.clone()),
             value_filter: self.value_filter.as_ref().map(|f|RawValueFilter::clone_boxed(f.as_ref())),
             doc: self.doc.clone(),
-            is_static: self.is_static,
-            is_required: self.is_required
+            _static: self._static,
+            required: self.required
         };
         raw.check_valid();
         Box::new(DefaultPropertyConfig {

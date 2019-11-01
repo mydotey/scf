@@ -236,9 +236,9 @@ impl ConfigurationManager for DefaultConfigurationManager {
             opt_property = match map.get(&key) {
                 Some(p) => Some(RawProperty::clone_boxed(p.as_ref())),
                 None => {
-                    let property = DefaultRawProperty::new(config);
                     let (value, source) = self.do_get_property_value(config);
                     self.check_required(config, value.as_ref());
+                    let property = DefaultRawProperty::new(config);
                     property.update(value, source);
                     map.insert(key.clone(), RawProperty::clone_boxed(&property));
                     Some(Box::new(property))

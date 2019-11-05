@@ -22,6 +22,12 @@ public interface Property<K, V> {
     V getValue();
 
     /**
+     * which configuration source is actually used
+     * return null if using default value
+     */
+    ConfigurationSource getSource();
+
+    /**
      * listeners to the value change, notified once value changed
      */
     void addChangeListener(Consumer<PropertyChangeEvent<K, V>> changeListener);

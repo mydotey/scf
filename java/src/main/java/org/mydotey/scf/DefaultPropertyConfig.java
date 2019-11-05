@@ -24,6 +24,9 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     private List<TypeConverter> _valueConverters;
     private Function<V, V> _valueFilter;
     private Comparator<V> _valueComparator;
+    private boolean _static;
+    private boolean _required;
+    private String _doc;
 
     private volatile int _hashCode;
 
@@ -62,6 +65,21 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
     }
 
     @Override
+    public boolean isStatic() {
+        return _static;
+    }
+
+    @Override
+    public boolean isRequired() {
+        return _required;
+    }
+
+    @Override
+    public String getDoc() {
+        return _doc;
+    }
+
+    @Override
     public DefaultPropertyConfig<K, V> clone() {
         DefaultPropertyConfig<K, V> copy = null;
         try {
@@ -77,61 +95,79 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
 
     @Override
     public String toString() {
-        return String.format("%s { key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s, valueComparator: %s }",
-                getClass().getSimpleName(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter, _valueComparator);
+        return String.format("%s { key: %s, valueType: %s, defaultValue: %s, valueConverters: %s, valueFilter: %s, "
+                + "valueComparator: %s, static: %s, required: %s, doc: %s }",
+                getClass().getSimpleName(), _key, _valueType, _defaultValue, _valueConverters, _valueFilter,
+                _valueComparator, _static, _required, _doc);
     }
 
     @Override
     public int hashCode() {
-        if (_hashCode == 0) {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((_defaultValue == null) ? 0 : _defaultValue.hashCode());
-            result = prime * result + ((_key == null) ? 0 : _key.hashCode());
-            result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
-            result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
-            result = prime * result + ((_valueComparator == null) ? 0 : _valueComparator.hashCode());
-            result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
-            _hashCode = result;
-        }
-
-        return _hashCode;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((_defaultValue == null) ? 0 : _defaultValue.hashCode());
+        result = prime * result + ((_doc == null) ? 0 : _doc.hashCode());
+        result = prime * result + _hashCode;
+        result = prime * result + ((_key == null) ? 0 : _key.hashCode());
+        result = prime * result + (_required ? 1231 : 1237);
+        result = prime * result + (_static ? 1231 : 1237);
+        result = prime * result + ((_valueComparator == null) ? 0 : _valueComparator.hashCode());
+        result = prime * result + ((_valueConverters == null) ? 0 : _valueConverters.hashCode());
+        result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.hashCode());
+        result = prime * result + ((_valueType == null) ? 0 : _valueType.hashCode());
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (this == other)
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-
-        if (other == null)
+        if (obj == null)
             return false;
-
-        if (getClass() != other.getClass())
+        if (getClass() != obj.getClass())
             return false;
-
-        if (hashCode() != other.hashCode())
+        DefaultPropertyConfig other = (DefaultPropertyConfig) obj;
+        if (_defaultValue == null) {
+            if (other._defaultValue != null)
+                return false;
+        } else if (!_defaultValue.equals(other._defaultValue))
             return false;
-
-        DefaultPropertyConfig<K, V> propertyConfig = (DefaultPropertyConfig<K, V>) other;
-
-        if (!Objects.equals(_key, propertyConfig._key))
+        if (_doc == null) {
+            if (other._doc != null)
+                return false;
+        } else if (!_doc.equals(other._doc))
             return false;
-
-        if (!Objects.equals(_valueType, propertyConfig._valueType))
+        if (_hashCode != other._hashCode)
             return false;
-
-        if (!Objects.equals(_defaultValue, propertyConfig._defaultValue))
+        if (_key == null) {
+            if (other._key != null)
+                return false;
+        } else if (!_key.equals(other._key))
             return false;
-
-        if (!Objects.equals(_valueConverters, propertyConfig._valueConverters))
+        if (_required != other._required)
             return false;
-
-        if (!Objects.equals(_valueFilter, propertyConfig._valueFilter))
+        if (_static != other._static)
             return false;
-
-        if (!Objects.equals(_valueComparator, propertyConfig._valueComparator))
+        if (_valueComparator == null) {
+            if (other._valueComparator != null)
+                return false;
+        } else if (!_valueComparator.equals(other._valueComparator))
             return false;
-
+        if (_valueConverters == null) {
+            if (other._valueConverters != null)
+                return false;
+        } else if (!_valueConverters.equals(other._valueConverters))
+            return false;
+        if (_valueFilter == null) {
+            if (other._valueFilter != null)
+                return false;
+        } else if (!_valueFilter.equals(other._valueFilter))
+            return false;
+        if (_valueType == null) {
+            if (other._valueType != null)
+                return false;
+        } else if (!_valueType.equals(other._valueType))
+            return false;
         return true;
     }
 
@@ -206,6 +242,24 @@ public class DefaultPropertyConfig<K, V> implements PropertyConfig<K, V>, Clonea
         @Override
         public B setValueComparator(Comparator<V> valueComparator) {
             _config._valueComparator = valueComparator;
+            return (B) this;
+        }
+
+        @Override
+        public B setStatic(boolean isStatic) {
+            _config._static = isStatic;
+            return (B) this;
+        }
+
+        @Override
+        public B setRequired(boolean required) {
+            _config._required = required;
+            return (B) this;
+        }
+
+        @Override
+        public B setDoc(String doc) {
+            _config._doc = doc;
             return (B) this;
         }
 

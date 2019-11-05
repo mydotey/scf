@@ -60,6 +60,26 @@ public interface PropertyConfig<K, V> {
      */
     Comparator<V> getValueComparator();
 
+    /**
+     * whether the property is static (not dynamically changeable)
+     * <p>
+     * default to false
+     */
+    boolean isStatic();
+    
+    /**
+     * whether the property is required (must be configured or have a default value)
+     * <p>
+     * default to false
+     */
+    boolean isRequired();
+
+    /**
+     * get property description document
+     * default to null
+     */
+    String getDoc();
+
     public interface Builder<K, V> extends AbstractBuilder<K, V, Builder<K, V>, PropertyConfig<K, V>> {
 
     }
@@ -114,6 +134,27 @@ public interface PropertyConfig<K, V> {
          * @see PropertyConfig#getValueComparator()
          */
         B setValueComparator(Comparator<V> valueComparator);
+
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#isStatic()
+         */
+        B setStatic(boolean isStatic);
+
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#isRequired()
+         */
+        B setRequired(boolean required);
+
+        /**
+         * optional
+         * <p>
+         * @see PropertyConfig#getDoc()
+         */
+        B setDoc(String doc);
 
         C build();
     }

@@ -19,13 +19,15 @@ public class DefaultProperty<K, V> implements Property<K, V> {
 
     private PropertyConfig<K, V> _config;
     private volatile V _value;
+    private volatile ConfigurationSource _source;
     private volatile List<Consumer<PropertyChangeEvent<K, V>>> _changeListeners;
 
-    public DefaultProperty(PropertyConfig<K, V> config, V value) {
+    public DefaultProperty(PropertyConfig<K, V> config, V value, ConfigurationSource source) {
         Objects.requireNonNull(config, "config is null");
 
         _config = config;
         _value = value;
+        _source = source;
     }
 
     @Override
@@ -38,8 +40,14 @@ public class DefaultProperty<K, V> implements Property<K, V> {
         return _value;
     }
 
-    protected void setValue(V value) {
+    @Override
+    public ConfigurationSource getSource() {
+        return _source;
+    }
+
+    protected void update(V value, ConfigurationSource source) {
         _value = value;
+        _source = source;
     }
 
     @Override
@@ -66,8 +74,9 @@ public class DefaultProperty<K, V> implements Property<K, V> {
 
     @Override
     public String toString() {
-        return String.format("%s { config: %s, value: %s, changeListeners: %s }", getClass().getSimpleName(), _config,
-                _value, _changeListeners);
+        return String.format("%s { config: %s, value: %s, source: %s, changeListeners: %s }",
+            getClass().getSimpleName(), _config, _value, _source == null ? null : _source.getConfig().getName(),
+            _changeListeners);
     }
 
 }

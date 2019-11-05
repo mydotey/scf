@@ -78,16 +78,17 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             synchronized (_propertiesLock) {
                 property = _properties.get(propertyConfig.getKey());
                 if (property == null) {
-                    V value = getPropertyValue(propertyConfig);
-                    property = newProperty(propertyConfig, value);
+                    Tuple<V, ConfigurationSource> valueSource = doGetPropertyValue(propertyConfig);
+                    checkRequired(propertyConfig, valueSource.getV());
+                    property = newProperty(propertyConfig, valueSource.getV(), valueSource.getV2());
                     _properties.put(propertyConfig.getKey(), property);
                 }
             }
         }
 
         if (!Objects.equals(property.getConfig(), propertyConfig))
-            throw new IllegalArgumentException(String.format(
-                    "make sure using same config for property: %s, previous config: %s, current Config: %s",
+            throw new IllegalArgumentException(
+                String.format("make sure using same config for property: %s, previous config: %s, current Config: %s",
                     propertyConfig.getKey(), property.getConfig(), propertyConfig));
 
         return property;
@@ -95,18 +96,24 @@ public class DefaultConfigurationManager implements ConfigurationManager {
 
     @Override
     public <K, V> V getPropertyValue(PropertyConfig<K, V> propertyConfig) {
+        Tuple<V, ConfigurationSource> valueSource = doGetPropertyValue(propertyConfig);
+        checkRequired(propertyConfig, valueSource.getV());
+        return valueSource.getV();
+    }
+
+    protected <K, V> Tuple<V, ConfigurationSource> doGetPropertyValue(PropertyConfig<K, V> propertyConfig) {
         Objects.requireNonNull(propertyConfig, "propertyConfig is null");
 
         for (ConfigurationSource source : _sortedSources.values()) {
             V value = getPropertyValue(source, propertyConfig);
 
-            value = applyValueFilter(propertyConfig, value);
+            value = applyValueFilter(source, propertyConfig, value);
 
             if (value != null)
-                return value;
+                return new Tuple<V, ConfigurationSource>(value, source);
         }
 
-        return propertyConfig.getDefaultValue();
+        return new Tuple<V, ConfigurationSource>(propertyConfig.getDefaultValue(), null);
     }
 
     protected <K, V> V getPropertyValue(ConfigurationSource source, PropertyConfig<K, V> propertyConfig) {
@@ -115,15 +122,15 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             value = source.getPropertyValue(propertyConfig);
         } catch (Exception e) {
             String message = String.format(
-                    "error occurred when getting property value, ignore the source. source: %s, propertyConfig: %s",
-                    source, propertyConfig);
+                "error occurred when getting property value, ignore the source. source: %s, propertyConfig: %s", source,
+                propertyConfig);
             LOGGER.error(message, e);
         }
 
         return value;
     }
 
-    protected <K, V> V applyValueFilter(PropertyConfig<K, V> propertyConfig, V value) {
+    protected <K, V> V applyValueFilter(ConfigurationSource source, PropertyConfig<K, V> propertyConfig, V value) {
         if (value == null)
             return value;
 
@@ -131,31 +138,64 @@ public class DefaultConfigurationManager implements ConfigurationManager {
             return value;
 
         try {
-            value = propertyConfig.getValueFilter().apply(value);
+            V oldValue = value;
+            value = propertyConfig.getValueFilter().apply(oldValue);
+            if (value == null)
+                LOGGER.error("property value in source {} ignored by property filter, probably not valid, "
+                    + "value: {}, property: {}", source, value, propertyConfig);
+            else if (!value.equals(oldValue)) {
+                LOGGER.warn("property value in config source {} changed by property filter, "
+                    + "from: {}, to: {}, property: {}", source, oldValue, value, propertyConfig);
+            }
         } catch (Exception e) {
             String message = String.format(
-                    "failed to run valueFilter, ignore the filter. value: %s, valueFilter: %s, propertyConfig: %s",
-                    value, propertyConfig.getValueFilter(), propertyConfig);
+                "failed to run valueFilter, ignore the filter. value: %s, valueFilter: %s, propertyConfig: %s", value,
+                propertyConfig.getValueFilter(), propertyConfig);
             LOGGER.error(message, e);
         }
 
         return value;
     }
 
-    protected <K, V> DefaultProperty<K, V> newProperty(PropertyConfig<K, V> config, V value) {
-        return new DefaultProperty<K, V>(config, value);
+    protected <K, V> void checkRequired(PropertyConfig<K, V> config, V value) {
+        if (config.isRequired() && value == null)
+            throw new IllegalStateException(
+                "Null is got for required property, forgot to config it?\n" + "Property: " + config);
+    }
+
+    protected <K, V> DefaultProperty<K, V> newProperty(PropertyConfig<K, V> config, V value,
+        ConfigurationSource source) {
+        return new DefaultProperty<K, V>(config, value, source);
     }
 
     protected void onSourceChange(ConfigurationSourceChangeEvent sourceEvent) {
         synchronized (_propertiesLock) {
             _properties.values().forEach(p -> {
                 Object oldValue = p.getValue();
-                Object newValue = getPropertyValue(p.getConfig());
-                if (p.getConfig().getValueComparator().compare(oldValue, newValue) == 0)
-                    return;
-                p.setValue(newValue);
+                Tuple<Object, ConfigurationSource> valueSource = doGetPropertyValue(p.getConfig());
+                if (p.getConfig().isStatic()) {
+                    LOGGER.warn("ignore dynamic change for static property, "
+                        + "dynamic change for static property will be applied when app restart, "
+                        + "static: {}, dynamic: {}, property: {}",
+                        oldValue, valueSource.getV(), p.getConfig().getKey());
 
-                PropertyChangeEvent event = new DefaultPropertyChangeEvent<>(p, oldValue, newValue);
+                    return;
+                }
+ 
+                if (valueSource.getV() == null && p.getConfig().isRequired()) {
+                    LOGGER.error("ignore dynamic change for required property, "
+                        + "required property cannot be changed to None, "
+                        + "now keep its current value, you should fix the invalid change at once, "
+                        + "or app will panic when next app restart, property: {}", p.getConfig().getKey());
+
+                    return;
+                }
+
+                if (p.getConfig().getValueComparator().compare(oldValue, valueSource.getV()) == 0)
+                    return;
+                p.update(valueSource.getV(), valueSource.getV2());
+
+                PropertyChangeEvent event = new DefaultPropertyChangeEvent<>(p, oldValue, valueSource.getV());
                 _config.getTaskExecutor().accept(() -> p.raiseChangeEvent(event));
                 _config.getTaskExecutor().accept(() -> raiseChangeEvent(event));
             });
@@ -187,7 +227,31 @@ public class DefaultConfigurationManager implements ConfigurationManager {
     @Override
     public String toString() {
         return String.format("%s { config: %s, properties: %s, changeListeners: %s }", getClass().getSimpleName(),
-                _config, _properties, _changeListeners);
+            _config, _properties, _changeListeners);
+    }
+
+    protected static class Tuple<V, V2> {
+        private V v;
+        private V2 v2;
+
+        public Tuple(V v, V2 v2) {
+            super();
+            this.v = v;
+            this.v2 = v2;
+        }
+
+        public V getV() {
+            return v;
+        }
+
+        public V2 getV2() {
+            return v2;
+        }
+
+        @Override
+        public String toString() {
+            return "Tuple [v=" + v + ", v2=" + v2 + "]";
+        }
     }
 
 }

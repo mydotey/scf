@@ -20,6 +20,9 @@ namespace MyDotey.SCF
         private IList<ITypeConverter> _valueConverters;
         private IValueFilter<V> _valueFilter;
         private IComparer<V> _valueComparator;
+        private bool _static;
+        private bool _required;
+        private string _doc;
 
         private volatile int _hashCode;
 
@@ -38,6 +41,12 @@ namespace MyDotey.SCF
 
         public override IComparer<V> ValueComparator { get { return _valueComparator; } }
 
+        public override bool IsStatic { get { return _static; } }
+
+        public override bool IsRequired { get { return _required; } }
+
+        public override string Doc { get { return _doc; } }
+
         public virtual object Clone()
         {
             DefaultPropertyConfig<K, V> copy = (DefaultPropertyConfig<K, V>)MemberwiseClone();
@@ -48,9 +57,12 @@ namespace MyDotey.SCF
 
         public override string ToString()
         {
-            return string.Format("{0} {{ key: {1}, valueType: {2}, defaultValue: {3}, valueConverters: [ {4} ], valueFilter: {5}, valueComparator: {6} }}",
+            return string.Format("{0} {{ key: {1}, valueType: {2}, defaultValue: {3}, "
+                + "valueConverters: [ {4} ], valueFilter: {5}, valueComparator: {6}, "
+                + "static: {7}, required: {8}, doc: {9} }}",
                 GetType().Name, _key, typeof(V), _defaultValue,
-                _valueConverters == null ? null : string.Join(", ", _valueConverters), _valueFilter, _valueComparator);
+                _valueConverters == null ? null : string.Join(", ", _valueConverters), _valueFilter,
+                _valueComparator, _static, _required, _doc);
         }
 
         public override int GetHashCode()
@@ -65,6 +77,9 @@ namespace MyDotey.SCF
                 result = prime * result + ((_valueFilter == null) ? 0 : _valueFilter.GetHashCode());
                 result = prime * result + ((_valueComparator == null) ? 0 : _valueComparator.GetHashCode());
                 result = prime * result + typeof(V).GetHashCode();
+                result = prime * result + _static.GetHashCode();
+                result = prime * result + _required.GetHashCode();
+                result = prime * result + ((_doc == null) ? 0 : _doc.GetHashCode());
                 _hashCode = result;
             }
 
@@ -100,6 +115,15 @@ namespace MyDotey.SCF
                 return false;
 
             if (!object.Equals(_valueComparator, propertyConfig._valueComparator))
+                return false;
+
+            if (_static != propertyConfig._static)
+                return false;
+
+            if (_required != propertyConfig._required)
+                return false;
+
+            if (_doc != propertyConfig._doc)
                 return false;
 
             return true;
@@ -193,6 +217,24 @@ namespace MyDotey.SCF
             public virtual B SetValueComparator(Func<V, V, int> valueComparator)
             {
                 _config._valueComparator = valueComparator == null ? null : new DelegateComparator<V>(valueComparator);
+                return (B)(object)this;
+            }
+
+            public virtual B SetStatic(bool isStatic)
+            {
+                _config._static = isStatic;
+                return (B)(object)this;
+            }
+
+            public virtual B SetRequired(bool required)
+            {
+                _config._required = required;
+                return (B)(object)this;
+            }
+
+            public virtual B SetDoc(string doc)
+            {
+                _config._doc = doc;
                 return (B)(object)this;
             }
 

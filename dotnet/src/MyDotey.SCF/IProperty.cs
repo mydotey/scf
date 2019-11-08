@@ -11,6 +11,12 @@ namespace MyDotey.SCF
     {
         IPropertyConfig Config { get; }
         object Value { get; }
+
+        /**
+        * which configuration source is actually used
+        * return null if using default value
+        */
+        IConfigurationSource Source { get; }
     }
 
     /**

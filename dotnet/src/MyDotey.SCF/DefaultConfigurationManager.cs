@@ -37,7 +37,7 @@ namespace MyDotey.SCF
 
         private volatile List<EventHandler<IPropertyChangeEvent>> _changeListeners;
 
-        private MethodInfo _genericGetPropertyValueMethod;
+        private MethodInfo _genericDoGetPropertyValueMethod;
 
         private sType _defaultPropertyChangeEventType = typeof(DefaultPropertyChangeEvent<,>);
 
@@ -54,11 +54,11 @@ namespace MyDotey.SCF
             _properties = new ConcurrentDictionary<object, IProperty>();
             _propertiesLock = new object();
 
-            _genericGetPropertyValueMethod = GetType().GetMethods().Where(methodInfo =>
-                methodInfo.Name == "GetPropertyValue"
-                && methodInfo.IsGenericMethod && methodInfo.GetGenericArguments().Length == 2
-                && methodInfo.GetParameters().Count() == 1
-            ).Single();
+            _genericDoGetPropertyValueMethod = GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Where(methodInfo => methodInfo.Name == "DoGetPropertyValue"
+                    && methodInfo.IsGenericMethod && methodInfo.GetGenericArguments().Length == 2
+                    && methodInfo.GetParameters().Count() == 1
+                ).Single();
 
             Logger.Info("Configuration Manager created: {0}", ToString());
         }
@@ -82,8 +82,10 @@ namespace MyDotey.SCF
                     _properties.TryGetValue(propertyConfig.Key, out property);
                     if (property == null)
                     {
-                        V value = GetPropertyValue(propertyConfig);
-                        property = NewProperty(propertyConfig, value);
+                        Tuple<object, IConfigurationSource> valueSource = DoGetPropertyValue(propertyConfig);
+                        V value = (V) valueSource.Item1;
+                        CheckRequired(propertyConfig, value);
+                        property = NewProperty(propertyConfig, value, valueSource.Item2);
                         _properties[propertyConfig.Key] = property;
                     }
                 }
@@ -99,6 +101,15 @@ namespace MyDotey.SCF
 
         public virtual V GetPropertyValue<K, V>(PropertyConfig<K, V> propertyConfig)
         {
+            Tuple<object, IConfigurationSource> valueSource = DoGetPropertyValue(propertyConfig);
+            V value = (V) valueSource.Item1;
+            CheckRequired(propertyConfig, value);
+            return value;
+        }
+
+        protected virtual Tuple<object, IConfigurationSource> DoGetPropertyValue<K, V>(
+            PropertyConfig<K, V> propertyConfig)
+        {
             if (propertyConfig == null)
                 throw new ArgumentNullException("propertyConfig is null");
 
@@ -106,13 +117,13 @@ namespace MyDotey.SCF
             {
                 V value = GetPropertyValue(source, propertyConfig);
 
-                value = ApplyValueFilter(propertyConfig, value);
+                value = ApplyValueFilter(source, propertyConfig, value);
 
                 if (!object.Equals(value, default(V)))
-                    return value;
+                    return Tuple.Create<object, IConfigurationSource>(value, source);
             }
 
-            return propertyConfig.DefaultValue;
+            return Tuple.Create<object, IConfigurationSource>(propertyConfig.DefaultValue, null);
         }
 
         protected virtual V GetPropertyValue<K, V>(IConfigurationSource source, PropertyConfig<K, V> propertyConfig)
@@ -133,7 +144,7 @@ namespace MyDotey.SCF
             return value;
         }
 
-        protected virtual V ApplyValueFilter<K, V>(PropertyConfig<K, V> propertyConfig, V value)
+        protected virtual V ApplyValueFilter<K, V>(IConfigurationSource source, PropertyConfig<K, V> propertyConfig, V value)
         {
             if (Object.Equals(value, default(V)))
                 return value;
@@ -141,12 +152,20 @@ namespace MyDotey.SCF
             if (propertyConfig.ValueFilter == null)
                 return value;
 
-            try
-            {
+            try {
+                V oldValue = value;
                 value = propertyConfig.ValueFilter.Filter(value);
-            }
-            catch (Exception e)
-            {
+                if (value == null) {
+                    string message = string.Format("property value in source {0} ignored by property filter, probably not valid, "
+                        + "value: {1}, property: {2}", source, value, propertyConfig);
+                    Logger.Error(message);
+                }
+                else if (!value.Equals(oldValue)) {
+                    string message = string.Format("property value in config source {0} changed by property filter, "
+                        + "from: {1}, to: {2}, property: {3}", source, oldValue, value, propertyConfig);
+                    Logger.Warn(message);
+                }
+            } catch (Exception e) {
                 string message = string.Format(
                         "failed to run valueFilter, ignore the filter. value: {0}, valueFilter: {1}, propertyConfig: {2}",
                         value, propertyConfig.ValueFilter, propertyConfig);
@@ -156,9 +175,15 @@ namespace MyDotey.SCF
             return value;
         }
 
-        protected virtual DefaultProperty<K, V> NewProperty<K, V>(PropertyConfig<K, V> config, V value)
+        protected void CheckRequired<K, V>(PropertyConfig<K, V> config, V value) {
+            if (config.IsRequired && value == null)
+                throw new InvalidOperationException(
+                    "Null is got for required property, forgot to config it?\nProperty: " + config);
+        }
+
+        protected virtual DefaultProperty<K, V> NewProperty<K, V>(PropertyConfig<K, V> config, V value, IConfigurationSource source)
         {
-            return new DefaultProperty<K, V>(config, value);
+            return new DefaultProperty<K, V>(config, value, source);
         }
 
         protected virtual void OnSourceChange(object source, IConfigurationSourceChangeEvent sourceEvent)
@@ -168,12 +193,32 @@ namespace MyDotey.SCF
                 foreach (IProperty p in _properties.Values)
                 {
                     object oldValue = p.Value;
-                    object newValue = GetPropertyValue(p.Config);
-                    if (p.Config.ValueComparator.Compare(oldValue, newValue) == 0)
-                        continue;
-                    SetPropertyValue(p, newValue);
+                    Tuple<object, IConfigurationSource> valueSource = DoGetPropertyValue(p.Config);
+                    if (p.Config.IsStatic) {
+                        string message = string.Format("ignore dynamic change for static property, "
+                            + "dynamic change for static property will be applied when app restart, "
+                            + "static: {0}, dynamic: {1}, property: {2}",
+                            oldValue, valueSource.Item1, p.Config.Key);
+                        Logger.Warn(message);
 
-                    IPropertyChangeEvent @event = NewPropertyChangeEvent(p, oldValue, newValue);
+                        return;
+                    }
+    
+                    if (valueSource.Item1 == null && p.Config.IsRequired) {
+                        string message = string.Format("ignore dynamic change for required property, "
+                            + "required property cannot be changed to None, "
+                            + "now keep its current value, you should fix the invalid change at once, "
+                            + "or app will panic when next app restart, property: {0}", p.Config.Key);
+                        Logger.Error(message);
+
+                        return;
+                    }
+
+                    if (p.Config.ValueComparator.Compare(oldValue, valueSource.Item1) == 0)
+                        continue;
+                    UpdateProperty(p, valueSource.Item1, valueSource.Item2);
+
+                    IPropertyChangeEvent @event = NewPropertyChangeEvent(p, oldValue, valueSource.Item1);
                     _config.TaskExecutor(() => RaiseChangeEvent(p, @event));
                     _config.TaskExecutor(() => RaiseChangeEvent(@event));
                 }
@@ -229,18 +274,18 @@ namespace MyDotey.SCF
                     _changeListeners == null ? null : string.Join(", ", _changeListeners));
         }
 
-        protected virtual object GetPropertyValue(IPropertyConfig propertyConfig)
+        protected virtual Tuple<object, IConfigurationSource> DoGetPropertyValue(IPropertyConfig propertyConfig)
         {
-            return _genericGetPropertyValueMethod
+            return (Tuple<object, IConfigurationSource>) _genericDoGetPropertyValueMethod
                 .MakeGenericMethod(propertyConfig.GetType().GetGenericArguments())
                 .Invoke(this, new object[] { propertyConfig });
         }
 
-        protected virtual void SetPropertyValue(IProperty property, object value)
+        protected virtual void UpdateProperty(IProperty property, object value, IConfigurationSource source)
         {
-            MethodInfo setPropertyMethod = property.GetType()
-                .GetMethod("SetValue", BindingFlags.Instance | BindingFlags.NonPublic);
-            setPropertyMethod.Invoke(property, new object[] { value });
+            MethodInfo updatePropertyMethod = property.GetType()
+                .GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
+            updatePropertyMethod.Invoke(property, new object[] { value, source });
         }
 
         protected virtual IPropertyChangeEvent NewPropertyChangeEvent(IProperty property, object oldValue, object newValue)

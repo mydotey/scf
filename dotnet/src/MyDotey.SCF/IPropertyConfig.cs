@@ -20,6 +20,9 @@ namespace MyDotey.SCF
         ICollection<ITypeConverter> ValueConverters { get; }
         IValueFilter ValueFilter { get; }
         IComparer<object> ValueComparator { get; }
+        bool IsStatic { get; }
+        bool IsRequired { get; }
+        string Doc { get; }
     }
 
     /**
@@ -82,6 +85,26 @@ namespace MyDotey.SCF
          */
         public abstract IComparer<V> ValueComparator { get; }
 
+        /**
+        * whether the property is static (not dynamically changeable)
+        * <p>
+        * default to false
+        */
+        public abstract bool IsStatic { get; }
+        
+        /**
+        * whether the property is required (must be configured or have a default value)
+        * <p>
+        * default to false
+        */
+        public abstract bool IsRequired { get; }
+
+        /**
+        * get property description document
+        * default to null
+        */
+        public abstract string Doc { get; }
+
         public interface IBuilder : IAbstractBuilder<IBuilder, PropertyConfig<K, V>>
         {
 
@@ -138,6 +161,27 @@ namespace MyDotey.SCF
             B SetValueComparator(IComparer<V> valueComparator);
 
             B SetValueComparator(Func<V, V, int> valueComparator);
+
+            /**
+            * optional
+            * <p>
+            * @see PropertyConfig#isStatic()
+            */
+            B SetStatic(bool isStatic);
+
+            /**
+            * optional
+            * <p>
+            * @see PropertyConfig#isRequired()
+            */
+            B SetRequired(bool required);
+
+            /**
+            * optional
+            * <p>
+            * @see PropertyConfig#getDoc()
+            */
+            B SetDoc(string doc);
 
             C Build();
         }

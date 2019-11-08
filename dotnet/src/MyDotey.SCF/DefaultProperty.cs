@@ -17,15 +17,17 @@ namespace MyDotey.SCF
 
         private PropertyConfig<K, V> _config;
         private volatile object _value;
+        private volatile IConfigurationSource _source;
         private volatile List<EventHandler<IPropertyChangeEvent<K, V>>> _changeListeners;
 
-        public DefaultProperty(PropertyConfig<K, V> config, V value)
+        public DefaultProperty(PropertyConfig<K, V> config, V value, IConfigurationSource source)
         {
             if (config == null)
                 throw new ArgumentNullException("config is null");
 
             _config = config;
             _value = value;
+            _source = source;
         }
 
         IPropertyConfig IProperty.Config { get { return Config; } }
@@ -36,9 +38,12 @@ namespace MyDotey.SCF
 
         public virtual V Value { get { return (V)_value; } }
 
-        protected internal virtual void SetValue(object value)
+        public virtual IConfigurationSource Source { get { return _source; } }
+
+        protected internal virtual void Update(object value, IConfigurationSource source)
         {
             _value = (V)value;
+            _source = source;
         }
 
         public virtual event EventHandler<IPropertyChangeEvent<K, V>> OnChange
@@ -85,8 +90,9 @@ namespace MyDotey.SCF
 
         public override string ToString()
         {
-            return string.Format("{0} {{ config: {1}, value: {2}, changeListeners: [ {3} ] }}", GetType().Name,
-                _config, _value, _changeListeners == null ? null : string.Join(", ", _changeListeners));
+            return string.Format("{0} {{ config: {1}, value: {2}, source: {3}, changeListeners: [ {4} ] }}",
+                GetType().Name, _config, _value, _source == null ? null : _source.Config.Name,
+                _changeListeners == null ? null : string.Join(", ", _changeListeners));
         }
     }
 }

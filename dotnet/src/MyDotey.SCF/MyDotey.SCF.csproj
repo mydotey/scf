@@ -12,7 +12,7 @@
 
     <PackageTags>scf;configuration;facade</PackageTags>
     <PackageReleaseNotes>Add support for custom ValueComparator</PackageReleaseNotes>
-    <PackageIconUrl>http://numl.net/images/ico.png</PackageIconUrl>
+    <PackageIcon>http://numl.net/images/ico.png</PackageIcon>
     <PackageProjectUrl>https://github.com/mydotey/scf</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>

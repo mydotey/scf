@@ -92,6 +92,12 @@ Config for a *Property* with the following parts:
 
 - **Value Comparator**: give a chance to compare the value so as to know whether property value changes. use value's `Equals` method to compare by default
 
+- **Is Static**: whether a property is dynamically changeable, false means it's inited when creation and dynamically changeable later, true means its value will be never changed after creation, default to false
+
+- **Is Required**: whether a property must be configured or given a default value, default to false, if set to true, exception will be thrown when it is forgotten to configure and has no default value
+
+- **Doc**: description for the property, can use it to generate meaningful application config doc
+
 ### Configuration Source
 
 A property can be configured in various ways. For example, a HashMap in memory, or a properties file, or env variable, or Java system property, or yaml file, ... etc.

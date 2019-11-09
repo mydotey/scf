@@ -14,7 +14,7 @@
     <PackageReleaseNotes>Add support for custom ValueComparator</PackageReleaseNotes>
     <PackageIconUrl>http://numl.net/images/ico.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/mydotey/scf</PackageProjectUrl>
-    <PackageLicenseUrl>https://opensource.org/licenses/Apache-2.0</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/mydotey/scf.git</RepositoryUrl>

@@ -1,3 +1,5 @@
+//! facade tools for user
+
 use lang_extension::any::*;
 use std::marker::PhantomData;
 use std::sync::Arc;
@@ -9,6 +11,7 @@ use crate::source::default::*;
 use crate::manager::*;
 use crate::manager::default::*;
 
+/// facade to create new managers
 pub struct ConfigurationManagers {
     _placeholder: PhantomData<i32>
 }
@@ -23,6 +26,7 @@ impl ConfigurationManagers {
     }
 }
 
+/// facade to create new properties
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ConfigurationProperties {
     manager: Arc<Box<dyn ConfigurationManager>>
@@ -65,6 +69,7 @@ impl ConfigurationProperties {
     }
 }
 
+/// facade to create new sources
 pub struct ConfigurationSources {
     _placeholder: PhantomData<i32>
 }

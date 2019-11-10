@@ -1,3 +1,12 @@
+//! # Simple Configuration Facade
+//!  
+//! Author: Qiang Zhao <koqizhao@outlook.com>
+//! 
+//! Github: [https://github.com/mydotey/scf](https://github.com/mydotey/scf)
+//! 
+//! Usage: [https://github.com/mydotey/scf/tree/master/rust](https://github.com/mydotey/scf/tree/master/rust)
+//! 
+//! Usage: [https://github.com/mydotey/scf/tree/master/rust/tests](https://github.com/mydotey/scf/tree/master/rust/tests)
 
 #![allow(dead_code)]
 

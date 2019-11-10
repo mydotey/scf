@@ -70,10 +70,8 @@ impl ConfigurationSources {
         Box::new(DefaultConfigurationSourceConfigBuilder::new())
     }
 
-    pub fn new_source(config: Box<dyn ConfigurationSourceConfig>, property_provider: PropertyProvider)
-        -> Box<dyn ConfigurationSource> 
-    {
-        ConfigurationSource::to_boxed(DefaultConfigurationSource::new(config, property_provider))
+    pub fn new_config(name: &str) -> Box<dyn ConfigurationSourceConfig> {
+        DefaultConfigurationSourceConfigBuilder::new().set_name(name).build()
     }
 }
 
@@ -86,6 +84,12 @@ mod tests {
     use std::sync::atomic::*;
     use std::collections::HashMap;
     use std::sync::*;
+
+    fn new_source(config: Box<dyn ConfigurationSourceConfig>, property_provider: PropertyProvider)
+        -> Box<dyn ConfigurationSource> 
+    {
+        ConfigurationSource::to_boxed(DefaultConfigurationSource::new(config, property_provider))
+    }
 
     #[test]
     fn new_property_config() {
@@ -121,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn new_source() {
+    fn new_source_test() {
         init_log();
 
         let mut builder = ConfigurationSources::new_config_builder();
@@ -133,7 +137,7 @@ mod tests {
                 None
             }
         }));
-        let source = ConfigurationSources::new_source(config, property_provider);
+        let source = new_source(config, property_provider);
         println!("configuration source: {:?}", source);
         assert_eq!("test", source.get_config().get_name());
         let property_config = ConfigurationProperties::new_config_builder::<String, i32>()
@@ -157,7 +161,7 @@ mod tests {
                 None
             }
         }));
-        let source = ConfigurationSources::new_source(config, property_provider);
+        let source = new_source(config, property_provider);
         let mut builder = ConfigurationManagers::new_config_builder();
         let config = builder.set_name("test-manager").add_source(1, source).build();
         println!("manager config: {:?}", config);
@@ -186,7 +190,7 @@ mod tests {
                 None
             }
         }));
-        let source = ConfigurationSources::new_source(source_config, property_provider);
+        let source = new_source(source_config, property_provider);
         let mut builder = ConfigurationManagers::new_config_builder();
         let config = builder.set_name("test-manager").add_source(1, source).build();
         let manager = ConfigurationManagers::new_manager(config);
@@ -226,7 +230,7 @@ mod tests {
                 None
             }
         }));
-        let source = ConfigurationSources::new_source(source_config, property_provider);
+        let source = new_source(source_config, property_provider);
 
         let memory_map = Arc::new(RwLock::new(HashMap::<String, String>::new()));
         memory_map.write().unwrap().insert("key_ok".to_string(), "10".to_string());

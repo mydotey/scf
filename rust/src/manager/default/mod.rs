@@ -81,7 +81,18 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
 
     fn add_source(&mut self, priority: i32, source: Box<dyn ConfigurationSource>)
         -> &mut dyn ConfigurationManagerConfigBuilder {
+        if self.sources.contains_key(&priority) {
+            panic!("a source with priority {:?} exists", priority);
+        }
         self.sources.insert(priority, source);
+        self
+    }
+
+    fn add_sources(&mut self, sources: HashMap<i32, Box<dyn ConfigurationSource>>)
+        -> &mut dyn ConfigurationManagerConfigBuilder {
+        for (k, v) in sources.into_iter() {
+            self.sources.insert(k, v);
+        }
         self
     }
 

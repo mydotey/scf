@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use lang_extension::any::*;
 use lang_extension::ops::function::*;
 
@@ -24,6 +26,9 @@ pub trait ConfigurationManagerConfigBuilder {
     fn set_name(&mut self, name: &str) -> &mut dyn ConfigurationManagerConfigBuilder;
 
     fn add_source(&mut self, priority: i32, source: Box<dyn ConfigurationSource>)
+        -> &mut dyn ConfigurationManagerConfigBuilder;
+
+    fn add_sources(&mut self, sources: HashMap<i32, Box<dyn ConfigurationSource>>)
         -> &mut dyn ConfigurationManagerConfigBuilder;
 
     fn set_task_executor(&mut self, task_executor: ConsumerRef<Box<dyn Fn()>>)

@@ -1,6 +1,6 @@
 [package]
-name = "scf-core"
-version = "1.1.1"
+name = "scf_core"
+version = "1.2.0"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"
 description = "Simple Configuration Facade"

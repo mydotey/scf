@@ -16,6 +16,8 @@ import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
+import org.mydotey.scf.type.AbstractTypeConverter;
+import org.mydotey.scf.type.TypeConverter;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -35,6 +37,7 @@ public class ConfigurationManagerTest {
         properties.put("exist3", "ok3");
         properties.put("exist4", "ok4");
         properties.put("exist5", "ok5");
+        properties.put("exist_int", "1");
         TestConfigurationSource source = new TestConfigurationSource(sourceConfig, properties);
         System.out.println("source config: " + sourceConfig + "\n");
         return source;
@@ -57,6 +60,19 @@ public class ConfigurationManagerTest {
             .addSources(sources).build();
         System.out.println("manager config: " + managerConfig + "\n");
         return ConfigurationManagers.newManager(managerConfig);
+    }
+
+    protected TypeConverter<String, Integer> newTypeConverter() {
+        return new AbstractTypeConverter<String, Integer>(String.class, Integer.class) {
+            @Override
+            public Integer convert(String source) {
+                try {
+                    return Integer.valueOf(source);
+                } catch (Exception es ) {
+                    return null;
+                }
+            }
+        };
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -126,6 +142,28 @@ public class ConfigurationManagerTest {
         Property<String, String> property3 = manager.getProperty(propertyConfig2);
         System.out.println("property3: " + property2 + "\n");
         Assert.assertTrue(property == property3);
+    }
+
+    @Test
+    public void testGetPropertyWithConverter() {
+        ConfigurationManager manager = createManager(ImmutableMap.of(1, createSource()));
+        PropertyConfig<String, Integer> propertyConfig = ConfigurationProperties.<String, Integer>newConfigBuilder()
+            .setKey("exist_int").setValueType(Integer.class).addValueConverter(newTypeConverter()).build();
+        Property<String, Integer> property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertEquals(Integer.valueOf(1), property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, Integer>newConfigBuilder()
+            .setKey("exist").setValueType(Integer.class).addValueConverter(newTypeConverter()).build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertNull(property.getValue());
+
+        propertyConfig = ConfigurationProperties.<String, Integer>newConfigBuilder()
+            .setKey("not_exist").setValueType(Integer.class).addValueConverter(newTypeConverter()).build();
+        property = manager.getProperty(propertyConfig);
+        System.out.println("property: " + property + "\n");
+        Assert.assertNull(property.getValue());
     }
 
     @Test

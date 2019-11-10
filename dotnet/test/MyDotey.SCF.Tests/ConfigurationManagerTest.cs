@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using MyDotey.SCF.Facade;
+using MyDotey.SCF.Type;
 using Xunit;
 using NLog;
 using NLog.Config;
@@ -34,6 +35,7 @@ namespace MyDotey.SCF
             properties["exist3"] = "ok3";
             properties["exist4"] = "ok4";
             properties["exist5"] = "ok5";
+            properties["exist_int"] = "1";
             TestConfigurationSource source = new TestConfigurationSource(sourceConfig, properties);
             Console.WriteLine("source config: " + sourceConfig + "\n");
             return source;
@@ -58,6 +60,16 @@ namespace MyDotey.SCF
                     .AddSources(sources).Build();
             Console.WriteLine("manager config: " + managerConfig + "\n");
             return ConfigurationManagers.NewManager(managerConfig);
+        }
+
+        protected virtual ITypeConverter<string, int?> NewTypeConverter() {
+            return new DefaultTypeConverter<string, int?>(s => {
+                if (int.TryParse(s, out int v)) {
+                    return v;
+                } else {
+                    return null;
+                }
+            });
         }
 
         [Fact]
@@ -132,6 +144,30 @@ namespace MyDotey.SCF
             IProperty<string, string> property3 = manager.GetProperty(propertyConfig2);
             Console.WriteLine("property3: " + property2 + "\n");
             Assert.True(Object.ReferenceEquals(property, property3));
+        }
+
+        [Fact]
+        public void TestGetPropertyWithConverter()
+        {
+            IConfigurationManager manager = CreateManager(
+                new Dictionary<int, IConfigurationSource>() { { 1, CreateSource() } });
+            PropertyConfig<string, int?> propertyConfig = ConfigurationProperties.NewConfigBuilder<string, int?>()
+                .SetKey("exist_int").AddValueConverter(NewTypeConverter()).Build();
+            IProperty<string, int?> property = manager.GetProperty(propertyConfig);
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Equal(1, property.Value);
+
+            propertyConfig = ConfigurationProperties.NewConfigBuilder<string, int?>()
+                .SetKey("exist").AddValueConverter(NewTypeConverter()).Build();
+            property = manager.GetProperty(propertyConfig);
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Null(property.Value);
+
+            propertyConfig = ConfigurationProperties.NewConfigBuilder<string, int?>()
+                .SetKey("not_exist").AddValueConverter(NewTypeConverter()).Build();
+            property = manager.GetProperty(propertyConfig);
+            Console.WriteLine("property: " + property + "\n");
+            Assert.Null(property.Value);
         }
 
         [Fact]

@@ -10,13 +10,15 @@ SCF使得代码和外部配置分离。代码使用一个配置项，无需关�
 
 ## 用法
 
-- java: https://github.com/mydotey/scf/tree/master/java
+- java: [https://github.com/mydotey/scf/tree/master/java](https://github.com/mydotey/scf/tree/master/java)
 
-- dotnet: https://github.com/mydotey/scf/tree/master/dotnet
+- dotnet: [https://github.com/mydotey/scf/tree/master/dotnet](https://github.com/mydotey/scf/tree/master/dotnet)
+
+- rust: [https://github.com/mydotey/scf/tree/master/rust](https://github.com/mydotey/scf/tree/master/rust)
 
 ## 示例
 
-https://github.com/mydotey/scf-best-practice
+[https://github.com/mydotey/scf-best-practice](https://github.com/mydotey/scf-best-practice)
 
 ## 功能
 

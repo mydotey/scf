@@ -10,13 +10,15 @@ SCF separates code from outer configuration. Make code use a property and not ca
 
 ## Usage
 
-- java: https://github.com/mydotey/scf/tree/master/java
+- java: [https://github.com/mydotey/scf/tree/master/java](https://github.com/mydotey/scf/tree/master/java)
 
-- dotnet: https://github.com/mydotey/scf/tree/master/dotnet
+- dotnet: [https://github.com/mydotey/scf/tree/master/dotnet](https://github.com/mydotey/scf/tree/master/dotnet)
+
+- rust: [https://github.com/mydotey/scf/tree/master/rust](https://github.com/mydotey/scf/tree/master/rust)
 
 ## Examples
 
-https://github.com/mydotey/scf-best-practice
+[https://github.com/mydotey/scf-best-practice](https://github.com/mydotey/scf-best-practice)
 
 ## Features
 

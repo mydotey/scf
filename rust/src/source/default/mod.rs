@@ -83,7 +83,7 @@ impl Eq for DefaultConfigurationSource {
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{\n\tconfig: {:?}\n\t}}", self.type_name(), self.config)
+        write!(f, "{} {{\n\tconfig: {:?}\n}}", self.type_name(), self.config)
     }
 }
 

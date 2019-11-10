@@ -42,9 +42,13 @@ pub trait ConfigurationManager: Value + Send + Sync {
 
     fn get_config(&self) -> &dyn ConfigurationManagerConfig;
 
+    fn get_properties(&self) -> Vec<Box<dyn RawProperty>>;
+
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty>;
 
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>>;
+
+    fn add_raw_change_listener(&self, listener: RawPropertyChangeListener);
 
 as_boxed!(ConfigurationManager);
 }

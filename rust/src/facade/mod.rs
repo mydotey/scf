@@ -43,6 +43,10 @@ impl ConfigurationProperties {
         }
     }
 
+    pub fn get_manager(&self) -> &dyn ConfigurationManager {
+        self.manager.as_ref().as_ref()
+    }
+
     pub fn get_property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
         config: &dyn PropertyConfig<K, V>) -> Box<dyn Property<K, V>> {
         let p = self.manager.get_property(RawPropertyConfig::as_trait_ref(config));

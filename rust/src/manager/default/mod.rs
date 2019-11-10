@@ -82,7 +82,7 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
     fn add_source(&mut self, priority: i32, source: Box<dyn ConfigurationSource>)
         -> &mut dyn ConfigurationManagerConfigBuilder {
         if self.sources.contains_key(&priority) {
-            panic!("a source with priority {:?} exists", priority);
+            panic!("a source with priority {} exists", priority);
         }
         self.sources.insert(priority, source);
         self
@@ -121,17 +121,19 @@ impl ConfigurationManagerConfigBuilder for DefaultConfigurationManagerConfigBuil
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct DefaultConfigurationManager {
     config: Arc<Box<dyn ConfigurationManagerConfig>>,
-    properties: Arc<RwLock<HashMap<ImmutableKey, Box<dyn RawProperty>>>>
+    properties: Arc<RwLock<HashMap<ImmutableKey, Box<dyn RawProperty>>>>,
+    change_listeners: Arc<RwLock<Vec<RawPropertyChangeListener>>>
 }
 
 impl DefaultConfigurationManager {
     pub fn new(config: Box<dyn ConfigurationManagerConfig>) -> DefaultConfigurationManager {
         let manager = DefaultConfigurationManager {
             config: Arc::new(config),
-            properties: Arc::new(RwLock::new(HashMap::new()))
+            properties: Arc::new(RwLock::new(HashMap::new())),
+            change_listeners: Arc::new(RwLock::new(Vec::new()))
         };
         let clone = manager.clone();
         let source_change_listener: ConfigurationSourceChangeListener
@@ -176,7 +178,11 @@ impl DefaultConfigurationManager {
                 let default_raw_property = raw_property.as_any_ref().downcast_ref::<DefaultRawProperty>()
                     .unwrap().clone();
                 default_raw_property.update(new_value, source);
-                let action: Box<dyn Fn()> = Box::new(move || default_raw_property.raise_change_event(&pe));
+                let pe_clone = pe.clone();
+                let mut action: Box<dyn Fn()> = Box::new(move || default_raw_property.raise_change_event(&pe_clone));
+                self.config.get_task_executor()(&action);
+                let manager = self.clone();
+                action = Box::new(move || manager.raise_change_event(&pe));
                 self.config.get_task_executor()(&action);
             }
         }
@@ -231,11 +237,28 @@ impl DefaultConfigurationManager {
                 Property: {:?}", config);
         }
     }
+
+    fn raise_change_event(&self, event: &dyn RawPropertyChangeEvent) {
+        let listeners = self.change_listeners.read().unwrap();
+        for listener in listeners.iter() {
+            listener(event);
+        }
+    }
 }
 
 impl ConfigurationManager for DefaultConfigurationManager {
     fn get_config(&self) -> &dyn ConfigurationManagerConfig {
         self.config.as_ref().as_ref()
+    }
+
+    fn get_properties(&self) -> Vec<Box<dyn RawProperty>> {
+        let lock = self.properties.read().unwrap();
+        let mut properties = Vec::<Box<dyn RawProperty>>::new();
+        for (_, p) in lock.iter() {
+            properties.push(p.clone());
+        }
+
+        properties
     }
 
     fn get_property(&self, config: &dyn RawPropertyConfig) -> Box<dyn RawProperty> {
@@ -272,6 +295,10 @@ impl ConfigurationManager for DefaultConfigurationManager {
         value
     }
 
+    fn add_raw_change_listener(&self, listener: RawPropertyChangeListener) {
+        self.change_listeners.write().unwrap().push(listener);
+    }
+
 as_boxed!(impl ConfigurationManager);
 }
 
@@ -283,6 +310,13 @@ impl PartialEq for DefaultConfigurationManager {
 
 impl Eq for DefaultConfigurationManager {
 
+}
+
+impl fmt::Debug for DefaultConfigurationManager {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {{\n\tconfig: {:?},\n\tproperties: {:?}\n}}",
+            self.type_name(), self.get_config(), self.get_properties())
+    }
 }
 
 unsafe impl Sync for DefaultConfigurationManager { }

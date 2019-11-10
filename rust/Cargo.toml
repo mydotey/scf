@@ -1,5 +1,5 @@
 [package]
-name = "scf_core"
+name = "scf-core"
 version = "1.2.0"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
 edition = "2018"

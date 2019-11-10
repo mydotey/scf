@@ -94,8 +94,9 @@ impl Eq for DefaultRawPropertyConfig { }
 
 impl Debug for DefaultRawPropertyConfig {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{} {{ key: {:?}, value_type: {:?}, default_value: {:?}, 
-            value_converters: {:?}, value_filter: {:?}, doc: {:?}, static: {:?}, required: {:?} }}",
+        write!(f, "{} {{\n\tkey: {:?},\n\tvalue_type: {:?},\n\tdefault_value: {:?},\n\t\
+            value_converters: {:?},\n\tvalue_filter: {:?},\n\tdoc: {:?},\n\tstatic: {:?},\n\t\
+            required: {:?}\n\t}}",
             self.type_name(), self.key, self.value_type, self.default_value, self.value_converters,
             self.value_filter.type_name(), self.doc, self._static, self.required)
     }
@@ -137,11 +138,11 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPrope
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> fmt::Debug for DefaultPropertyConfig<K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ key: {:?}, value_type: {:?}, default_value: {:?}, 
-            value_converters: {:?} , value_filter: {:?}, doc: {:?}, static: {:?}, required: {:?} }}",
-            self.type_name(), self.get_raw_key(), self.get_value_type(), self.get_raw_default_value(),
-            self.get_value_converters(), self.get_value_filter().type_name(),
-            self.get_doc(), self.is_static(), self.is_required())
+        write!(f, "{} {{\n\tkey: {:?},\n\tvalue_type: {:?},\n\tdefault_value: {:?},\n\t\
+            value_converters: {:?},\n\tvalue_filter: {:?},\n\tdoc: {:?},\n\tstatic: {:?},\n\t\
+            required: {:?}\n\t}}", self.type_name(), self.get_raw_key(), self.get_value_type(),
+            self.get_raw_default_value(), self.get_value_converters(),
+            self.get_value_filter().type_name(), self.get_doc(), self.is_static(), self.is_required())
     }
 }
 
@@ -362,7 +363,7 @@ impl Eq for DefaultRawProperty {
 
 impl fmt::Debug for DefaultRawProperty {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ value: {:?}, source: {:?}, config: {:?} }}", self.type_name(),
+        write!(f, "{} {{\n\tvalue: {:?},\n\tsource: {:?},\n\tconfig: {:?}\n\t}}", self.type_name(),
             self.get_raw_config(), self.get_raw_value(),
             self.get_source().map(|v|v.get_config().get_name().to_string()))
     }
@@ -396,7 +397,7 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPrope
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> fmt::Debug for DefaultProperty<K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ value: {:?}, source: {:?}, config: {:?} }}", self.type_name(),
+        write!(f, "{} {{\n\tvalue: {:?},\n\tsource: {:?},\n\tconfig: {:?}\n\t}}", self.type_name(),
             self.get_raw_config(), self.get_raw_value(),
             self.get_source().map(|v|v.get_config().get_name().to_string()))
     }
@@ -528,8 +529,8 @@ impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> Eq for DefaultPrope
 
 impl<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint> fmt::Debug for DefaultPropertyChangeEvent<K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ property: {:?}, old_value: {:?}, new_value: {:?}, \
-            change_time: {:?} }}", self.type_name(), self.get_property(), self.get_old_value(),
+        write!(f, "{} {{\n\tproperty: {:?},\n\told_value: {:?},\n\tnew_value: {:?},\n\t\
+            change_time: {:?}\n\t}}", self.type_name(), self.get_property(), self.get_old_value(),
             self.get_new_value(), self.get_change_time())
     }
 }

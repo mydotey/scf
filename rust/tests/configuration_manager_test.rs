@@ -88,3 +88,22 @@ fn test_get_properties() {
     println!("property: {:?}\n", property2);
     assert_eq!(None, property2.get_value());
 }
+
+#[should_panic]
+#[test]
+fn test_same_key_different_config() {
+    let mut sources = HashMap::new();
+    sources.insert(1, ConfigurationSource::to_boxed(create_source()));
+    let properties = create_properties(sources);
+    let mut property_config = ConfigurationProperties::new_config_builder::<String, String>()
+        .set_key(Box::new("not-exist".to_string())).build();
+    let property = properties.get_property(property_config.as_ref());
+    println!("property: {:?}\n", property);
+    assert_eq!(None, property.get_value());
+
+    property_config = ConfigurationProperties::new_config_builder::<String, String>()
+        .set_key(Box::new("not-exist".to_string()))
+        .set_default_value(Box::new("default".to_string())).build();
+    properties.get_property(property_config.as_ref());
+}
+ 

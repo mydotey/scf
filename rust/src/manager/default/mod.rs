@@ -28,7 +28,7 @@ impl Eq for DefaultConfigurationManagerConfig {
 
 impl fmt::Debug for DefaultConfigurationManagerConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ name: {}, sources: {:?}, task_executor: {} }}", self.type_name(),
+        write!(f, "{} {{\n\tname: {},\n\tsources: {:?},\n\ttask_executor:\n\t{}\n}}", self.type_name(),
             self.name, self.sources, self.task_executor.as_ref().to_instance_string())
     }
 }
@@ -151,7 +151,7 @@ impl DefaultConfigurationManager {
                 if property.get_raw_config().is_static() {
                     warn!("ignore dynamic change for static property, \
                         dynamic change for static property will be applied when app restart, \
-                        static: {:?}, dynamic: {:?}, property: {:?}",
+                        static:\n\t{:?},\n\tdynamic:\n\t{:?},\n\tproperty: {:?}",
                         old_value, new_value, property.get_raw_config().get_raw_key());
 
                     continue;
@@ -161,7 +161,7 @@ impl DefaultConfigurationManager {
                     error!("ignore dynamic change for required property, \
                         required property cannot be changed to None, \
                         now keep its current value, you should fix the invalid change at once, \
-                        or app will panic when next app restart, property: {:?}",
+                        or app will panic when next app restart, property:\n\t{:?}",
                         property.get_raw_config().get_raw_key());
 
                     continue;
@@ -210,17 +210,17 @@ impl DefaultConfigurationManager {
         let new_value = config.get_value_filter().unwrap().filter_raw(value.clone().unwrap());
         if new_value.is_some() {
             if new_value != value {
-                warn!("property value in config source {:?} changed by property filter, \
-                    from: {:?}, to: {:?}, property: {:?}", source,
+                warn!("property value in config source {:?}\n\tchanged by property filter, \
+                    from: {:?},\n\tto: {:?},\n\tproperty: {:?}", source,
                     value.as_ref().unwrap(), new_value.as_ref().unwrap(), config);
             }
 
-            info!("use property value in config source {:?}, value: {:?}, property: {:?}",
+            info!("use property value in config source {:?},\n\tvalue: {:?},\n\tproperty: {:?}",
                 source, new_value.as_ref().unwrap(), config.get_raw_key());
             return new_value;
         } else {
-            error!("property value in source {:?} ignored by property filter, probably not valid, \
-                value: {:?}, property: {:?}", source, value.unwrap(), config);
+            error!("property value in source {:?}\n\tignored by property filter, probably not valid, \
+                value: {:?},\n\tproperty: {:?}", source, value.unwrap(), config);
             None
         }
     }
@@ -257,7 +257,13 @@ impl ConfigurationManager for DefaultConfigurationManager {
             };
         }
 
-        opt_property.unwrap()
+        let property = opt_property.unwrap();
+        if !config.equals(property.get_raw_config().as_any_ref()) {
+            panic!("make sure using same config for property: {:?},\n\tprevious config: {:?},\n\t\
+                current config: {:?}", config.get_raw_key(), property.get_raw_config(), config);
+        }
+
+        property
     }
 
     fn get_property_value(&self, config: &dyn RawPropertyConfig) -> Option<Box<dyn Value>> {

@@ -83,7 +83,7 @@ impl Eq for DefaultConfigurationSource {
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ config: {:?} }}", self.type_name(), self.config)
+        write!(f, "{} {{\n\tconfig: {:?}\n\t}}", self.type_name(), self.config)
     }
 }
 
@@ -106,14 +106,14 @@ impl ConfigurationSource for DefaultConfigurationSource {
                     for value_converter in config.get_value_converters() {
                         match value_converter.convert_raw(v.as_ref()) {
                             Ok(v_t) => {
-                                debug!("property value converted by converter, from {:?} to {:?}, \
-                                    property: {:?}, converter: {:?}", v.as_ref(), v_t.as_ref(),
+                                debug!("property value converted by converter, from {:?} to {:?},\n\t\
+                                    property: {:?},\n\tconverter: {:?}", v.as_ref(), v_t.as_ref(),
                                     config, value_converter);
                                 return Some(v_t);
                             },
                             Err(error) => {
-                                debug!("property value cannot be converted by converter, value: {:?}, \
-                                    property: {:?}, converter: {:?}, convert error: {:?}",
+                                debug!("property value cannot be converted by converter,\n\tvalue: {:?},\n\t\
+                                    property: {:?},\n\tconverter: {:?},\n\tconvert error: {:?}",
                                     v.as_ref(), config, value_converter, error);
                             }
                         } 

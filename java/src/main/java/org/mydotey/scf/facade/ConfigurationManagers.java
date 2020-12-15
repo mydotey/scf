@@ -16,6 +16,15 @@ public class ConfigurationManagers {
 
     }
 
+    public static ConfigurationManager newManager() {
+        return newManager("application");
+    }
+
+    public static ConfigurationManager newManager(String name) {
+        ConfigurationManagerConfig config = newConfigBuilder().setName(name).build();
+        return newManager(config);
+    }
+
     public static ConfigurationManagerConfig.Builder newConfigBuilder() {
         return new DefaultConfigurationManagerConfig.Builder();
     }

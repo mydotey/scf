@@ -10,9 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mydotey.scf.ConfigurationManager;
-import org.mydotey.scf.ConfigurationManagerConfig;
-import org.mydotey.scf.Property;
 import org.mydotey.scf.facade.ConfigurationManagers;
 import org.mydotey.scf.facade.ConfigurationProperties;
 import org.mydotey.scf.facade.ConfigurationSources;
@@ -68,7 +65,7 @@ public class ConfigurationManagerTest {
             public Integer convert(String source) {
                 try {
                     return Integer.valueOf(source);
-                } catch (Exception es ) {
+                } catch (Exception ex) {
                     return null;
                 }
             }

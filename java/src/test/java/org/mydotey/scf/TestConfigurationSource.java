@@ -3,9 +3,6 @@ package org.mydotey.scf;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mydotey.scf.AbstractConfigurationSource;
-import org.mydotey.scf.ConfigurationSourceConfig;
-
 /**
  * @author koqizhao
  *

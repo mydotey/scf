@@ -57,7 +57,7 @@ public abstract class AbstractTypeConverter<S, T> implements TypeConverter<S, T>
     @Override
     public String toString() {
         return String.format("%s { sourceType: %s, targetType: %s }", getClass().getSimpleName(), _sourceType,
-                _targetType);
+            _targetType);
     }
 
 }

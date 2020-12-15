@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.mydotey.scf.ConfigurationSourceConfig;
-
 /**
  * @author koqizhao
  *

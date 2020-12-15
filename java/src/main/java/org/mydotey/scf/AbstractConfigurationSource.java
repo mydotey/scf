@@ -1,14 +1,13 @@
 package org.mydotey.scf;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.mydotey.java.ObjectExtension;
 import org.mydotey.scf.type.TypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,11 +77,11 @@ public abstract class AbstractConfigurationSource<C extends ConfigurationSourceC
             return null;
 
         Collection<TypeConverter> valueConverters = propertyConfig.getValueConverters() == null
-                ? Collections.emptyList()
-                : propertyConfig.getValueConverters();
+            ? Collections.emptyList()
+            : propertyConfig.getValueConverters();
         for (TypeConverter typeConverter : valueConverters) {
             if (typeConverter.getSourceType().isAssignableFrom(value.getClass())
-                    && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType())) {
+                && propertyConfig.getValueType().isAssignableFrom(typeConverter.getTargetType())) {
                 V v = (V) ((TypeConverter) typeConverter).convert(value);
                 if (v != null)
                     return v;
@@ -92,30 +91,14 @@ public abstract class AbstractConfigurationSource<C extends ConfigurationSourceC
         return propertyConfig.getValueType().isAssignableFrom(value.getClass()) ? (V) value : null;
     }
 
-    @SuppressWarnings("rawtypes")
     protected boolean isNull(Object value) {
-        if (value == null)
-            return true;
-
-        if (value instanceof String)
-            return ((String) value).trim().isEmpty();
-
-        if (value instanceof Collection)
-            return ((Collection) value).isEmpty();
-
-        if (value instanceof Map)
-            return ((Map) value).isEmpty();
-
-        if (value.getClass().isArray())
-            return Array.getLength(value) == 0;
-
-        return false;
+        return ObjectExtension.isNullOrEmpty(value);
     }
 
     @Override
     public String toString() {
         return String.format("%s { config: %s, changeListeners: %s }", getClass().getSimpleName(), getConfig(),
-                _changeListeners);
+            _changeListeners);
     }
 
 }

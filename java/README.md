@@ -55,12 +55,10 @@
 ### Create ConfigurationSource
 
 ```java
-PropertiesFileConfigurationSourceConfig sourceConfig = StringPropertySources
-        .newPropertiesFileSourceConfigBuilder().setName("properties-file").setFileName(fileName).build();
-PropertiesFileConfigurationSource source = StringPropertySources.newPropertiesFileSource(sourceConfig);
+PropertiesFileConfigurationSource source = SimpleConfigurationSources.newPropertiesFileSource("app.properties");
 ```
 
-More Sources in StringPropertySources
+More Sources in SimpleConfigurationSources
 
 - EnvironmentVariableConfigurationSource
 

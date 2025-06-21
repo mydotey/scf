@@ -2,7 +2,7 @@
 name = "scf-core"
 version = "1.2.1"
 authors = ["Qiang Zhao <koqizhao@outlook.com>"]
-edition = "2018"
+edition = "2024"
 description = "Simple Configuration Facade"
 license = "Apache-2.0"
 homepage = "https://github.com/mydotey/scf/tree/master/rust"
@@ -16,4 +16,4 @@ lang_extension = "1.0.1"
 log = "0.4.8"
 
 [dev-dependencies]
-log4rs = "0.8.3"
+log4rs = "1.3.0"

@@ -1,5 +1,5 @@
-use std::sync::{ Arc, RwLock };
 use std::fmt;
+use std::sync::{Arc, RwLock};
 use std::time::*;
 
 use super::*;
@@ -8,7 +8,7 @@ pub type PropertyProvider = FunctionRef<dyn Key, Option<Box<dyn Value>>>;
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct DefaultConfiguratonSourceConfig {
-    name: String
+    name: String,
 }
 
 impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
@@ -16,18 +16,16 @@ impl ConfigurationSourceConfig for DefaultConfiguratonSourceConfig {
         self.name.as_str()
     }
 
-as_boxed!(impl ConfigurationSourceConfig);
+    as_boxed!(impl ConfigurationSourceConfig);
 }
 
 pub struct DefaultConfigurationSourceConfigBuilder {
-    name: Option<String>
+    name: Option<String>,
 }
 
 impl DefaultConfigurationSourceConfigBuilder {
     pub fn new() -> Self {
-        Self {
-            name: None
-        }
+        Self { name: None }
     }
 }
 
@@ -39,7 +37,7 @@ impl ConfigurationSourceConfigBuilder for DefaultConfigurationSourceConfigBuilde
 
     fn build(&self) -> Box<dyn ConfigurationSourceConfig> {
         Box::new(DefaultConfiguratonSourceConfig {
-            name: self.name.as_ref().unwrap().to_owned()
+            name: self.name.as_ref().unwrap().to_owned(),
         })
     }
 }
@@ -48,22 +46,29 @@ impl ConfigurationSourceConfigBuilder for DefaultConfigurationSourceConfigBuilde
 pub struct DefaultConfigurationSource {
     config: Arc<Box<dyn ConfigurationSourceConfig>>,
     property_provider: Arc<RwLock<PropertyProvider>>,
-    listeners: Arc<RwLock<Vec<ConfigurationSourceChangeListener>>>
+    listeners: Arc<RwLock<Vec<ConfigurationSourceChangeListener>>>,
 }
 
 impl DefaultConfigurationSource {
-    pub fn new(config: Box<dyn ConfigurationSourceConfig>, property_provider: PropertyProvider)
-        -> DefaultConfigurationSource {
+    pub fn new(
+        config: Box<dyn ConfigurationSourceConfig>,
+        property_provider: PropertyProvider,
+    ) -> DefaultConfigurationSource {
         DefaultConfigurationSource {
             config: Arc::new(config),
             property_provider: Arc::new(RwLock::new(property_provider)),
-            listeners: Arc::new(RwLock::new(Vec::new()))
+            listeners: Arc::new(RwLock::new(Vec::new())),
         }
     }
 
     pub fn raise_change_event(&self) {
-        let event = DefaultConfigurationSourceChangeEvent::new(self,
-            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis());
+        let event = DefaultConfigurationSourceChangeEvent::new(
+            self,
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis(),
+        );
         let lock = self.listeners.read().unwrap();
         for listener in lock.iter() {
             listener(&event);
@@ -73,22 +78,27 @@ impl DefaultConfigurationSource {
 
 impl PartialEq for DefaultConfigurationSource {
     fn eq(&self, other: &Self) -> bool {
-        self.property_provider.as_ref().reference_equals(other.property_provider.as_ref())
+        self.property_provider
+            .as_ref()
+            .reference_equals(other.property_provider.as_ref())
     }
 }
 
-impl Eq for DefaultConfigurationSource {
-
-}
+impl Eq for DefaultConfigurationSource {}
 
 impl fmt::Debug for DefaultConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{\n\tconfig: {:?}\n}}", self.type_name(), self.config)
+        write!(
+            f,
+            "{} {{\n\tconfig: {:?}\n}}",
+            self.type_name(),
+            self.config
+        )
     }
 }
 
-unsafe impl Sync for DefaultConfigurationSource { }
-unsafe impl Send for DefaultConfigurationSource { }
+unsafe impl Sync for DefaultConfigurationSource {}
+unsafe impl Send for DefaultConfigurationSource {}
 
 impl ConfigurationSource for DefaultConfigurationSource {
     fn get_config(&self) -> &dyn ConfigurationSourceConfig {
@@ -106,22 +116,32 @@ impl ConfigurationSource for DefaultConfigurationSource {
                     for value_converter in config.get_value_converters() {
                         match value_converter.convert_raw(v.as_ref()) {
                             Ok(v_t) => {
-                                debug!("property value converted by converter, from {:?} to {:?},\n\t\
-                                    property: {:?},\n\tconverter: {:?}", v.as_ref(), v_t.as_ref(),
-                                    config, value_converter);
+                                debug!(
+                                    "property value converted by converter, from {:?} to {:?},\n\t\
+                                    property: {:?},\n\tconverter: {:?}",
+                                    v.as_ref(),
+                                    v_t.as_ref(),
+                                    config,
+                                    value_converter
+                                );
                                 return Some(v_t);
-                            },
-                            Err(error) => {
-                                debug!("property value cannot be converted by converter,\n\tvalue: {:?},\n\t\
-                                    property: {:?},\n\tconverter: {:?},\n\tconvert error: {:?}",
-                                    v.as_ref(), config, value_converter, error);
                             }
-                        } 
+                            Err(error) => {
+                                debug!(
+                                    "property value cannot be converted by converter,\n\tvalue: {:?},\n\t\
+                                    property: {:?},\n\tconverter: {:?},\n\tconvert error: {:?}",
+                                    v.as_ref(),
+                                    config,
+                                    value_converter,
+                                    error
+                                );
+                            }
+                        }
                     }
                 }
                 None
-            },
-            None => None
+            }
+            None => None,
         }
     }
 
@@ -130,20 +150,20 @@ impl ConfigurationSource for DefaultConfigurationSource {
         lock.push(listener);
     }
 
-as_boxed!(impl ConfigurationSource);
+    as_boxed!(impl ConfigurationSource);
 }
 
-#[derive(Eq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct DefaultConfigurationSourceChangeEvent {
     source: Box<dyn ConfigurationSource>,
-    change_time: u128
+    change_time: u128,
 }
 
 impl DefaultConfigurationSourceChangeEvent {
     pub fn new(source: &dyn ConfigurationSource, change_time: u128) -> Self {
         DefaultConfigurationSourceChangeEvent {
             source: ConfigurationSource::clone_boxed(source),
-            change_time
+            change_time,
         }
     }
 }
@@ -154,11 +174,10 @@ impl PartialEq for DefaultConfigurationSourceChangeEvent {
     }
 }
 
-unsafe impl Sync for DefaultConfigurationSourceChangeEvent { }
-unsafe impl Send for DefaultConfigurationSourceChangeEvent { }
+unsafe impl Sync for DefaultConfigurationSourceChangeEvent {}
+unsafe impl Send for DefaultConfigurationSourceChangeEvent {}
 
 impl ConfigurationSourceChangeEvent for DefaultConfigurationSourceChangeEvent {
-
     fn get_source(&self) -> &dyn ConfigurationSource {
         self.source.as_ref()
     }
@@ -167,16 +186,16 @@ impl ConfigurationSourceChangeEvent for DefaultConfigurationSourceChangeEvent {
         self.change_time
     }
 
-as_boxed!(impl ConfigurationSourceChangeEvent);
+    as_boxed!(impl ConfigurationSourceChangeEvent);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::property::default::*;
-    use std::sync::atomic::*;
     use crate::tests::init_log;
     use lang_extension::convert::*;
+    use std::sync::atomic::*;
 
     #[test]
     fn source_config_test() {
@@ -191,7 +210,7 @@ mod tests {
     fn source_test() {
         init_log();
 
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
             } else if k.equals("11".to_string().as_any_ref()) {
@@ -206,46 +225,63 @@ mod tests {
         let config = builder.set_name("test").build();
         let source = DefaultConfigurationSource::new(config.clone(), property_provider);
         println!("config source: {:?}", source);
-        assert_eq!(&config, &ConfigurationSourceConfig::clone_boxed(source.get_config()));
+        assert_eq!(
+            &config,
+            &ConfigurationSourceConfig::clone_boxed(source.get_config())
+        );
 
-        let value_converter = DefaultTypeConverter::<String, i32>::new(Box::new(|s|{
-            match s.parse::<i32>() {
+        let value_converter =
+            DefaultTypeConverter::<String, i32>::new(Box::new(|s| match s.parse::<i32>() {
                 Ok(v) => {
                     println!("parse value: {}", v);
                     Ok(Box::new(v))
-                },
+                }
                 Err(e) => {
                     println!("parse error: {}", e);
                     Err(Box::new(e.to_string()))
                 }
-            }
-        }));
+            }));
         let property_config = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key(Box::new("10".to_string())).build();
-        assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config.as_ref())));
+            .set_key(Box::new("10".to_string()))
+            .build();
+        assert_eq!(
+            Some(Value::to_boxed(10)),
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config.as_ref()))
+        );
         let property_config2 = DefaultPropertyConfigBuilder::<String, i32>::new()
-            .set_key(Box::new("1".to_string())).build();
-        assert_eq!(None, source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config2.as_ref())));
+            .set_key(Box::new("1".to_string()))
+            .build();
+        assert_eq!(
+            None,
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config2.as_ref()))
+        );
         let property_config3 = DefaultPropertyConfigBuilder::<i32, i32>::new()
-            .set_key(Box::new(1)).build();
-        assert_eq!(None, source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config3.as_ref())));
+            .set_key(Box::new(1))
+            .build();
+        assert_eq!(
+            None,
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config3.as_ref()))
+        );
         let property_config4 = DefaultPropertyConfigBuilder::<String, i32>::new()
             .set_key(Box::new("11".to_string()))
-            .add_value_converter(Box::new(value_converter.clone())).build();
-        assert_eq!(Some(Value::to_boxed(11)), source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config4.as_ref())));
+            .add_value_converter(Box::new(value_converter.clone()))
+            .build();
+        assert_eq!(
+            Some(Value::to_boxed(11)),
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config4.as_ref()))
+        );
         let property_config5 = DefaultPropertyConfigBuilder::<String, i32>::new()
             .set_key(Box::new("xx".to_string()))
-            .add_value_converter(Box::new(value_converter.clone())).build();
-        assert_eq!(None, source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config5.as_ref())));
+            .add_value_converter(Box::new(value_converter.clone()))
+            .build();
+        assert_eq!(
+            None,
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config5.as_ref()))
+        );
 
         let changed = Arc::new(AtomicBool::default());
         let changed_clone = changed.clone();
-        source.add_change_listener(Arc::new(Box::new(move |e|{
+        source.add_change_listener(Arc::new(Box::new(move |e| {
             println!("event: {:?}", e);
             changed_clone.swap(true, Ordering::Relaxed);
         })));
@@ -256,7 +292,7 @@ mod tests {
 
     #[test]
     fn source_event_test() {
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
             } else {
@@ -266,10 +302,11 @@ mod tests {
         let mut builder = DefaultConfigurationSourceConfigBuilder::new();
         let config = builder.set_name("test").build();
         let source = DefaultConfigurationSource::new(config.clone(), property_provider);
- 
+
         let start = SystemTime::now();
         let since_the_epoch = start.duration_since(UNIX_EPOCH).unwrap();
-        let event = DefaultConfigurationSourceChangeEvent::new(&source, since_the_epoch.as_millis());
+        let event =
+            DefaultConfigurationSourceChangeEvent::new(&source, since_the_epoch.as_millis());
         println!("source event: {:?}", event);
 
         assert!(source.equals(event.get_source().as_any_ref()));

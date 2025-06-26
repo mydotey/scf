@@ -4,16 +4,16 @@ use lang_extension::any::*;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-use crate::property::*;
-use crate::property::default::*;
-use crate::source::*;
-use crate::source::default::*;
-use crate::manager::*;
 use crate::manager::default::*;
+use crate::manager::*;
+use crate::property::default::*;
+use crate::property::*;
+use crate::source::default::*;
+use crate::source::*;
 
 /// facade to create new managers
 pub struct ConfigurationManagers {
-    _placeholder: PhantomData<i32>
+    _placeholder: PhantomData<i32>,
 }
 
 impl ConfigurationManagers {
@@ -21,29 +21,31 @@ impl ConfigurationManagers {
         Box::new(DefaultConfigurationManagerConfigBuilder::new())
     }
 
-    pub fn new_manager(config: Box<dyn ConfigurationManagerConfig>) -> Box<dyn ConfigurationManager> {
+    pub fn new_manager(
+        config: Box<dyn ConfigurationManagerConfig>,
+    ) -> Box<dyn ConfigurationManager> {
         Box::new(DefaultConfigurationManager::new(config))
     }
 }
 
 /// facade to create new properties
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ConfigurationProperties {
-    manager: Arc<Box<dyn ConfigurationManager>>
+    manager: Arc<Box<dyn ConfigurationManager>>,
 }
 
-unsafe impl Sync for ConfigurationProperties { }
-unsafe impl Send for ConfigurationProperties { }
+unsafe impl Sync for ConfigurationProperties {}
+unsafe impl Send for ConfigurationProperties {}
 
 impl ConfigurationProperties {
     pub fn new_config_builder<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>()
-        -> Box<dyn PropertyConfigBuilder<K, V>> {
+    -> Box<dyn PropertyConfigBuilder<K, V>> {
         Box::new(DefaultPropertyConfigBuilder::new())
     }
 
     pub fn new(manager: Box<dyn ConfigurationManager>) -> Self {
         Self {
-            manager: Arc::new(manager)
+            manager: Arc::new(manager),
         }
     }
 
@@ -51,27 +53,36 @@ impl ConfigurationProperties {
         self.manager.as_ref().as_ref()
     }
 
-    pub fn get_property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
-        config: &dyn PropertyConfig<K, V>) -> Box<dyn Property<K, V>> {
-        let p = self.manager.get_property(RawPropertyConfig::as_trait_ref(config));
+    pub fn get_property<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(
+        &self,
+        config: &dyn PropertyConfig<K, V>,
+    ) -> Box<dyn Property<K, V>> {
+        let p = self
+            .manager
+            .get_property(RawPropertyConfig::as_trait_ref(config));
         Property::<K, V>::to_boxed(DefaultProperty::from_raw(p.as_ref()))
     }
 
-    pub fn get_property_value<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(&self,
-        config: &dyn PropertyConfig<K, V>) -> Option<Box<V>> {
-        match self.manager.get_property_value(RawPropertyConfig::as_trait_ref(config)) {
+    pub fn get_property_value<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(
+        &self,
+        config: &dyn PropertyConfig<K, V>,
+    ) -> Option<Box<V>> {
+        match self
+            .manager
+            .get_property_value(RawPropertyConfig::as_trait_ref(config))
+        {
             Some(v) => match v.as_ref().as_any_ref().downcast_ref::<V>() {
-                    Some(v) => Some(Box::new(v.clone())),
-                    None => None
+                Some(v) => Some(Box::new(v.clone())),
+                None => None,
             },
-            None => None
+            None => None,
         }
     }
 }
 
 /// facade to create new sources
 pub struct ConfigurationSources {
-    _placeholder: PhantomData<i32>
+    _placeholder: PhantomData<i32>,
 }
 
 impl ConfigurationSources {
@@ -80,7 +91,9 @@ impl ConfigurationSources {
     }
 
     pub fn new_config(name: &str) -> Box<dyn ConfigurationSourceConfig> {
-        DefaultConfigurationSourceConfigBuilder::new().set_name(name).build()
+        DefaultConfigurationSourceConfigBuilder::new()
+            .set_name(name)
+            .build()
     }
 }
 
@@ -90,39 +103,60 @@ mod tests {
     use crate::tests::init_log;
     use lang_extension::convert::*;
     use std::any::*;
-    use std::sync::atomic::*;
     use std::collections::HashMap;
+    use std::sync::atomic::*;
     use std::sync::*;
 
-    fn new_source(config: Box<dyn ConfigurationSourceConfig>, property_provider: PropertyProvider)
-        -> Box<dyn ConfigurationSource> 
-    {
+    fn new_source(
+        config: Box<dyn ConfigurationSourceConfig>,
+        property_provider: PropertyProvider,
+    ) -> Box<dyn ConfigurationSource> {
         ConfigurationSource::to_boxed(DefaultConfigurationSource::new(config, property_provider))
     }
 
     #[test]
     fn new_property_config() {
-        let c = DefaultTypeConverter::<String, i32>::new(
-            Box::new(move |v| match v.parse::<i32>() {
+        let c =
+            DefaultTypeConverter::<String, i32>::new(Box::new(move |v| match v.parse::<i32>() {
                 Ok(v) => Ok(Box::new(v)),
-                Err(err) => Err(Box::new(err))
+                Err(err) => Err(Box::new(err)),
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
+            if *v > 10 {
+                Some(Box::new(*v + 1))
+            } else if *v >= 0 {
+                Some(v)
+            } else {
+                None
+            }
         }));
 
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let config = builder.set_key(Box::new("test".to_string())).set_default_value(Box::new(0))
+        let config = builder
+            .set_key(Box::new("test".to_string()))
+            .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
-            .add_value_converter(RawTypeConverter::to_boxed(c)).build();
+            .add_value_converter(RawTypeConverter::to_boxed(c))
+            .build();
         println!("property config: {:?}", config);
         assert_eq!("test".to_string(), *config.get_key());
         assert_eq!(0.type_id(), config.get_value_type());
         assert_eq!(Some(Box::new(0)), config.get_default_value());
-        assert_eq!(Some(Value::to_boxed(12)),
-            config.get_value_filter().unwrap().filter_raw(Value::to_boxed(11)));
-        assert_eq!(Ok(Value::to_boxed(10)),
-            config.get_value_converters().get(0).unwrap().convert_raw(Value::as_trait_ref(&"10".to_string())));
+        assert_eq!(
+            Some(Value::to_boxed(12)),
+            config
+                .get_value_filter()
+                .unwrap()
+                .filter_raw(Value::to_boxed(11))
+        );
+        assert_eq!(
+            Ok(Value::to_boxed(10)),
+            config
+                .get_value_converters()
+                .get(0)
+                .unwrap()
+                .convert_raw(Value::as_trait_ref(&"10".to_string()))
+        );
     }
 
     #[test]
@@ -139,7 +173,7 @@ mod tests {
 
         let mut builder = ConfigurationSources::new_config_builder();
         let config = builder.set_name("test").build();
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
             } else {
@@ -150,20 +184,26 @@ mod tests {
         println!("configuration source: {:?}", source);
         assert_eq!("test", source.get_config().get_name());
         let property_config = ConfigurationProperties::new_config_builder::<String, i32>()
-            .set_key(Box::new("10".to_string())).build();
-        assert_eq!(Some(Value::to_boxed(10)), source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config.as_ref())));
+            .set_key(Box::new("10".to_string()))
+            .build();
+        assert_eq!(
+            Some(Value::to_boxed(10)),
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config.as_ref()))
+        );
         let property_config = ConfigurationProperties::new_config_builder::<String, i32>()
-            .set_key(Box::new("11".to_string())).build();
-        assert_eq!(None, source.get_property_value(
-            RawPropertyConfig::as_trait_ref(property_config.as_ref())));
+            .set_key(Box::new("11".to_string()))
+            .build();
+        assert_eq!(
+            None,
+            source.get_property_value(RawPropertyConfig::as_trait_ref(property_config.as_ref()))
+        );
     }
 
     #[test]
     fn new_manager_config() {
         let mut builder = ConfigurationSources::new_config_builder();
         let config = builder.set_name("test").build();
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
             } else {
@@ -172,13 +212,16 @@ mod tests {
         }));
         let source = new_source(config, property_provider);
         let mut builder = ConfigurationManagers::new_config_builder();
-        let config = builder.set_name("test-manager").add_source(1, source).build();
+        let config = builder
+            .set_name("test-manager")
+            .add_source(1, source)
+            .build();
         println!("manager config: {:?}", config);
         assert_eq!("test-manager", config.get_name());
         assert_eq!(1, config.get_sources().len());
         let changed = Arc::new(AtomicBool::default());
         let changed_clone = changed.clone();
-        let action: Box<dyn Fn()> = Box::new(move ||{
+        let action: Box<dyn Fn()> = Box::new(move || {
             changed_clone.swap(true, Ordering::Relaxed);
             println!("OK");
         });
@@ -192,7 +235,7 @@ mod tests {
 
         let mut builder = ConfigurationSources::new_config_builder();
         let source_config = builder.set_name("test").build();
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("10".to_string().as_any_ref()) {
                 Some(Value::to_boxed(10))
             } else {
@@ -201,28 +244,41 @@ mod tests {
         }));
         let source = new_source(source_config, property_provider);
         let mut builder = ConfigurationManagers::new_config_builder();
-        let config = builder.set_name("test-manager").add_source(1, source).build();
+        let config = builder
+            .set_name("test-manager")
+            .add_source(1, source)
+            .build();
         let manager = ConfigurationManagers::new_manager(config);
         println!("manager: {:?}", manager);
         assert_eq!("test-manager", manager.get_config().get_name());
 
-        let c = DefaultTypeConverter::<String, i32>::new(
-            Box::new(move |v| match v.parse::<i32>() {
+        let c =
+            DefaultTypeConverter::<String, i32>::new(Box::new(move |v| match v.parse::<i32>() {
                 Ok(v) => Ok(Box::new(v)),
-                Err(err) => Err(Box::new(err))
+                Err(err) => Err(Box::new(err)),
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
+            if *v > 10 {
+                Some(Box::new(*v + 1))
+            } else if *v >= 0 {
+                Some(v)
+            } else {
+                None
+            }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let property_config = builder.set_key(Box::new("10".to_string()))
+        let property_config = builder
+            .set_key(Box::new("10".to_string()))
             .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::to_boxed(f))
-            .add_value_converter(RawTypeConverter::to_boxed(c)).build();
-        let property = manager.get_property(RawPropertyConfig::as_trait_ref(property_config.as_ref()));
+            .add_value_converter(RawTypeConverter::to_boxed(c))
+            .build();
+        let property =
+            manager.get_property(RawPropertyConfig::as_trait_ref(property_config.as_ref()));
         assert_eq!(Some(Value::to_boxed(10)), property.get_raw_value());
 
-        let value = manager.get_property_value(RawPropertyConfig::as_trait_ref(property_config.as_ref()));
+        let value =
+            manager.get_property_value(RawPropertyConfig::as_trait_ref(property_config.as_ref()));
         assert_eq!(Some(Value::to_boxed(10)), value);
     }
 
@@ -232,7 +288,7 @@ mod tests {
 
         let mut builder = ConfigurationSources::new_config_builder();
         let source_config = builder.set_name("test").build();
-        let property_provider: PropertyProvider = Arc::new(Box::new(|k|{
+        let property_provider: PropertyProvider = Arc::new(Box::new(|k| {
             if k.equals("key_ok".to_string().as_any_ref()) {
                 Some(Value::to_boxed(20))
             } else {
@@ -242,49 +298,75 @@ mod tests {
         let source = new_source(source_config, property_provider);
 
         let memory_map = Arc::new(RwLock::new(HashMap::<String, String>::new()));
-        memory_map.write().unwrap().insert("key_ok".to_string(), "10".to_string());
-        memory_map.write().unwrap().insert("key_error".to_string(), "error".to_string());
+        memory_map
+            .write()
+            .unwrap()
+            .insert("key_ok".to_string(), "10".to_string());
+        memory_map
+            .write()
+            .unwrap()
+            .insert("key_error".to_string(), "error".to_string());
         let memory_map2 = memory_map.clone();
-        let source_config2 = ConfigurationSources::new_config_builder().set_name("dynamic_source").build();
+        let source_config2 = ConfigurationSources::new_config_builder()
+            .set_name("dynamic_source")
+            .build();
         let source2 = DefaultConfigurationSource::new(
             source_config2,
             Arc::new(Box::new(move |o| -> Option<Box<dyn Value>> {
                 match o.as_any_ref().downcast_ref::<String>() {
-                    Some(k) => memory_map2.read().unwrap().get(k).map(|v|Value::clone_boxed(v)),
-                    None => None
+                    Some(k) => memory_map2
+                        .read()
+                        .unwrap()
+                        .get(k)
+                        .map(|v| Value::clone_boxed(v)),
+                    None => None,
                 }
-            })));
- 
+            })),
+        );
+
         let mut builder = ConfigurationManagers::new_config_builder();
-        let config = builder.set_name("test-manager").add_source(1, source)
-            .add_source(2, Box::new(source2.clone())).build();
+        let config = builder
+            .set_name("test-manager")
+            .add_source(1, source)
+            .add_source(2, Box::new(source2.clone()))
+            .build();
         let manager = ConfigurationManagers::new_manager(config);
         let properties = ConfigurationProperties::new(manager);
         println!("properties: {:?}", properties);
 
-        let c = DefaultTypeConverter::<String, i32>::new(
-            Box::new(move |v| match v.parse::<i32>() {
+        let c =
+            DefaultTypeConverter::<String, i32>::new(Box::new(move |v| match v.parse::<i32>() {
                 Ok(v) => Ok(Box::new(v)),
-                Err(err) => Err(Box::new(err))
+                Err(err) => Err(Box::new(err)),
             }));
         let f = DefaultValueFilter::new(Box::new(move |v| {
-            if *v > 10 { Some(Box::new(*v + 1)) } else if *v >= 0 { Some(v) } else { None }
+            if *v > 10 {
+                Some(Box::new(*v + 1))
+            } else if *v >= 0 {
+                Some(v)
+            } else {
+                None
+            }
         }));
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let property_config = builder.set_key(Box::new("key_ok".to_string()))
+        let property_config = builder
+            .set_key(Box::new("key_ok".to_string()))
             .set_default_value(Box::new(0))
             .set_value_filter(ValueFilter::clone_boxed(&f))
             .add_value_converter(RawTypeConverter::clone_boxed(&c))
-            .set_doc("for test").build();
+            .set_doc("for test")
+            .build();
         let property = properties.get_property(property_config.as_ref());
         let value = properties.get_property_value(property_config.as_ref());
         assert_eq!(Some(Box::new(10)), property.get_value());
         assert_eq!(Some(Box::new(10)), value);
 
         let mut builder = ConfigurationProperties::new_config_builder::<String, i32>();
-        let property_config2 = builder.set_key(Box::new("key_error".to_string()))
+        let property_config2 = builder
+            .set_key(Box::new("key_error".to_string()))
             .set_value_filter(ValueFilter::to_boxed(f))
-            .add_value_converter(RawTypeConverter::to_boxed(c)).build();
+            .add_value_converter(RawTypeConverter::to_boxed(c))
+            .build();
         let property2 = properties.get_property(property_config2.as_ref());
         let value2 = properties.get_property_value(property_config2.as_ref());
         assert_eq!(None, property2.get_value());
@@ -296,7 +378,10 @@ mod tests {
             println!("changed: {:?}", e);
             changed_clone.swap(true, Ordering::Relaxed);
         })));
-        memory_map.write().unwrap().insert("key_ok".to_string(), "12".to_string());
+        memory_map
+            .write()
+            .unwrap()
+            .insert("key_ok".to_string(), "12".to_string());
         source2.raise_change_event();
         assert_eq!(Some(Box::new(13)), property.get_value());
         assert!(changed.fetch_and(true, Ordering::Relaxed));
@@ -305,5 +390,4 @@ mod tests {
         source2.raise_change_event();
         assert_eq!(Some(Box::new(21)), property.get_value());
     }
-
 }

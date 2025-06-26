@@ -1,30 +1,30 @@
-
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::fmt;
+use std::sync::Arc;
 
 use lang_extension::any::*;
-use scf_core::source::*;
-use scf_core::source::default::*;
 use scf_core::property::*;
+use scf_core::source::default::*;
+use scf_core::source::*;
 
 #[derive(Clone)]
 pub struct TestConfigurationSource {
-    source: DefaultConfigurationSource
+    source: DefaultConfigurationSource,
 }
 
 impl TestConfigurationSource {
-    pub fn new(config: Box<dyn ConfigurationSourceConfig>, properties: HashMap<String, String>) -> Self {
-        let property_provider: PropertyProvider = Arc::new(Box::new(move |k|{
+    pub fn new(
+        config: Box<dyn ConfigurationSourceConfig>,
+        properties: HashMap<String, String>,
+    ) -> Self {
+        let property_provider: PropertyProvider = Arc::new(Box::new(move |k| {
             match k.as_any_ref().downcast_ref::<String>() {
-                Some(k) => properties.get(k).map(|v|Value::clone_boxed(v)),
-                None => None
+                Some(k) => properties.get(k).map(|v| Value::clone_boxed(v)),
+                None => None,
             }
         }));
         let source = DefaultConfigurationSource::new(config, property_provider);
-        Self {
-            source
-        }
+        Self { source }
     }
 }
 
@@ -34,18 +34,21 @@ impl PartialEq for TestConfigurationSource {
     }
 }
 
-impl Eq for TestConfigurationSource {
-
-}
+impl Eq for TestConfigurationSource {}
 
 impl fmt::Debug for TestConfigurationSource {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {{ config: {:?} }}", self.type_name(), self.source.get_config())
+        write!(
+            f,
+            "{} {{ config: {:?} }}",
+            self.type_name(),
+            self.source.get_config()
+        )
     }
 }
 
-unsafe impl Sync for TestConfigurationSource { }
-unsafe impl Send for TestConfigurationSource { }
+unsafe impl Sync for TestConfigurationSource {}
+unsafe impl Send for TestConfigurationSource {}
 
 impl ConfigurationSource for TestConfigurationSource {
     fn get_config(&self) -> &dyn ConfigurationSourceConfig {
@@ -60,5 +63,5 @@ impl ConfigurationSource for TestConfigurationSource {
         self.source.add_change_listener(listener);
     }
 
-as_boxed!(impl ConfigurationSource);
+    as_boxed!(impl ConfigurationSource);
 }

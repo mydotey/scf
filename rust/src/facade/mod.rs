@@ -1,7 +1,6 @@
 //! facade tools for user
 
 use lang_extension::any::*;
-use std::marker::PhantomData;
 use std::sync::Arc;
 
 use crate::manager::default::*;
@@ -12,9 +11,7 @@ use crate::source::default::*;
 use crate::source::*;
 
 /// facade to create new managers
-pub struct ConfigurationManagers {
-    _placeholder: PhantomData<i32>,
-}
+pub struct ConfigurationManagers;
 
 impl ConfigurationManagers {
     pub fn new_config_builder() -> Box<dyn ConfigurationManagerConfigBuilder> {
@@ -60,7 +57,7 @@ impl ConfigurationProperties {
         let p = self
             .manager
             .get_property(RawPropertyConfig::as_trait_ref(config));
-        Property::<K, V>::to_boxed(DefaultProperty::from_raw(p.as_ref()))
+        Property::to_boxed(DefaultProperty::from_raw(p.as_ref()))
     }
 
     pub fn get_property_value<K: ?Sized + KeyConstraint, V: ?Sized + ValueConstraint>(
@@ -81,9 +78,7 @@ impl ConfigurationProperties {
 }
 
 /// facade to create new sources
-pub struct ConfigurationSources {
-    _placeholder: PhantomData<i32>,
-}
+pub struct ConfigurationSources;
 
 impl ConfigurationSources {
     pub fn new_config_builder() -> Box<dyn ConfigurationSourceConfigBuilder> {
